@@ -34,7 +34,6 @@ services:
     restart: unless-stopped
 
   redis:
-    platform: linux/x86_64 # m1 MacOS의 경우
     image: redis:6.2
     container_name: redis
     environment:

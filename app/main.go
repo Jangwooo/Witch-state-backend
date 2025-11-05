@@ -76,9 +76,10 @@ func main() {
 
 	// 8. 라우터 설정
 	v1.SetupRoutes(app, &v1.RouterConfig{
-		SessionStore: deps.SessionStore,
-		StoveHandler: deps.StoveHandler,
-		UserHandler:  deps.UserHandler,
+		SessionStore:  deps.SessionStore,
+		StoveHandler:  deps.StoveHandler,
+		UserHandler:   deps.UserHandler,
+		RecordHandler: deps.RecordHandler,
 	})
 
 	// 9. 서버 시작
