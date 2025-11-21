@@ -10,8 +10,8 @@ import (
 
 type RecordUseCase interface {
 	Create(ctx context.Context, userID uuid.UUID, req *entity.CreateRecordRequest) (*repository.SingleRecordResponse, error)
-	List(ctx context.Context, userID, musicID, stageID uuid.UUID) (*repository.ListRecordResponse, error)
-	Best(ctx context.Context, userID, musicID, stageID uuid.UUID) (*repository.BestRecordResponse, error)
+	List(ctx context.Context, userID uuid.UUID, musicID, stageID string) (*repository.ListRecordResponse, error)
+	Best(ctx context.Context, userID uuid.UUID, musicID, stageID string) (*repository.BestRecordResponse, error)
 }
 
 type recordUseCase struct {
@@ -31,7 +31,7 @@ func (u *recordUseCase) Create(ctx context.Context, userID uuid.UUID, req *entit
 	return &repository.SingleRecordResponse{Record: rr}, nil
 }
 
-func (u *recordUseCase) List(ctx context.Context, userID, musicID, stageID uuid.UUID) (*repository.ListRecordResponse, error) {
+func (u *recordUseCase) List(ctx context.Context, userID uuid.UUID, musicID, stageID string) (*repository.ListRecordResponse, error) {
 	list, err := u.recordRepo.ListByUserAndMusicStage(ctx, userID, musicID, stageID)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func (u *recordUseCase) List(ctx context.Context, userID, musicID, stageID uuid.
 	return &repository.ListRecordResponse{Records: out}, nil
 }
 
-func (u *recordUseCase) Best(ctx context.Context, userID, musicID, stageID uuid.UUID) (*repository.BestRecordResponse, error) {
+func (u *recordUseCase) Best(ctx context.Context, userID uuid.UUID, musicID, stageID string) (*repository.BestRecordResponse, error) {
 	best, err := u.recordRepo.BestByUserAndMusicStage(ctx, userID, musicID, stageID)
 	if err != nil {
 		return &repository.BestRecordResponse{Record: nil}, nil
@@ -73,7 +73,6 @@ func toRecordResponse(r *entity.Record) repository.RecordResponse {
 		Rank:          string(r.Rank),
 		IsFullCombo:   r.IsFullCombo,
 		IsPerfectPlay: r.IsPerfectPlay,
-		PlayedAt:      r.PlayedAt.Format("2006-01-02T15:04:05Z07:00"),
 		PlayDuration:  r.PlayDuration,
 		Additional:    r.AdditionalInfo,
 		CreatedAt:     r.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),

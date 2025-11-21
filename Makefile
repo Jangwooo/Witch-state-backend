@@ -1,11 +1,11 @@
 SHELL = /bin/bash
 
 dev-start:
-	docker-compose --env-file .env -f docker-compose.dev.yml up -d --build
+	docker-compose -f docker-compose.dev.yml up -d --build
 
 prod-start:
 	docker pull kjw2262/witchs_lounge_backend:latest
-	docker-compose --env-file .env.prod -f docker-compose.prod.yml up -d
+	docker-compose -f docker-compose.prod.yml up -d
 
 manual-push:
 	 docker buildx build --platform linux/amd64 --push -f Dockerfile.prod -t kjw2262/witchs_lounge_backend:latest .

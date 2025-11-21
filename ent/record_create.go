@@ -60,14 +60,14 @@ func (rc *RecordCreate) SetUserID(u uuid.UUID) *RecordCreate {
 }
 
 // SetMusicID sets the "music_id" field.
-func (rc *RecordCreate) SetMusicID(u uuid.UUID) *RecordCreate {
-	rc.mutation.SetMusicID(u)
+func (rc *RecordCreate) SetMusicID(s string) *RecordCreate {
+	rc.mutation.SetMusicID(s)
 	return rc
 }
 
 // SetStageID sets the "stage_id" field.
-func (rc *RecordCreate) SetStageID(u uuid.UUID) *RecordCreate {
-	rc.mutation.SetStageID(u)
+func (rc *RecordCreate) SetStageID(s string) *RecordCreate {
+	rc.mutation.SetStageID(s)
 	return rc
 }
 
@@ -205,20 +205,6 @@ func (rc *RecordCreate) SetIsPerfectPlay(b bool) *RecordCreate {
 func (rc *RecordCreate) SetNillableIsPerfectPlay(b *bool) *RecordCreate {
 	if b != nil {
 		rc.SetIsPerfectPlay(*b)
-	}
-	return rc
-}
-
-// SetPlayedAt sets the "played_at" field.
-func (rc *RecordCreate) SetPlayedAt(t time.Time) *RecordCreate {
-	rc.mutation.SetPlayedAt(t)
-	return rc
-}
-
-// SetNillablePlayedAt sets the "played_at" field if the given value is not nil.
-func (rc *RecordCreate) SetNillablePlayedAt(t *time.Time) *RecordCreate {
-	if t != nil {
-		rc.SetPlayedAt(*t)
 	}
 	return rc
 }
@@ -366,10 +352,6 @@ func (rc *RecordCreate) defaults() {
 		v := record.DefaultIsPerfectPlay
 		rc.mutation.SetIsPerfectPlay(v)
 	}
-	if _, ok := rc.mutation.PlayedAt(); !ok {
-		v := record.DefaultPlayedAt()
-		rc.mutation.SetPlayedAt(v)
-	}
 	if _, ok := rc.mutation.IsValid(); !ok {
 		v := record.DefaultIsValid
 		rc.mutation.SetIsValid(v)
@@ -431,9 +413,6 @@ func (rc *RecordCreate) check() error {
 	}
 	if _, ok := rc.mutation.IsPerfectPlay(); !ok {
 		return &ValidationError{Name: "is_perfect_play", err: errors.New(`ent: missing required field "Record.is_perfect_play"`)}
-	}
-	if _, ok := rc.mutation.PlayedAt(); !ok {
-		return &ValidationError{Name: "played_at", err: errors.New(`ent: missing required field "Record.played_at"`)}
 	}
 	if _, ok := rc.mutation.IsValid(); !ok {
 		return &ValidationError{Name: "is_valid", err: errors.New(`ent: missing required field "Record.is_valid"`)}
@@ -533,10 +512,6 @@ func (rc *RecordCreate) createSpec() (*Record, *sqlgraph.CreateSpec) {
 		_spec.SetField(record.FieldIsPerfectPlay, field.TypeBool, value)
 		_node.IsPerfectPlay = value
 	}
-	if value, ok := rc.mutation.PlayedAt(); ok {
-		_spec.SetField(record.FieldPlayedAt, field.TypeTime, value)
-		_node.PlayedAt = value
-	}
 	if value, ok := rc.mutation.PlayDuration(); ok {
 		_spec.SetField(record.FieldPlayDuration, field.TypeInt, value)
 		_node.PlayDuration = value
@@ -574,7 +549,7 @@ func (rc *RecordCreate) createSpec() (*Record, *sqlgraph.CreateSpec) {
 			Columns: []string{record.MusicColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(music.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(music.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -591,7 +566,7 @@ func (rc *RecordCreate) createSpec() (*Record, *sqlgraph.CreateSpec) {
 			Columns: []string{record.StageColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

@@ -561,8 +561,8 @@ func (rq *RecordQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*
 	return nil
 }
 func (rq *RecordQuery) loadMusic(ctx context.Context, query *MusicQuery, nodes []*Record, init func(*Record), assign func(*Record, *Music)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*Record)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Record)
 	for i := range nodes {
 		fk := nodes[i].MusicID
 		if _, ok := nodeids[fk]; !ok {
@@ -590,8 +590,8 @@ func (rq *RecordQuery) loadMusic(ctx context.Context, query *MusicQuery, nodes [
 	return nil
 }
 func (rq *RecordQuery) loadStage(ctx context.Context, query *StageQuery, nodes []*Record, init func(*Record), assign func(*Record, *Stage)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*Record)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Record)
 	for i := range nodes {
 		fk := nodes[i].StageID
 		if _, ok := nodeids[fk]; !ok {

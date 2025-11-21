@@ -9,7 +9,6 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/google/uuid"
 	"github.com/witchs-lounge_backend/ent/music"
 )
 
@@ -17,8 +16,8 @@ import (
 type Music struct {
 	config `json:"-"`
 	// ID of the ent.
-	// Global custom UUID ID
-	ID uuid.UUID `json:"id,omitempty"`
+	// 곡 ID
+	ID string `json:"id,omitempty"`
 	// Created time
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Updated time
@@ -29,10 +28,6 @@ type Music struct {
 	Artist string `json:"artist,omitempty"`
 	// 작곡가
 	Composer string `json:"composer,omitempty"`
-	// 음악 파일 경로
-	MusicSource string `json:"music_source,omitempty"`
-	// 재킷 이미지 경로
-	JacketSource string `json:"jacket_source,omitempty"`
 	// 곡 길이(초)
 	Duration float64 `json:"duration,omitempty"`
 	// BPM
@@ -97,12 +92,10 @@ func (*Music) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case music.FieldUnlockLevel:
 			values[i] = new(sql.NullInt64)
-		case music.FieldName, music.FieldArtist, music.FieldComposer, music.FieldMusicSource, music.FieldJacketSource, music.FieldGenre, music.FieldDescription:
+		case music.FieldID, music.FieldName, music.FieldArtist, music.FieldComposer, music.FieldGenre, music.FieldDescription:
 			values[i] = new(sql.NullString)
 		case music.FieldCreatedAt, music.FieldUpdatedAt, music.FieldReleaseDate:
 			values[i] = new(sql.NullTime)
-		case music.FieldID:
-			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -119,10 +112,10 @@ func (m *Music) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case music.FieldID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
-			} else if value != nil {
-				m.ID = *value
+			} else if value.Valid {
+				m.ID = value.String
 			}
 		case music.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -153,18 +146,6 @@ func (m *Music) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field composer", values[i])
 			} else if value.Valid {
 				m.Composer = value.String
-			}
-		case music.FieldMusicSource:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field music_source", values[i])
-			} else if value.Valid {
-				m.MusicSource = value.String
-			}
-		case music.FieldJacketSource:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field jacket_source", values[i])
-			} else if value.Valid {
-				m.JacketSource = value.String
 			}
 		case music.FieldDuration:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
@@ -281,12 +262,6 @@ func (m *Music) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("composer=")
 	builder.WriteString(m.Composer)
-	builder.WriteString(", ")
-	builder.WriteString("music_source=")
-	builder.WriteString(m.MusicSource)
-	builder.WriteString(", ")
-	builder.WriteString("jacket_source=")
-	builder.WriteString(m.JacketSource)
 	builder.WriteString(", ")
 	builder.WriteString("duration=")
 	builder.WriteString(fmt.Sprintf("%v", m.Duration))

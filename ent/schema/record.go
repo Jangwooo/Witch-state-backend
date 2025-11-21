@@ -1,8 +1,6 @@
 package schema
 
 import (
-	"time"
-
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -28,9 +26,9 @@ func (Record) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("user_id", uuid.UUID{}).
 			Comment("유저 ID"),
-		field.UUID("music_id", uuid.UUID{}).
+		field.Text("music_id").
 			Comment("음악 ID"),
-		field.UUID("stage_id", uuid.UUID{}).
+		field.Text("stage_id").
 			Comment("스테이지 ID"),
 		field.UUID("character_id", uuid.UUID{}).
 			Comment("캐릭터 ID"),
@@ -54,8 +52,6 @@ func (Record) Fields() []ent.Field {
 			Comment("풀콤보 여부"),
 		field.Bool("is_perfect_play").Default(false).
 			Comment("퍼펙트 플레이 여부"),
-		field.Time("played_at").Default(time.Now).
-			Comment("플레이 시간"),
 		field.Int("play_duration").Optional().
 			Comment("플레이 소요시간(초)"),
 		field.JSON("additional_info", map[string]interface{}{}).Optional().
@@ -98,6 +94,5 @@ func (Record) Indexes() []ent.Index {
 		index.Fields("user_id"),
 		index.Fields("music_id"),
 		index.Fields("stage_id"),
-		index.Fields("played_at"),
 	}
 }

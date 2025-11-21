@@ -7,53 +7,62 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/google/uuid"
 	"github.com/witchs-lounge_backend/ent/predicate"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id uuid.UUID) predicate.Music {
+func ID(id string) predicate.Music {
 	return predicate.Music(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id uuid.UUID) predicate.Music {
+func IDEQ(id string) predicate.Music {
 	return predicate.Music(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id uuid.UUID) predicate.Music {
+func IDNEQ(id string) predicate.Music {
 	return predicate.Music(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...uuid.UUID) predicate.Music {
+func IDIn(ids ...string) predicate.Music {
 	return predicate.Music(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...uuid.UUID) predicate.Music {
+func IDNotIn(ids ...string) predicate.Music {
 	return predicate.Music(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id uuid.UUID) predicate.Music {
+func IDGT(id string) predicate.Music {
 	return predicate.Music(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id uuid.UUID) predicate.Music {
+func IDGTE(id string) predicate.Music {
 	return predicate.Music(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id uuid.UUID) predicate.Music {
+func IDLT(id string) predicate.Music {
 	return predicate.Music(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id uuid.UUID) predicate.Music {
+func IDLTE(id string) predicate.Music {
 	return predicate.Music(sql.FieldLTE(FieldID, id))
+}
+
+// IDEqualFold applies the EqualFold predicate on the ID field.
+func IDEqualFold(id string) predicate.Music {
+	return predicate.Music(sql.FieldEqualFold(FieldID, id))
+}
+
+// IDContainsFold applies the ContainsFold predicate on the ID field.
+func IDContainsFold(id string) predicate.Music {
+	return predicate.Music(sql.FieldContainsFold(FieldID, id))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -79,16 +88,6 @@ func Artist(v string) predicate.Music {
 // Composer applies equality check predicate on the "composer" field. It's identical to ComposerEQ.
 func Composer(v string) predicate.Music {
 	return predicate.Music(sql.FieldEQ(FieldComposer, v))
-}
-
-// MusicSource applies equality check predicate on the "music_source" field. It's identical to MusicSourceEQ.
-func MusicSource(v string) predicate.Music {
-	return predicate.Music(sql.FieldEQ(FieldMusicSource, v))
-}
-
-// JacketSource applies equality check predicate on the "jacket_source" field. It's identical to JacketSourceEQ.
-func JacketSource(v string) predicate.Music {
-	return predicate.Music(sql.FieldEQ(FieldJacketSource, v))
 }
 
 // Duration applies equality check predicate on the "duration" field. It's identical to DurationEQ.
@@ -419,136 +418,6 @@ func ComposerEqualFold(v string) predicate.Music {
 // ComposerContainsFold applies the ContainsFold predicate on the "composer" field.
 func ComposerContainsFold(v string) predicate.Music {
 	return predicate.Music(sql.FieldContainsFold(FieldComposer, v))
-}
-
-// MusicSourceEQ applies the EQ predicate on the "music_source" field.
-func MusicSourceEQ(v string) predicate.Music {
-	return predicate.Music(sql.FieldEQ(FieldMusicSource, v))
-}
-
-// MusicSourceNEQ applies the NEQ predicate on the "music_source" field.
-func MusicSourceNEQ(v string) predicate.Music {
-	return predicate.Music(sql.FieldNEQ(FieldMusicSource, v))
-}
-
-// MusicSourceIn applies the In predicate on the "music_source" field.
-func MusicSourceIn(vs ...string) predicate.Music {
-	return predicate.Music(sql.FieldIn(FieldMusicSource, vs...))
-}
-
-// MusicSourceNotIn applies the NotIn predicate on the "music_source" field.
-func MusicSourceNotIn(vs ...string) predicate.Music {
-	return predicate.Music(sql.FieldNotIn(FieldMusicSource, vs...))
-}
-
-// MusicSourceGT applies the GT predicate on the "music_source" field.
-func MusicSourceGT(v string) predicate.Music {
-	return predicate.Music(sql.FieldGT(FieldMusicSource, v))
-}
-
-// MusicSourceGTE applies the GTE predicate on the "music_source" field.
-func MusicSourceGTE(v string) predicate.Music {
-	return predicate.Music(sql.FieldGTE(FieldMusicSource, v))
-}
-
-// MusicSourceLT applies the LT predicate on the "music_source" field.
-func MusicSourceLT(v string) predicate.Music {
-	return predicate.Music(sql.FieldLT(FieldMusicSource, v))
-}
-
-// MusicSourceLTE applies the LTE predicate on the "music_source" field.
-func MusicSourceLTE(v string) predicate.Music {
-	return predicate.Music(sql.FieldLTE(FieldMusicSource, v))
-}
-
-// MusicSourceContains applies the Contains predicate on the "music_source" field.
-func MusicSourceContains(v string) predicate.Music {
-	return predicate.Music(sql.FieldContains(FieldMusicSource, v))
-}
-
-// MusicSourceHasPrefix applies the HasPrefix predicate on the "music_source" field.
-func MusicSourceHasPrefix(v string) predicate.Music {
-	return predicate.Music(sql.FieldHasPrefix(FieldMusicSource, v))
-}
-
-// MusicSourceHasSuffix applies the HasSuffix predicate on the "music_source" field.
-func MusicSourceHasSuffix(v string) predicate.Music {
-	return predicate.Music(sql.FieldHasSuffix(FieldMusicSource, v))
-}
-
-// MusicSourceEqualFold applies the EqualFold predicate on the "music_source" field.
-func MusicSourceEqualFold(v string) predicate.Music {
-	return predicate.Music(sql.FieldEqualFold(FieldMusicSource, v))
-}
-
-// MusicSourceContainsFold applies the ContainsFold predicate on the "music_source" field.
-func MusicSourceContainsFold(v string) predicate.Music {
-	return predicate.Music(sql.FieldContainsFold(FieldMusicSource, v))
-}
-
-// JacketSourceEQ applies the EQ predicate on the "jacket_source" field.
-func JacketSourceEQ(v string) predicate.Music {
-	return predicate.Music(sql.FieldEQ(FieldJacketSource, v))
-}
-
-// JacketSourceNEQ applies the NEQ predicate on the "jacket_source" field.
-func JacketSourceNEQ(v string) predicate.Music {
-	return predicate.Music(sql.FieldNEQ(FieldJacketSource, v))
-}
-
-// JacketSourceIn applies the In predicate on the "jacket_source" field.
-func JacketSourceIn(vs ...string) predicate.Music {
-	return predicate.Music(sql.FieldIn(FieldJacketSource, vs...))
-}
-
-// JacketSourceNotIn applies the NotIn predicate on the "jacket_source" field.
-func JacketSourceNotIn(vs ...string) predicate.Music {
-	return predicate.Music(sql.FieldNotIn(FieldJacketSource, vs...))
-}
-
-// JacketSourceGT applies the GT predicate on the "jacket_source" field.
-func JacketSourceGT(v string) predicate.Music {
-	return predicate.Music(sql.FieldGT(FieldJacketSource, v))
-}
-
-// JacketSourceGTE applies the GTE predicate on the "jacket_source" field.
-func JacketSourceGTE(v string) predicate.Music {
-	return predicate.Music(sql.FieldGTE(FieldJacketSource, v))
-}
-
-// JacketSourceLT applies the LT predicate on the "jacket_source" field.
-func JacketSourceLT(v string) predicate.Music {
-	return predicate.Music(sql.FieldLT(FieldJacketSource, v))
-}
-
-// JacketSourceLTE applies the LTE predicate on the "jacket_source" field.
-func JacketSourceLTE(v string) predicate.Music {
-	return predicate.Music(sql.FieldLTE(FieldJacketSource, v))
-}
-
-// JacketSourceContains applies the Contains predicate on the "jacket_source" field.
-func JacketSourceContains(v string) predicate.Music {
-	return predicate.Music(sql.FieldContains(FieldJacketSource, v))
-}
-
-// JacketSourceHasPrefix applies the HasPrefix predicate on the "jacket_source" field.
-func JacketSourceHasPrefix(v string) predicate.Music {
-	return predicate.Music(sql.FieldHasPrefix(FieldJacketSource, v))
-}
-
-// JacketSourceHasSuffix applies the HasSuffix predicate on the "jacket_source" field.
-func JacketSourceHasSuffix(v string) predicate.Music {
-	return predicate.Music(sql.FieldHasSuffix(FieldJacketSource, v))
-}
-
-// JacketSourceEqualFold applies the EqualFold predicate on the "jacket_source" field.
-func JacketSourceEqualFold(v string) predicate.Music {
-	return predicate.Music(sql.FieldEqualFold(FieldJacketSource, v))
-}
-
-// JacketSourceContainsFold applies the ContainsFold predicate on the "jacket_source" field.
-func JacketSourceContainsFold(v string) predicate.Music {
-	return predicate.Music(sql.FieldContainsFold(FieldJacketSource, v))
 }
 
 // DurationEQ applies the EQ predicate on the "duration" field.

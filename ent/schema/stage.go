@@ -1,11 +1,11 @@
 package schema
 
 import (
+	"time"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
-	"github.com/witchs-lounge_backend/ent/schema/mixin"
 )
 
 // Stage holds the schema definition for the Stage entity.
@@ -13,17 +13,23 @@ type Stage struct {
 	ent.Schema
 }
 
-// Mixin of the Stage.
-func (Stage) Mixin() []ent.Mixin {
-	return []ent.Mixin{
-		mixin.GlobalMixin{},
-	}
-}
-
 // Fields of the Stage.
 func (Stage) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("music_id", uuid.UUID{}).
+		field.Text("id").
+			Immutable().
+			Unique().
+			Comment("곡 ID"),
+		field.Time("created_at").
+			Default(time.Now).
+			Immutable().
+			Comment("Created time"),
+		field.Time("updated_at").
+			Default(time.Now).
+			UpdateDefault(time.Now).
+			Comment("Updated time"),
+
+		field.Text("music_id").
 			Comment("음악 ID"),
 		field.Text("level_name").NotEmpty().
 			Comment("난이도 이름 (Easy, Normal, Hard, Expert)"),

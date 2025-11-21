@@ -80,14 +80,12 @@ var (
 	}
 	// MusicsColumns holds the columns for the "musics" table.
 	MusicsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "id", Type: field.TypeString, Unique: true, Size: 2147483647},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString, Size: 2147483647},
 		{Name: "artist", Type: field.TypeString, Size: 2147483647},
 		{Name: "composer", Type: field.TypeString, Nullable: true, Size: 2147483647},
-		{Name: "music_source", Type: field.TypeString, Size: 2147483647},
-		{Name: "jacket_source", Type: field.TypeString, Size: 2147483647},
 		{Name: "duration", Type: field.TypeFloat64},
 		{Name: "bpm", Type: field.TypeFloat64},
 		{Name: "genre", Type: field.TypeString, Nullable: true, Size: 2147483647},
@@ -151,13 +149,12 @@ var (
 		{Name: "rank", Type: field.TypeEnum, Nullable: true, Enums: []string{"F", "D", "C", "B", "A", "S", "SS", "SSS"}},
 		{Name: "is_full_combo", Type: field.TypeBool, Default: false},
 		{Name: "is_perfect_play", Type: field.TypeBool, Default: false},
-		{Name: "played_at", Type: field.TypeTime},
 		{Name: "play_duration", Type: field.TypeInt, Nullable: true},
 		{Name: "additional_info", Type: field.TypeJSON, Nullable: true},
 		{Name: "is_valid", Type: field.TypeBool, Default: true},
 		{Name: "character_id", Type: field.TypeUUID},
-		{Name: "music_id", Type: field.TypeUUID},
-		{Name: "stage_id", Type: field.TypeUUID},
+		{Name: "music_id", Type: field.TypeString, Size: 2147483647},
+		{Name: "stage_id", Type: field.TypeString, Size: 2147483647},
 		{Name: "user_id", Type: field.TypeUUID},
 	}
 	// RecordsTable holds the schema information for the "records" table.
@@ -168,25 +165,25 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "records_characters_records",
-				Columns:    []*schema.Column{RecordsColumns[17]},
+				Columns:    []*schema.Column{RecordsColumns[16]},
 				RefColumns: []*schema.Column{CharactersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "records_musics_records",
-				Columns:    []*schema.Column{RecordsColumns[18]},
+				Columns:    []*schema.Column{RecordsColumns[17]},
 				RefColumns: []*schema.Column{MusicsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "records_stages_records",
-				Columns:    []*schema.Column{RecordsColumns[19]},
+				Columns:    []*schema.Column{RecordsColumns[18]},
 				RefColumns: []*schema.Column{StagesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "records_users_records",
-				Columns:    []*schema.Column{RecordsColumns[20]},
+				Columns:    []*schema.Column{RecordsColumns[19]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -195,33 +192,28 @@ var (
 			{
 				Name:    "record_user_id_music_id_stage_id",
 				Unique:  false,
-				Columns: []*schema.Column{RecordsColumns[20], RecordsColumns[18], RecordsColumns[19]},
+				Columns: []*schema.Column{RecordsColumns[19], RecordsColumns[17], RecordsColumns[18]},
 			},
 			{
 				Name:    "record_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{RecordsColumns[20]},
+				Columns: []*schema.Column{RecordsColumns[19]},
 			},
 			{
 				Name:    "record_music_id",
 				Unique:  false,
-				Columns: []*schema.Column{RecordsColumns[18]},
+				Columns: []*schema.Column{RecordsColumns[17]},
 			},
 			{
 				Name:    "record_stage_id",
 				Unique:  false,
-				Columns: []*schema.Column{RecordsColumns[19]},
-			},
-			{
-				Name:    "record_played_at",
-				Unique:  false,
-				Columns: []*schema.Column{RecordsColumns[13]},
+				Columns: []*schema.Column{RecordsColumns[18]},
 			},
 		},
 	}
 	// StagesColumns holds the columns for the "stages" table.
 	StagesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "id", Type: field.TypeString, Unique: true, Size: 2147483647},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "level_name", Type: field.TypeString, Size: 2147483647},
@@ -231,7 +223,7 @@ var (
 		{Name: "total_notes", Type: field.TypeInt},
 		{Name: "max_combo", Type: field.TypeInt},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
-		{Name: "music_id", Type: field.TypeUUID},
+		{Name: "music_id", Type: field.TypeString, Size: 2147483647},
 	}
 	// StagesTable holds the schema information for the "stages" table.
 	StagesTable = &schema.Table{

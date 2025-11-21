@@ -2,7 +2,6 @@ package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"github.com/witchs-lounge_backend/internal/domain/entity"
 	"github.com/witchs-lounge_backend/internal/usecase"
 )
@@ -75,19 +74,8 @@ func (h *RecordHandler) ListRecords(c *fiber.Ctx) error {
 	}
 
 	musicID, stageID := c.Query("music_id"), c.Query("stage_id")
-	if musicID == "" || stageID == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(entity.ErrorResponse{Message: "쿼리 파라미터 누락", Error: "music_id, stage_id 필요"})
-	}
-	mid, err := uuid.Parse(musicID)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(entity.ErrorResponse{Message: "UUID 형식 오류", Error: err.Error()})
-	}
-	sid, err := uuid.Parse(stageID)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(entity.ErrorResponse{Message: "UUID 형식 오류", Error: err.Error()})
-	}
 
-	resp, err := h.recordUseCase.List(c.Context(), userEntity.ID, mid, sid)
+	resp, err := h.recordUseCase.List(c.Context(), userEntity.ID, musicID, stageID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(entity.ErrorResponse{Message: "기록 조회 실패", Error: err.Error()})
 	}
@@ -122,16 +110,8 @@ func (h *RecordHandler) BestRecord(c *fiber.Ctx) error {
 	if musicID == "" || stageID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(entity.ErrorResponse{Message: "쿼리 파라미터 누락", Error: "music_id, stage_id 필요"})
 	}
-	mid, err := uuid.Parse(musicID)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(entity.ErrorResponse{Message: "UUID 형식 오류", Error: err.Error()})
-	}
-	sid, err := uuid.Parse(stageID)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(entity.ErrorResponse{Message: "UUID 형식 오류", Error: err.Error()})
-	}
 
-	resp, err := h.recordUseCase.Best(c.Context(), userEntity.ID, mid, sid)
+	resp, err := h.recordUseCase.Best(c.Context(), userEntity.ID, musicID, stageID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(entity.ErrorResponse{Message: "최고 기록 조회 실패", Error: err.Error()})
 	}

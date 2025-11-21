@@ -9,16 +9,16 @@ import (
 
 type RecordRepository interface {
 	Create(ctx context.Context, userID uuid.UUID, req *entity.CreateRecordRequest) (*entity.Record, error)
-	ListByUserAndMusicStage(ctx context.Context, userID, musicID, stageID uuid.UUID) ([]*entity.Record, error)
-	BestByUserAndMusicStage(ctx context.Context, userID, musicID, stageID uuid.UUID) (*entity.Record, error)
+	ListByUserAndMusicStage(ctx context.Context, userID uuid.UUID, musicID, stageID string) ([]*entity.Record, error)
+	BestByUserAndMusicStage(ctx context.Context, userID uuid.UUID, musicID, stageID string) (*entity.Record, error)
 }
 
 // Record 응답 타입들(요청 요구에 따라 repository 도메인에 정의)
 type RecordResponse struct {
 	ID            uuid.UUID              `json:"id"`
 	UserID        uuid.UUID              `json:"user_id"`
-	MusicID       uuid.UUID              `json:"music_id"`
-	StageID       uuid.UUID              `json:"stage_id"`
+	MusicID       string                 `json:"music_id"`
+	StageID       string                 `json:"stage_id"`
 	CharacterID   uuid.UUID              `json:"character_id"`
 	Score         int                    `json:"score"`
 	PerfectCount  int                    `json:"perfect_count"`

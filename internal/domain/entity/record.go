@@ -13,8 +13,8 @@ type Record struct {
 }
 
 type CreateRecordRequest struct {
-	MusicID       uuid.UUID              `json:"music_id" validate:"required"`
-	StageID       uuid.UUID              `json:"stage_id" validate:"required"`
+	MusicID       string                 `json:"music_id" validate:"required"`
+	StageID       string                 `json:"stage_id" validate:"required"`
 	CharacterID   uuid.UUID              `json:"character_id" validate:"required"`
 	Score         int                    `json:"score" validate:"required,gte=0"`
 	PerfectCount  int                    `json:"perfect_count"`
@@ -26,7 +26,6 @@ type CreateRecordRequest struct {
 	Rank          string                 `json:"rank"`
 	IsFullCombo   bool                   `json:"is_full_combo"`
 	IsPerfectPlay bool                   `json:"is_perfect_play"`
-	PlayedAt      *time.Time             `json:"played_at,omitempty"`
 	PlayDuration  *int                   `json:"play_duration,omitempty"`
 	Additional    map[string]interface{} `json:"additional_info,omitempty"`
 }
@@ -34,8 +33,8 @@ type CreateRecordRequest struct {
 type RecordResponse struct {
 	ID            uuid.UUID              `json:"id"`
 	UserID        uuid.UUID              `json:"user_id"`
-	MusicID       uuid.UUID              `json:"music_id"`
-	StageID       uuid.UUID              `json:"stage_id"`
+	MusicID       string                 `json:"music_id"`
+	StageID       string                 `json:"stage_id"`
 	CharacterID   uuid.UUID              `json:"character_id"`
 	Score         int                    `json:"score"`
 	PerfectCount  int                    `json:"perfect_count"`
@@ -81,7 +80,6 @@ func (r *Record) ToResponse() RecordResponse {
 		Rank:          string(r.Rank),
 		IsFullCombo:   r.IsFullCombo,
 		IsPerfectPlay: r.IsPerfectPlay,
-		PlayedAt:      r.PlayedAt,
 		PlayDuration:  r.PlayDuration,
 		Additional:    r.AdditionalInfo,
 		CreatedAt:     r.CreatedAt,

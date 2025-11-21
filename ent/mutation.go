@@ -2610,14 +2610,12 @@ type MusicMutation struct {
 	config
 	op              Op
 	typ             string
-	id              *uuid.UUID
+	id              *string
 	created_at      *time.Time
 	updated_at      *time.Time
 	name            *string
 	artist          *string
 	composer        *string
-	music_source    *string
-	jacket_source   *string
 	duration        *float64
 	addduration     *float64
 	bpm             *float64
@@ -2631,8 +2629,8 @@ type MusicMutation struct {
 	release_date    *time.Time
 	is_active       *bool
 	clearedFields   map[string]struct{}
-	stages          map[uuid.UUID]struct{}
-	removedstages   map[uuid.UUID]struct{}
+	stages          map[string]struct{}
+	removedstages   map[string]struct{}
 	clearedstages   bool
 	records         map[uuid.UUID]struct{}
 	removedrecords  map[uuid.UUID]struct{}
@@ -2662,7 +2660,7 @@ func newMusicMutation(c config, op Op, opts ...musicOption) *MusicMutation {
 }
 
 // withMusicID sets the ID field of the mutation.
-func withMusicID(id uuid.UUID) musicOption {
+func withMusicID(id string) musicOption {
 	return func(m *MusicMutation) {
 		var (
 			err   error
@@ -2714,13 +2712,13 @@ func (m MusicMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of Music entities.
-func (m *MusicMutation) SetID(id uuid.UUID) {
+func (m *MusicMutation) SetID(id string) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *MusicMutation) ID() (id uuid.UUID, exists bool) {
+func (m *MusicMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -2731,12 +2729,12 @@ func (m *MusicMutation) ID() (id uuid.UUID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *MusicMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+func (m *MusicMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []uuid.UUID{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -2937,78 +2935,6 @@ func (m *MusicMutation) ComposerCleared() bool {
 func (m *MusicMutation) ResetComposer() {
 	m.composer = nil
 	delete(m.clearedFields, music.FieldComposer)
-}
-
-// SetMusicSource sets the "music_source" field.
-func (m *MusicMutation) SetMusicSource(s string) {
-	m.music_source = &s
-}
-
-// MusicSource returns the value of the "music_source" field in the mutation.
-func (m *MusicMutation) MusicSource() (r string, exists bool) {
-	v := m.music_source
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldMusicSource returns the old "music_source" field's value of the Music entity.
-// If the Music object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MusicMutation) OldMusicSource(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldMusicSource is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldMusicSource requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldMusicSource: %w", err)
-	}
-	return oldValue.MusicSource, nil
-}
-
-// ResetMusicSource resets all changes to the "music_source" field.
-func (m *MusicMutation) ResetMusicSource() {
-	m.music_source = nil
-}
-
-// SetJacketSource sets the "jacket_source" field.
-func (m *MusicMutation) SetJacketSource(s string) {
-	m.jacket_source = &s
-}
-
-// JacketSource returns the value of the "jacket_source" field in the mutation.
-func (m *MusicMutation) JacketSource() (r string, exists bool) {
-	v := m.jacket_source
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldJacketSource returns the old "jacket_source" field's value of the Music entity.
-// If the Music object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MusicMutation) OldJacketSource(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldJacketSource is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldJacketSource requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldJacketSource: %w", err)
-	}
-	return oldValue.JacketSource, nil
-}
-
-// ResetJacketSource resets all changes to the "jacket_source" field.
-func (m *MusicMutation) ResetJacketSource() {
-	m.jacket_source = nil
 }
 
 // SetDuration sets the "duration" field.
@@ -3435,9 +3361,9 @@ func (m *MusicMutation) ResetIsActive() {
 }
 
 // AddStageIDs adds the "stages" edge to the Stage entity by ids.
-func (m *MusicMutation) AddStageIDs(ids ...uuid.UUID) {
+func (m *MusicMutation) AddStageIDs(ids ...string) {
 	if m.stages == nil {
-		m.stages = make(map[uuid.UUID]struct{})
+		m.stages = make(map[string]struct{})
 	}
 	for i := range ids {
 		m.stages[ids[i]] = struct{}{}
@@ -3455,9 +3381,9 @@ func (m *MusicMutation) StagesCleared() bool {
 }
 
 // RemoveStageIDs removes the "stages" edge to the Stage entity by IDs.
-func (m *MusicMutation) RemoveStageIDs(ids ...uuid.UUID) {
+func (m *MusicMutation) RemoveStageIDs(ids ...string) {
 	if m.removedstages == nil {
-		m.removedstages = make(map[uuid.UUID]struct{})
+		m.removedstages = make(map[string]struct{})
 	}
 	for i := range ids {
 		delete(m.stages, ids[i])
@@ -3466,7 +3392,7 @@ func (m *MusicMutation) RemoveStageIDs(ids ...uuid.UUID) {
 }
 
 // RemovedStages returns the removed IDs of the "stages" edge to the Stage entity.
-func (m *MusicMutation) RemovedStagesIDs() (ids []uuid.UUID) {
+func (m *MusicMutation) RemovedStagesIDs() (ids []string) {
 	for id := range m.removedstages {
 		ids = append(ids, id)
 	}
@@ -3474,7 +3400,7 @@ func (m *MusicMutation) RemovedStagesIDs() (ids []uuid.UUID) {
 }
 
 // StagesIDs returns the "stages" edge IDs in the mutation.
-func (m *MusicMutation) StagesIDs() (ids []uuid.UUID) {
+func (m *MusicMutation) StagesIDs() (ids []string) {
 	for id := range m.stages {
 		ids = append(ids, id)
 	}
@@ -3576,7 +3502,7 @@ func (m *MusicMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MusicMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 14)
 	if m.created_at != nil {
 		fields = append(fields, music.FieldCreatedAt)
 	}
@@ -3591,12 +3517,6 @@ func (m *MusicMutation) Fields() []string {
 	}
 	if m.composer != nil {
 		fields = append(fields, music.FieldComposer)
-	}
-	if m.music_source != nil {
-		fields = append(fields, music.FieldMusicSource)
-	}
-	if m.jacket_source != nil {
-		fields = append(fields, music.FieldJacketSource)
 	}
 	if m.duration != nil {
 		fields = append(fields, music.FieldDuration)
@@ -3643,10 +3563,6 @@ func (m *MusicMutation) Field(name string) (ent.Value, bool) {
 		return m.Artist()
 	case music.FieldComposer:
 		return m.Composer()
-	case music.FieldMusicSource:
-		return m.MusicSource()
-	case music.FieldJacketSource:
-		return m.JacketSource()
 	case music.FieldDuration:
 		return m.Duration()
 	case music.FieldBpm:
@@ -3684,10 +3600,6 @@ func (m *MusicMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldArtist(ctx)
 	case music.FieldComposer:
 		return m.OldComposer(ctx)
-	case music.FieldMusicSource:
-		return m.OldMusicSource(ctx)
-	case music.FieldJacketSource:
-		return m.OldJacketSource(ctx)
 	case music.FieldDuration:
 		return m.OldDuration(ctx)
 	case music.FieldBpm:
@@ -3749,20 +3661,6 @@ func (m *MusicMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetComposer(v)
-		return nil
-	case music.FieldMusicSource:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetMusicSource(v)
-		return nil
-	case music.FieldJacketSource:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetJacketSource(v)
 		return nil
 	case music.FieldDuration:
 		v, ok := value.(float64)
@@ -3956,12 +3854,6 @@ func (m *MusicMutation) ResetField(name string) error {
 		return nil
 	case music.FieldComposer:
 		m.ResetComposer()
-		return nil
-	case music.FieldMusicSource:
-		m.ResetMusicSource()
-		return nil
-	case music.FieldJacketSource:
-		m.ResetJacketSource()
 		return nil
 	case music.FieldDuration:
 		m.ResetDuration()
@@ -5083,7 +4975,6 @@ type RecordMutation struct {
 	rank             *record.Rank
 	is_full_combo    *bool
 	is_perfect_play  *bool
-	played_at        *time.Time
 	play_duration    *int
 	addplay_duration *int
 	additional_info  *map[string]interface{}
@@ -5091,9 +4982,9 @@ type RecordMutation struct {
 	clearedFields    map[string]struct{}
 	user             *uuid.UUID
 	cleareduser      bool
-	music            *uuid.UUID
+	music            *string
 	clearedmusic     bool
-	stage            *uuid.UUID
+	stage            *string
 	clearedstage     bool
 	character        *uuid.UUID
 	clearedcharacter bool
@@ -5315,12 +5206,12 @@ func (m *RecordMutation) ResetUserID() {
 }
 
 // SetMusicID sets the "music_id" field.
-func (m *RecordMutation) SetMusicID(u uuid.UUID) {
-	m.music = &u
+func (m *RecordMutation) SetMusicID(s string) {
+	m.music = &s
 }
 
 // MusicID returns the value of the "music_id" field in the mutation.
-func (m *RecordMutation) MusicID() (r uuid.UUID, exists bool) {
+func (m *RecordMutation) MusicID() (r string, exists bool) {
 	v := m.music
 	if v == nil {
 		return
@@ -5331,7 +5222,7 @@ func (m *RecordMutation) MusicID() (r uuid.UUID, exists bool) {
 // OldMusicID returns the old "music_id" field's value of the Record entity.
 // If the Record object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RecordMutation) OldMusicID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *RecordMutation) OldMusicID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldMusicID is only allowed on UpdateOne operations")
 	}
@@ -5351,12 +5242,12 @@ func (m *RecordMutation) ResetMusicID() {
 }
 
 // SetStageID sets the "stage_id" field.
-func (m *RecordMutation) SetStageID(u uuid.UUID) {
-	m.stage = &u
+func (m *RecordMutation) SetStageID(s string) {
+	m.stage = &s
 }
 
 // StageID returns the value of the "stage_id" field in the mutation.
-func (m *RecordMutation) StageID() (r uuid.UUID, exists bool) {
+func (m *RecordMutation) StageID() (r string, exists bool) {
 	v := m.stage
 	if v == nil {
 		return
@@ -5367,7 +5258,7 @@ func (m *RecordMutation) StageID() (r uuid.UUID, exists bool) {
 // OldStageID returns the old "stage_id" field's value of the Record entity.
 // If the Record object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RecordMutation) OldStageID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *RecordMutation) OldStageID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldStageID is only allowed on UpdateOne operations")
 	}
@@ -5935,42 +5826,6 @@ func (m *RecordMutation) ResetIsPerfectPlay() {
 	m.is_perfect_play = nil
 }
 
-// SetPlayedAt sets the "played_at" field.
-func (m *RecordMutation) SetPlayedAt(t time.Time) {
-	m.played_at = &t
-}
-
-// PlayedAt returns the value of the "played_at" field in the mutation.
-func (m *RecordMutation) PlayedAt() (r time.Time, exists bool) {
-	v := m.played_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPlayedAt returns the old "played_at" field's value of the Record entity.
-// If the Record object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RecordMutation) OldPlayedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPlayedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPlayedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPlayedAt: %w", err)
-	}
-	return oldValue.PlayedAt, nil
-}
-
-// ResetPlayedAt resets all changes to the "played_at" field.
-func (m *RecordMutation) ResetPlayedAt() {
-	m.played_at = nil
-}
-
 // SetPlayDuration sets the "play_duration" field.
 func (m *RecordMutation) SetPlayDuration(i int) {
 	m.play_duration = &i
@@ -6167,7 +6022,7 @@ func (m *RecordMutation) MusicCleared() bool {
 // MusicIDs returns the "music" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // MusicID instead. It exists only for internal usage by the builders.
-func (m *RecordMutation) MusicIDs() (ids []uuid.UUID) {
+func (m *RecordMutation) MusicIDs() (ids []string) {
 	if id := m.music; id != nil {
 		ids = append(ids, *id)
 	}
@@ -6194,7 +6049,7 @@ func (m *RecordMutation) StageCleared() bool {
 // StageIDs returns the "stage" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // StageID instead. It exists only for internal usage by the builders.
-func (m *RecordMutation) StageIDs() (ids []uuid.UUID) {
+func (m *RecordMutation) StageIDs() (ids []string) {
 	if id := m.stage; id != nil {
 		ids = append(ids, *id)
 	}
@@ -6268,7 +6123,7 @@ func (m *RecordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RecordMutation) Fields() []string {
-	fields := make([]string, 0, 20)
+	fields := make([]string, 0, 19)
 	if m.created_at != nil {
 		fields = append(fields, record.FieldCreatedAt)
 	}
@@ -6316,9 +6171,6 @@ func (m *RecordMutation) Fields() []string {
 	}
 	if m.is_perfect_play != nil {
 		fields = append(fields, record.FieldIsPerfectPlay)
-	}
-	if m.played_at != nil {
-		fields = append(fields, record.FieldPlayedAt)
 	}
 	if m.play_duration != nil {
 		fields = append(fields, record.FieldPlayDuration)
@@ -6369,8 +6221,6 @@ func (m *RecordMutation) Field(name string) (ent.Value, bool) {
 		return m.IsFullCombo()
 	case record.FieldIsPerfectPlay:
 		return m.IsPerfectPlay()
-	case record.FieldPlayedAt:
-		return m.PlayedAt()
 	case record.FieldPlayDuration:
 		return m.PlayDuration()
 	case record.FieldAdditionalInfo:
@@ -6418,8 +6268,6 @@ func (m *RecordMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldIsFullCombo(ctx)
 	case record.FieldIsPerfectPlay:
 		return m.OldIsPerfectPlay(ctx)
-	case record.FieldPlayedAt:
-		return m.OldPlayedAt(ctx)
 	case record.FieldPlayDuration:
 		return m.OldPlayDuration(ctx)
 	case record.FieldAdditionalInfo:
@@ -6457,14 +6305,14 @@ func (m *RecordMutation) SetField(name string, value ent.Value) error {
 		m.SetUserID(v)
 		return nil
 	case record.FieldMusicID:
-		v, ok := value.(uuid.UUID)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetMusicID(v)
 		return nil
 	case record.FieldStageID:
-		v, ok := value.(uuid.UUID)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -6546,13 +6394,6 @@ func (m *RecordMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsPerfectPlay(v)
-		return nil
-	case record.FieldPlayedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPlayedAt(v)
 		return nil
 	case record.FieldPlayDuration:
 		v, ok := value.(int)
@@ -6792,9 +6633,6 @@ func (m *RecordMutation) ResetField(name string) error {
 	case record.FieldIsPerfectPlay:
 		m.ResetIsPerfectPlay()
 		return nil
-	case record.FieldPlayedAt:
-		m.ResetPlayedAt()
-		return nil
 	case record.FieldPlayDuration:
 		m.ResetPlayDuration()
 		return nil
@@ -6941,7 +6779,7 @@ type StageMutation struct {
 	config
 	op             Op
 	typ            string
-	id             *uuid.UUID
+	id             *string
 	created_at     *time.Time
 	updated_at     *time.Time
 	level_name     *string
@@ -6955,7 +6793,7 @@ type StageMutation struct {
 	addmax_combo   *int
 	is_active      *bool
 	clearedFields  map[string]struct{}
-	music          *uuid.UUID
+	music          *string
 	clearedmusic   bool
 	records        map[uuid.UUID]struct{}
 	removedrecords map[uuid.UUID]struct{}
@@ -6985,7 +6823,7 @@ func newStageMutation(c config, op Op, opts ...stageOption) *StageMutation {
 }
 
 // withStageID sets the ID field of the mutation.
-func withStageID(id uuid.UUID) stageOption {
+func withStageID(id string) stageOption {
 	return func(m *StageMutation) {
 		var (
 			err   error
@@ -7037,13 +6875,13 @@ func (m StageMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of Stage entities.
-func (m *StageMutation) SetID(id uuid.UUID) {
+func (m *StageMutation) SetID(id string) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *StageMutation) ID() (id uuid.UUID, exists bool) {
+func (m *StageMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -7054,12 +6892,12 @@ func (m *StageMutation) ID() (id uuid.UUID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *StageMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+func (m *StageMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []uuid.UUID{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -7142,12 +6980,12 @@ func (m *StageMutation) ResetUpdatedAt() {
 }
 
 // SetMusicID sets the "music_id" field.
-func (m *StageMutation) SetMusicID(u uuid.UUID) {
-	m.music = &u
+func (m *StageMutation) SetMusicID(s string) {
+	m.music = &s
 }
 
 // MusicID returns the value of the "music_id" field in the mutation.
-func (m *StageMutation) MusicID() (r uuid.UUID, exists bool) {
+func (m *StageMutation) MusicID() (r string, exists bool) {
 	v := m.music
 	if v == nil {
 		return
@@ -7158,7 +6996,7 @@ func (m *StageMutation) MusicID() (r uuid.UUID, exists bool) {
 // OldMusicID returns the old "music_id" field's value of the Stage entity.
 // If the Stage object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StageMutation) OldMusicID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *StageMutation) OldMusicID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldMusicID is only allowed on UpdateOne operations")
 	}
@@ -7503,7 +7341,7 @@ func (m *StageMutation) MusicCleared() bool {
 // MusicIDs returns the "music" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // MusicID instead. It exists only for internal usage by the builders.
-func (m *StageMutation) MusicIDs() (ids []uuid.UUID) {
+func (m *StageMutation) MusicIDs() (ids []string) {
 	if id := m.music; id != nil {
 		ids = append(ids, *id)
 	}
@@ -7716,7 +7554,7 @@ func (m *StageMutation) SetField(name string, value ent.Value) error {
 		m.SetUpdatedAt(v)
 		return nil
 	case stage.FieldMusicID:
-		v, ok := value.(uuid.UUID)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

@@ -39,10 +39,6 @@ func (r *recordRepository) Create(ctx context.Context, userID uuid.UUID, req *en
 		return nil, err
 	}
 
-	// Optional 필드
-	if req.PlayedAt != nil {
-		_, _ = r.client.Record.UpdateOneID(rec.ID).SetPlayedAt(*req.PlayedAt).Save(ctx)
-	}
 	if req.PlayDuration != nil {
 		_, _ = r.client.Record.UpdateOneID(rec.ID).SetPlayDuration(*req.PlayDuration).Save(ctx)
 	}
@@ -53,7 +49,7 @@ func (r *recordRepository) Create(ctx context.Context, userID uuid.UUID, req *en
 	return entity.NewRecord(rec), nil
 }
 
-func (r *recordRepository) ListByUserAndMusicStage(ctx context.Context, userID, musicID, stageID uuid.UUID) ([]*entity.Record, error) {
+func (r *recordRepository) ListByUserAndMusicStage(ctx context.Context, userID uuid.UUID, musicID, stageID string) ([]*entity.Record, error) {
 	recs, err := r.client.Record.Query().
 		Where(
 			record.UserIDEQ(userID),
@@ -61,7 +57,7 @@ func (r *recordRepository) ListByUserAndMusicStage(ctx context.Context, userID, 
 			record.StageIDEQ(stageID),
 			record.IsValidEQ(true),
 		).
-		Order(ent.Desc(record.FieldPlayedAt)).
+		Order(ent.Desc(record.FieldCreatedAt)).
 		All(ctx)
 	if err != nil {
 		return nil, err
@@ -73,7 +69,7 @@ func (r *recordRepository) ListByUserAndMusicStage(ctx context.Context, userID, 
 	return res, nil
 }
 
-func (r *recordRepository) BestByUserAndMusicStage(ctx context.Context, userID, musicID, stageID uuid.UUID) (*entity.Record, error) {
+func (r *recordRepository) BestByUserAndMusicStage(ctx context.Context, userID uuid.UUID, musicID, stageID string) (*entity.Record, error) {
 	rec, err := r.client.Record.Query().
 		Where(
 			record.UserIDEQ(userID),
