@@ -1,47 +1,94 @@
-name: Deploy Backend
+name: CI/CD Deployment to On-Prem Server
 
 on:
   push:
     branches:
-      - main  # 또는 배포용 브랜치
+      - main
 
 jobs:
-  deploy:
+  build_and_deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 리포지토리 체크아웃
-      - name: Checkout repository
+      - name: 📦 Checkout Code
         uses: actions/checkout@v4
 
-      # Docker Buildx 설정
+      # ----------------------------------------------------
+      # 1. CI: Docker 이미지 빌드 및 푸시
+      # ----------------------------------------------------
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Docker Hub 로그인
-      - name: Login to Docker Hub
+      - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
-      # 이미지 빌드 및 푸시
-      - name: Build and push Docker image
+      - name: Get Image Tag
+        # Git SHA를 기반으로 고유한 태그를 생성하고, 'latest' 태그도 함께 사용합니다.
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/witchs_lounge_backend
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+
+      - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile
+          file: ./Dockerfile.prod
           push: true
-          tags: kjw2262/witchs_lounge_backend:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
 
-      # SSH로 원격 서버 접속 후 compose pull & up
-      - name: Deploy to Windows Server
-        uses: appleboy/ssh-action@v1.2.0
+      # ----------------------------------------------------
+      # 2. Deploy Preparation: 설정 파일 전송 및 생성
+      # ----------------------------------------------------
+      - name: Transfer Docker Compose File
+        uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.WINDOWS_HOST }}
-          username: ${{ secrets.WINDOWS_USER }}
-          key: ${{ secrets.WINDOWS_SSH_KEY }}
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          source: "docker-compose.prod.yml"
+          target: ${{ secrets.DEPLOY_PATH }}
+
+      - name: Create .env.prod file on server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
           script: |
-            cd C:\path\to\project
-            docker compose pull
-            docker compose up -d --remove-orphans
+            echo "Creating .env.prod file in ${{ secrets.DEPLOY_PATH }}"
+            cat <<EOF > "${{ secrets.DEPLOY_PATH }}/.env.prod"
+            DB_USER='${{ secrets.DB_USER }}'
+            DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
+            DB_HOST='${{ secrets.DB_HOST }}'
+            DB_PORT='${{ secrets.DB_PORT }}'
+            DB_NAME='${{ secrets.DB_NAME }}'
+            DB_SSLMODE='${{ secrets.DB_SSLMODE }}'
+            DB_TZ='${{ secrets.DB_TZ }}'
+            REDIS_HOST='${{ secrets.REDIS_HOST }}'
+            REDIS_PASSWORD='${{ secrets.REDIS_PASSWORD }}'
+            REDIS_DB='${{ secrets.REDIS_DB }}'
+            EOF
+
+      # ----------------------------------------------------
+      # 3. Deploy: Docker Compose 업데이트
+      # ----------------------------------------------------
+      - name: 🚀 Deploy with Docker Compose
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            cd ${{ secrets.DEPLOY_PATH }}
+            docker-compose -f docker-compose.prod.yml pull
+            docker-compose -f docker-compose.prod.yml up -d
+            docker image prune -f
