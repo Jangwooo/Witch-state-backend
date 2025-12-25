@@ -50,6 +50,8 @@ func (u *stoveUseCase) SignInWithStove(ctx context.Context, info struct {
 				PlatformEmail:       info.Email,
 				PlatformAvatarURL:   info.AvatarUrl,
 				PlatformDisplayName: info.DisplayName,
+				IsVerified:          true,
+				Nickname:            info.DisplayName,
 			})
 
 			if err != nil {

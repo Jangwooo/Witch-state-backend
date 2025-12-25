@@ -31,9 +31,9 @@ type Record struct {
 	// 유저 ID
 	UserID uuid.UUID `json:"user_id,omitempty"`
 	// 음악 ID
-	MusicID uuid.UUID `json:"music_id,omitempty"`
+	MusicID string `json:"music_id,omitempty"`
 	// 스테이지 ID
-	StageID uuid.UUID `json:"stage_id,omitempty"`
+	StageID string `json:"stage_id,omitempty"`
 	// 캐릭터 ID
 	CharacterID uuid.UUID `json:"character_id,omitempty"`
 	// 점수
@@ -56,8 +56,6 @@ type Record struct {
 	IsFullCombo bool `json:"is_full_combo,omitempty"`
 	// 퍼펙트 플레이 여부
 	IsPerfectPlay bool `json:"is_perfect_play,omitempty"`
-	// 플레이 시간
-	PlayedAt time.Time `json:"played_at,omitempty"`
 	// 플레이 소요시간(초)
 	PlayDuration int `json:"play_duration,omitempty"`
 	// 추가 정보
@@ -142,11 +140,11 @@ func (*Record) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case record.FieldScore, record.FieldPerfectCount, record.FieldGoodCount, record.FieldBadCount, record.FieldMissCount, record.FieldMaxCombo, record.FieldPlayDuration:
 			values[i] = new(sql.NullInt64)
-		case record.FieldRank:
+		case record.FieldMusicID, record.FieldStageID, record.FieldRank:
 			values[i] = new(sql.NullString)
-		case record.FieldCreatedAt, record.FieldUpdatedAt, record.FieldPlayedAt:
+		case record.FieldCreatedAt, record.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case record.FieldID, record.FieldUserID, record.FieldMusicID, record.FieldStageID, record.FieldCharacterID:
+		case record.FieldID, record.FieldUserID, record.FieldCharacterID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -188,16 +186,16 @@ func (r *Record) assignValues(columns []string, values []any) error {
 				r.UserID = *value
 			}
 		case record.FieldMusicID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field music_id", values[i])
-			} else if value != nil {
-				r.MusicID = *value
+			} else if value.Valid {
+				r.MusicID = value.String
 			}
 		case record.FieldStageID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field stage_id", values[i])
-			} else if value != nil {
-				r.StageID = *value
+			} else if value.Valid {
+				r.StageID = value.String
 			}
 		case record.FieldCharacterID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -264,12 +262,6 @@ func (r *Record) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_perfect_play", values[i])
 			} else if value.Valid {
 				r.IsPerfectPlay = value.Bool
-			}
-		case record.FieldPlayedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field played_at", values[i])
-			} else if value.Valid {
-				r.PlayedAt = value.Time
 			}
 		case record.FieldPlayDuration:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -357,10 +349,10 @@ func (r *Record) String() string {
 	builder.WriteString(fmt.Sprintf("%v", r.UserID))
 	builder.WriteString(", ")
 	builder.WriteString("music_id=")
-	builder.WriteString(fmt.Sprintf("%v", r.MusicID))
+	builder.WriteString(r.MusicID)
 	builder.WriteString(", ")
 	builder.WriteString("stage_id=")
-	builder.WriteString(fmt.Sprintf("%v", r.StageID))
+	builder.WriteString(r.StageID)
 	builder.WriteString(", ")
 	builder.WriteString("character_id=")
 	builder.WriteString(fmt.Sprintf("%v", r.CharacterID))
@@ -394,9 +386,6 @@ func (r *Record) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_perfect_play=")
 	builder.WriteString(fmt.Sprintf("%v", r.IsPerfectPlay))
-	builder.WriteString(", ")
-	builder.WriteString("played_at=")
-	builder.WriteString(r.PlayedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("play_duration=")
 	builder.WriteString(fmt.Sprintf("%v", r.PlayDuration))

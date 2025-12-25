@@ -52,8 +52,8 @@ func (sc *StageCreate) SetNillableUpdatedAt(t *time.Time) *StageCreate {
 }
 
 // SetMusicID sets the "music_id" field.
-func (sc *StageCreate) SetMusicID(u uuid.UUID) *StageCreate {
-	sc.mutation.SetMusicID(u)
+func (sc *StageCreate) SetMusicID(s string) *StageCreate {
+	sc.mutation.SetMusicID(s)
 	return sc
 }
 
@@ -108,16 +108,8 @@ func (sc *StageCreate) SetNillableIsActive(b *bool) *StageCreate {
 }
 
 // SetID sets the "id" field.
-func (sc *StageCreate) SetID(u uuid.UUID) *StageCreate {
-	sc.mutation.SetID(u)
-	return sc
-}
-
-// SetNillableID sets the "id" field if the given value is not nil.
-func (sc *StageCreate) SetNillableID(u *uuid.UUID) *StageCreate {
-	if u != nil {
-		sc.SetID(*u)
-	}
+func (sc *StageCreate) SetID(s string) *StageCreate {
+	sc.mutation.SetID(s)
 	return sc
 }
 
@@ -188,10 +180,6 @@ func (sc *StageCreate) defaults() {
 		v := stage.DefaultIsActive
 		sc.mutation.SetIsActive(v)
 	}
-	if _, ok := sc.mutation.ID(); !ok {
-		v := stage.DefaultID()
-		sc.mutation.SetID(v)
-	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -259,10 +247,10 @@ func (sc *StageCreate) sqlSave(ctx context.Context) (*Stage, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
-			_node.ID = *id
-		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
-			return nil, err
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected Stage.ID type: %T", _spec.ID.Value)
 		}
 	}
 	sc.mutation.id = &_node.ID
@@ -273,11 +261,11 @@ func (sc *StageCreate) sqlSave(ctx context.Context) (*Stage, error) {
 func (sc *StageCreate) createSpec() (*Stage, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Stage{config: sc.config}
-		_spec = sqlgraph.NewCreateSpec(stage.Table, sqlgraph.NewFieldSpec(stage.FieldID, field.TypeUUID))
+		_spec = sqlgraph.NewCreateSpec(stage.Table, sqlgraph.NewFieldSpec(stage.FieldID, field.TypeString))
 	)
 	if id, ok := sc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = &id
+		_spec.ID.Value = id
 	}
 	if value, ok := sc.mutation.CreatedAt(); ok {
 		_spec.SetField(stage.FieldCreatedAt, field.TypeTime, value)
@@ -323,7 +311,7 @@ func (sc *StageCreate) createSpec() (*Stage, *sqlgraph.CreateSpec) {
 			Columns: []string{stage.MusicColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(music.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(music.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

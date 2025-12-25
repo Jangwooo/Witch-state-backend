@@ -7,7 +7,6 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/google/uuid"
 )
 
 const (
@@ -25,10 +24,6 @@ const (
 	FieldArtist = "artist"
 	// FieldComposer holds the string denoting the composer field in the database.
 	FieldComposer = "composer"
-	// FieldMusicSource holds the string denoting the music_source field in the database.
-	FieldMusicSource = "music_source"
-	// FieldJacketSource holds the string denoting the jacket_source field in the database.
-	FieldJacketSource = "jacket_source"
 	// FieldDuration holds the string denoting the duration field in the database.
 	FieldDuration = "duration"
 	// FieldBpm holds the string denoting the bpm field in the database.
@@ -77,8 +72,6 @@ var Columns = []string{
 	FieldName,
 	FieldArtist,
 	FieldComposer,
-	FieldMusicSource,
-	FieldJacketSource,
 	FieldDuration,
 	FieldBpm,
 	FieldGenre,
@@ -115,8 +108,6 @@ var (
 	DefaultUnlockLevel int
 	// DefaultIsActive holds the default value on creation for the "is_active" field.
 	DefaultIsActive bool
-	// DefaultID holds the default value on creation for the "id" field.
-	DefaultID func() uuid.UUID
 )
 
 // OrderOption defines the ordering options for the Music queries.
@@ -150,16 +141,6 @@ func ByArtist(opts ...sql.OrderTermOption) OrderOption {
 // ByComposer orders the results by the composer field.
 func ByComposer(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldComposer, opts...).ToFunc()
-}
-
-// ByMusicSource orders the results by the music_source field.
-func ByMusicSource(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldMusicSource, opts...).ToFunc()
-}
-
-// ByJacketSource orders the results by the jacket_source field.
-func ByJacketSource(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldJacketSource, opts...).ToFunc()
 }
 
 // ByDuration orders the results by the duration field.

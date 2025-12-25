@@ -804,7 +804,7 @@ func (c *MusicClient) UpdateOne(m *Music) *MusicUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *MusicClient) UpdateOneID(id uuid.UUID) *MusicUpdateOne {
+func (c *MusicClient) UpdateOneID(id string) *MusicUpdateOne {
 	mutation := newMusicMutation(c.config, OpUpdateOne, withMusicID(id))
 	return &MusicUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -821,7 +821,7 @@ func (c *MusicClient) DeleteOne(m *Music) *MusicDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *MusicClient) DeleteOneID(id uuid.UUID) *MusicDeleteOne {
+func (c *MusicClient) DeleteOneID(id string) *MusicDeleteOne {
 	builder := c.Delete().Where(music.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -838,12 +838,12 @@ func (c *MusicClient) Query() *MusicQuery {
 }
 
 // Get returns a Music entity by its id.
-func (c *MusicClient) Get(ctx context.Context, id uuid.UUID) (*Music, error) {
+func (c *MusicClient) Get(ctx context.Context, id string) (*Music, error) {
 	return c.Query().Where(music.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *MusicClient) GetX(ctx context.Context, id uuid.UUID) *Music {
+func (c *MusicClient) GetX(ctx context.Context, id string) *Music {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -1363,7 +1363,7 @@ func (c *StageClient) UpdateOne(s *Stage) *StageUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *StageClient) UpdateOneID(id uuid.UUID) *StageUpdateOne {
+func (c *StageClient) UpdateOneID(id string) *StageUpdateOne {
 	mutation := newStageMutation(c.config, OpUpdateOne, withStageID(id))
 	return &StageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -1380,7 +1380,7 @@ func (c *StageClient) DeleteOne(s *Stage) *StageDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *StageClient) DeleteOneID(id uuid.UUID) *StageDeleteOne {
+func (c *StageClient) DeleteOneID(id string) *StageDeleteOne {
 	builder := c.Delete().Where(stage.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -1397,12 +1397,12 @@ func (c *StageClient) Query() *StageQuery {
 }
 
 // Get returns a Stage entity by its id.
-func (c *StageClient) Get(ctx context.Context, id uuid.UUID) (*Stage, error) {
+func (c *StageClient) Get(ctx context.Context, id string) (*Stage, error) {
 	return c.Query().Where(stage.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *StageClient) GetX(ctx context.Context, id uuid.UUID) *Stage {
+func (c *StageClient) GetX(ctx context.Context, id string) *Stage {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)

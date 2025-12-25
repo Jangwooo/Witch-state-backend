@@ -17,7 +17,528 @@ const docTemplate = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {},
+    "paths": {
+        "/records": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "해당 곡/스테이지의 전체 기록을 조회합니다",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Record"
+                ],
+                "summary": "전체 기록 조회",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "음악 ID(UUID)",
+                        "name": "music_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "스테이지 ID(UUID)",
+                        "name": "stage_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "전체 기록",
+                        "schema": {
+                            "$ref": "#/definitions/repository.ListRecordResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "플레이 기록을 저장합니다",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Record"
+                ],
+                "summary": "플레이 기록 저장",
+                "parameters": [
+                    {
+                        "description": "플레이 기록 요청",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.CreateRecordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "생성된 기록",
+                        "schema": {
+                            "$ref": "#/definitions/repository.SingleRecordResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "요청 데이터 검증 실패",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "인증 필요",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "서버 내부 오류",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/records/best": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "해당 곡/스테이지의 최고 기록을 조회합니다",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Record"
+                ],
+                "summary": "최고 기록 조회",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "음악 ID(UUID)",
+                        "name": "music_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "스테이지 ID(UUID)",
+                        "name": "stage_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "최고 기록",
+                        "schema": {
+                            "$ref": "#/definitions/repository.BestRecordResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stove/signin": {
+            "post": {
+                "description": "Stove 플랫폼 사용자 정보로 로그인 처리 및 세션 생성",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stove"
+                ],
+                "summary": "Stove 플랫폼으로 로그인",
+                "parameters": [
+                    {
+                        "description": "Stove 로그인 요청 정보",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.StoveSignInRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "로그인 성공 및 세션 정보",
+                        "schema": {
+                            "$ref": "#/definitions/entity.SessionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "요청 데이터 검증 실패",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "서버 내부 오류",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "세션 정보를 통해 현재 인증된 사용자의 상세 정보를 반환",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "현재 사용자 정보 조회",
+                "responses": {
+                    "200": {
+                        "description": "사용자 정보",
+                        "schema": {
+                            "$ref": "#/definitions/entity.UserResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "인증 정보 없음",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "서버 내부 오류",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "entity.CreateRecordRequest": {
+            "type": "object",
+            "required": [
+                "character_id",
+                "music_id",
+                "score",
+                "stage_id"
+            ],
+            "properties": {
+                "accuracy": {
+                    "type": "number"
+                },
+                "additional_info": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "bad_count": {
+                    "type": "integer"
+                },
+                "character_id": {
+                    "type": "string"
+                },
+                "good_count": {
+                    "type": "integer"
+                },
+                "is_full_combo": {
+                    "type": "boolean"
+                },
+                "is_perfect_play": {
+                    "type": "boolean"
+                },
+                "max_combo": {
+                    "type": "integer"
+                },
+                "miss_count": {
+                    "type": "integer"
+                },
+                "music_id": {
+                    "type": "string"
+                },
+                "perfect_count": {
+                    "type": "integer"
+                },
+                "play_duration": {
+                    "type": "integer"
+                },
+                "played_at": {
+                    "type": "string"
+                },
+                "rank": {
+                    "type": "string"
+                },
+                "score": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "stage_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "details": {},
+                "error": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.SessionResponse": {
+            "type": "object",
+            "properties": {
+                "session_id": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/entity.UserResponse"
+                }
+            }
+        },
+        "entity.StoveSignInRequest": {
+            "type": "object",
+            "required": [
+                "avatar_url",
+                "display_name",
+                "email",
+                "id"
+            ],
+            "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
+                "display_name": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.UserResponse": {
+            "type": "object",
+            "properties": {
+                "coin": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "display_name": {
+                    "type": "string"
+                },
+                "exp": {
+                    "type": "integer"
+                },
+                "gem": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_verified": {
+                    "type": "boolean"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "platform_avatar_url": {
+                    "type": "string"
+                },
+                "platform_display_name": {
+                    "type": "string"
+                },
+                "platform_email": {
+                    "type": "string"
+                },
+                "platform_type": {
+                    "type": "string"
+                },
+                "platform_user_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "repository.BestRecordResponse": {
+            "type": "object",
+            "properties": {
+                "record": {
+                    "$ref": "#/definitions/repository.RecordResponse"
+                }
+            }
+        },
+        "repository.ListRecordResponse": {
+            "type": "object",
+            "properties": {
+                "records": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/repository.RecordResponse"
+                    }
+                }
+            }
+        },
+        "repository.RecordResponse": {
+            "type": "object",
+            "properties": {
+                "accuracy": {
+                    "type": "number"
+                },
+                "additional_info": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "bad_count": {
+                    "type": "integer"
+                },
+                "character_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "good_count": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_full_combo": {
+                    "type": "boolean"
+                },
+                "is_perfect_play": {
+                    "type": "boolean"
+                },
+                "max_combo": {
+                    "type": "integer"
+                },
+                "miss_count": {
+                    "type": "integer"
+                },
+                "music_id": {
+                    "type": "string"
+                },
+                "perfect_count": {
+                    "type": "integer"
+                },
+                "play_duration": {
+                    "type": "integer"
+                },
+                "played_at": {
+                    "type": "string"
+                },
+                "rank": {
+                    "type": "string"
+                },
+                "score": {
+                    "type": "integer"
+                },
+                "stage_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "repository.SingleRecordResponse": {
+            "type": "object",
+            "properties": {
+                "record": {
+                    "$ref": "#/definitions/repository.RecordResponse"
+                }
+            }
+        }
+    },
     "securityDefinitions": {
         "BearerAuth": {
             "description": "Type \"Bearer\" followed by a space and JWT token.",

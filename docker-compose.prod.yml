@@ -1,37 +1,17 @@
-version: '3.8'
-
 services:
   app:
     image: "kjw2262/witchs_lounge_backend:latest"
     ports:
-      - "8080:8080"
-    environment:
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
-      - DB_SSLMODE=disable
-      - TZ=${DB_TZ}
-    depends_on:
-      - db
-    restart: unless-stopped
-
-  db:
-    image: postgres:16-alpine
+      - "3030:8080"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=${DB_NAME}
-      - TZ=${DB_TZ}
-    ports:
-      - "5432:5432"
+      - ./.env.prod:/app/.env.prod:ro
+    env_file:
+      - .env.prod
+    depends_on:
+      - redis
     restart: unless-stopped
 
   redis:
-    platform: linux/x86_64 # m1 MacOS의 경우
     image: redis:6.2
     container_name: redis
     environment:
@@ -42,6 +22,3 @@ services:
     ports:
       - "6379:6379"
     restart: unless-stopped
-
-volumes:
-  postgres_data: 

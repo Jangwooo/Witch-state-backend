@@ -1,18 +1,20 @@
 SHELL = /bin/bash
 
 dev-start:
-	docker-compose --env-file .env.prod -f docker-compose.dev.yml up
+	docker-compose -f docker-compose.dev.yml up -d --build
 
 prod-start:
 	docker pull kjw2262/witchs_lounge_backend:latest
-	docker-compose --env-file .env.prod -f docker-compose.prod.yml up --build
+	docker-compose -f docker-compose.prod.yml up -d
 
 manual-push:
-	docker build -f Dockerfile.prod -t kjw2262/witchs_lounge_backend:latest .
-	docker push kjw2262/witchs_lounge_backend:latest
+	 docker buildx build --platform linux/amd64 --push -f Dockerfile.prod -t kjw2262/witchs_lounge_backend:latest .
 
 update-image:
 	docker pull kjw2262/witchs_lounge_backend:latest
+
+swagger:
+	swag init -g app/main.go
 
 # Very dangerous!!!
 clear-compose:

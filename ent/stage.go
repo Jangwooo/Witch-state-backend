@@ -9,7 +9,6 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/google/uuid"
 	"github.com/witchs-lounge_backend/ent/music"
 	"github.com/witchs-lounge_backend/ent/stage"
 )
@@ -18,14 +17,14 @@ import (
 type Stage struct {
 	config `json:"-"`
 	// ID of the ent.
-	// Global custom UUID ID
-	ID uuid.UUID `json:"id,omitempty"`
+	// 곡 ID
+	ID string `json:"id,omitempty"`
 	// Created time
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Updated time
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// 음악 ID
-	MusicID uuid.UUID `json:"music_id,omitempty"`
+	MusicID string `json:"music_id,omitempty"`
 	// 난이도 이름 (Easy, Normal, Hard, Expert)
 	LevelName string `json:"level_name,omitempty"`
 	// 난이도 수치 (1-10)
@@ -86,12 +85,10 @@ func (*Stage) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case stage.FieldDifficulty, stage.FieldTotalNotes, stage.FieldMaxCombo:
 			values[i] = new(sql.NullInt64)
-		case stage.FieldLevelName, stage.FieldLevelAddress, stage.FieldJacketAddress:
+		case stage.FieldID, stage.FieldMusicID, stage.FieldLevelName, stage.FieldLevelAddress, stage.FieldJacketAddress:
 			values[i] = new(sql.NullString)
 		case stage.FieldCreatedAt, stage.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case stage.FieldID, stage.FieldMusicID:
-			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -108,10 +105,10 @@ func (s *Stage) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case stage.FieldID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
-			} else if value != nil {
-				s.ID = *value
+			} else if value.Valid {
+				s.ID = value.String
 			}
 		case stage.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -126,10 +123,10 @@ func (s *Stage) assignValues(columns []string, values []any) error {
 				s.UpdatedAt = value.Time
 			}
 		case stage.FieldMusicID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field music_id", values[i])
-			} else if value != nil {
-				s.MusicID = *value
+			} else if value.Valid {
+				s.MusicID = value.String
 			}
 		case stage.FieldLevelName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -226,7 +223,7 @@ func (s *Stage) String() string {
 	builder.WriteString(s.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("music_id=")
-	builder.WriteString(fmt.Sprintf("%v", s.MusicID))
+	builder.WriteString(s.MusicID)
 	builder.WriteString(", ")
 	builder.WriteString("level_name=")
 	builder.WriteString(s.LevelName)

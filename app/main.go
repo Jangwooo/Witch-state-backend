@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/swagger"
+	_ "github.com/witchs-lounge_backend/docs"
 	v1 "github.com/witchs-lounge_backend/internal/delivery/http/router/v1"
 	"github.com/witchs-lounge_backend/internal/infrastructure/bootstrap"
 )
@@ -43,7 +44,7 @@ func main() {
 	// 2. Redis 초기화
 	_, sessionStore, err := bootstrap.SetupRedis(*mode)
 	if err != nil {
-		log.Printf("Redis 초기화 실패: %v", err)
+		log.Fatalf("Redis 초기화 실패: %v", err)
 	}
 
 	// 3. 애플리케이션 의존성 초기화
@@ -75,9 +76,10 @@ func main() {
 
 	// 8. 라우터 설정
 	v1.SetupRoutes(app, &v1.RouterConfig{
-		SessionStore: deps.SessionStore,
-		StoveHandler: deps.StoveHandler,
-		UserHandler:  deps.UserHandler,
+		SessionStore:  deps.SessionStore,
+		StoveHandler:  deps.StoveHandler,
+		UserHandler:   deps.UserHandler,
+		RecordHandler: deps.RecordHandler,
 	})
 
 	// 9. 서버 시작

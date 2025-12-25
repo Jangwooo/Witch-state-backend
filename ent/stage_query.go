@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 	"github.com/witchs-lounge_backend/ent/music"
 	"github.com/witchs-lounge_backend/ent/predicate"
 	"github.com/witchs-lounge_backend/ent/record"
@@ -132,8 +131,8 @@ func (sq *StageQuery) FirstX(ctx context.Context) *Stage {
 
 // FirstID returns the first Stage ID from the query.
 // Returns a *NotFoundError when no Stage ID was found.
-func (sq *StageQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
-	var ids []uuid.UUID
+func (sq *StageQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = sq.Limit(1).IDs(setContextOp(ctx, sq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -145,7 +144,7 @@ func (sq *StageQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (sq *StageQuery) FirstIDX(ctx context.Context) uuid.UUID {
+func (sq *StageQuery) FirstIDX(ctx context.Context) string {
 	id, err := sq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -183,8 +182,8 @@ func (sq *StageQuery) OnlyX(ctx context.Context) *Stage {
 // OnlyID is like Only, but returns the only Stage ID in the query.
 // Returns a *NotSingularError when more than one Stage ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (sq *StageQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
-	var ids []uuid.UUID
+func (sq *StageQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = sq.Limit(2).IDs(setContextOp(ctx, sq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -200,7 +199,7 @@ func (sq *StageQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (sq *StageQuery) OnlyIDX(ctx context.Context) uuid.UUID {
+func (sq *StageQuery) OnlyIDX(ctx context.Context) string {
 	id, err := sq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -228,7 +227,7 @@ func (sq *StageQuery) AllX(ctx context.Context) []*Stage {
 }
 
 // IDs executes the query and returns a list of Stage IDs.
-func (sq *StageQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+func (sq *StageQuery) IDs(ctx context.Context) (ids []string, err error) {
 	if sq.ctx.Unique == nil && sq.path != nil {
 		sq.Unique(true)
 	}
@@ -240,7 +239,7 @@ func (sq *StageQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (sq *StageQuery) IDsX(ctx context.Context) []uuid.UUID {
+func (sq *StageQuery) IDsX(ctx context.Context) []string {
 	ids, err := sq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -448,8 +447,8 @@ func (sq *StageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Stage,
 }
 
 func (sq *StageQuery) loadMusic(ctx context.Context, query *MusicQuery, nodes []*Stage, init func(*Stage), assign func(*Stage, *Music)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*Stage)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Stage)
 	for i := range nodes {
 		fk := nodes[i].MusicID
 		if _, ok := nodeids[fk]; !ok {
@@ -478,7 +477,7 @@ func (sq *StageQuery) loadMusic(ctx context.Context, query *MusicQuery, nodes []
 }
 func (sq *StageQuery) loadRecords(ctx context.Context, query *RecordQuery, nodes []*Stage, init func(*Stage), assign func(*Stage, *Record)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*Stage)
+	nodeids := make(map[string]*Stage)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -517,7 +516,7 @@ func (sq *StageQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (sq *StageQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(stage.Table, stage.Columns, sqlgraph.NewFieldSpec(stage.FieldID, field.TypeUUID))
+	_spec := sqlgraph.NewQuerySpec(stage.Table, stage.Columns, sqlgraph.NewFieldSpec(stage.FieldID, field.TypeString))
 	_spec.From = sq.sql
 	if unique := sq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

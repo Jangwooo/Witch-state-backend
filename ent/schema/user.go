@@ -85,8 +85,6 @@ func (User) Edges() []ent.Edge {
 func (User) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("platform_type", "platform_user_id").Unique(),
-		index.Fields("nickname").Unique(),
 		index.Fields("level"),
-		index.Fields("last_login_at"),
 	}
 }

@@ -7,53 +7,62 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/google/uuid"
 	"github.com/witchs-lounge_backend/ent/predicate"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id uuid.UUID) predicate.Stage {
+func ID(id string) predicate.Stage {
 	return predicate.Stage(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id uuid.UUID) predicate.Stage {
+func IDEQ(id string) predicate.Stage {
 	return predicate.Stage(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id uuid.UUID) predicate.Stage {
+func IDNEQ(id string) predicate.Stage {
 	return predicate.Stage(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...uuid.UUID) predicate.Stage {
+func IDIn(ids ...string) predicate.Stage {
 	return predicate.Stage(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...uuid.UUID) predicate.Stage {
+func IDNotIn(ids ...string) predicate.Stage {
 	return predicate.Stage(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id uuid.UUID) predicate.Stage {
+func IDGT(id string) predicate.Stage {
 	return predicate.Stage(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id uuid.UUID) predicate.Stage {
+func IDGTE(id string) predicate.Stage {
 	return predicate.Stage(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id uuid.UUID) predicate.Stage {
+func IDLT(id string) predicate.Stage {
 	return predicate.Stage(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id uuid.UUID) predicate.Stage {
+func IDLTE(id string) predicate.Stage {
 	return predicate.Stage(sql.FieldLTE(FieldID, id))
+}
+
+// IDEqualFold applies the EqualFold predicate on the ID field.
+func IDEqualFold(id string) predicate.Stage {
+	return predicate.Stage(sql.FieldEqualFold(FieldID, id))
+}
+
+// IDContainsFold applies the ContainsFold predicate on the ID field.
+func IDContainsFold(id string) predicate.Stage {
+	return predicate.Stage(sql.FieldContainsFold(FieldID, id))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -67,7 +76,7 @@ func UpdatedAt(v time.Time) predicate.Stage {
 }
 
 // MusicID applies equality check predicate on the "music_id" field. It's identical to MusicIDEQ.
-func MusicID(v uuid.UUID) predicate.Stage {
+func MusicID(v string) predicate.Stage {
 	return predicate.Stage(sql.FieldEQ(FieldMusicID, v))
 }
 
@@ -187,23 +196,68 @@ func UpdatedAtLTE(v time.Time) predicate.Stage {
 }
 
 // MusicIDEQ applies the EQ predicate on the "music_id" field.
-func MusicIDEQ(v uuid.UUID) predicate.Stage {
+func MusicIDEQ(v string) predicate.Stage {
 	return predicate.Stage(sql.FieldEQ(FieldMusicID, v))
 }
 
 // MusicIDNEQ applies the NEQ predicate on the "music_id" field.
-func MusicIDNEQ(v uuid.UUID) predicate.Stage {
+func MusicIDNEQ(v string) predicate.Stage {
 	return predicate.Stage(sql.FieldNEQ(FieldMusicID, v))
 }
 
 // MusicIDIn applies the In predicate on the "music_id" field.
-func MusicIDIn(vs ...uuid.UUID) predicate.Stage {
+func MusicIDIn(vs ...string) predicate.Stage {
 	return predicate.Stage(sql.FieldIn(FieldMusicID, vs...))
 }
 
 // MusicIDNotIn applies the NotIn predicate on the "music_id" field.
-func MusicIDNotIn(vs ...uuid.UUID) predicate.Stage {
+func MusicIDNotIn(vs ...string) predicate.Stage {
 	return predicate.Stage(sql.FieldNotIn(FieldMusicID, vs...))
+}
+
+// MusicIDGT applies the GT predicate on the "music_id" field.
+func MusicIDGT(v string) predicate.Stage {
+	return predicate.Stage(sql.FieldGT(FieldMusicID, v))
+}
+
+// MusicIDGTE applies the GTE predicate on the "music_id" field.
+func MusicIDGTE(v string) predicate.Stage {
+	return predicate.Stage(sql.FieldGTE(FieldMusicID, v))
+}
+
+// MusicIDLT applies the LT predicate on the "music_id" field.
+func MusicIDLT(v string) predicate.Stage {
+	return predicate.Stage(sql.FieldLT(FieldMusicID, v))
+}
+
+// MusicIDLTE applies the LTE predicate on the "music_id" field.
+func MusicIDLTE(v string) predicate.Stage {
+	return predicate.Stage(sql.FieldLTE(FieldMusicID, v))
+}
+
+// MusicIDContains applies the Contains predicate on the "music_id" field.
+func MusicIDContains(v string) predicate.Stage {
+	return predicate.Stage(sql.FieldContains(FieldMusicID, v))
+}
+
+// MusicIDHasPrefix applies the HasPrefix predicate on the "music_id" field.
+func MusicIDHasPrefix(v string) predicate.Stage {
+	return predicate.Stage(sql.FieldHasPrefix(FieldMusicID, v))
+}
+
+// MusicIDHasSuffix applies the HasSuffix predicate on the "music_id" field.
+func MusicIDHasSuffix(v string) predicate.Stage {
+	return predicate.Stage(sql.FieldHasSuffix(FieldMusicID, v))
+}
+
+// MusicIDEqualFold applies the EqualFold predicate on the "music_id" field.
+func MusicIDEqualFold(v string) predicate.Stage {
+	return predicate.Stage(sql.FieldEqualFold(FieldMusicID, v))
+}
+
+// MusicIDContainsFold applies the ContainsFold predicate on the "music_id" field.
+func MusicIDContainsFold(v string) predicate.Stage {
+	return predicate.Stage(sql.FieldContainsFold(FieldMusicID, v))
 }
 
 // LevelNameEQ applies the EQ predicate on the "level_name" field.

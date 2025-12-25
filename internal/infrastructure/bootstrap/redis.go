@@ -29,8 +29,6 @@ func SetupRedis(mode string) (*redis.Client, session.SessionStore, error) {
 
 	_, err = client.Ping(ctx).Result()
 	if err != nil {
-		log.Printf("Redis 연결 실패: %v", err)
-		log.Printf("세션 기능이 작동하지 않을 수 있습니다.")
 		return client, nil, err
 	}
 

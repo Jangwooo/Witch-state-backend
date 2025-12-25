@@ -54,29 +54,29 @@ func (ru *RecordUpdate) SetNillableUserID(u *uuid.UUID) *RecordUpdate {
 }
 
 // SetMusicID sets the "music_id" field.
-func (ru *RecordUpdate) SetMusicID(u uuid.UUID) *RecordUpdate {
-	ru.mutation.SetMusicID(u)
+func (ru *RecordUpdate) SetMusicID(s string) *RecordUpdate {
+	ru.mutation.SetMusicID(s)
 	return ru
 }
 
 // SetNillableMusicID sets the "music_id" field if the given value is not nil.
-func (ru *RecordUpdate) SetNillableMusicID(u *uuid.UUID) *RecordUpdate {
-	if u != nil {
-		ru.SetMusicID(*u)
+func (ru *RecordUpdate) SetNillableMusicID(s *string) *RecordUpdate {
+	if s != nil {
+		ru.SetMusicID(*s)
 	}
 	return ru
 }
 
 // SetStageID sets the "stage_id" field.
-func (ru *RecordUpdate) SetStageID(u uuid.UUID) *RecordUpdate {
-	ru.mutation.SetStageID(u)
+func (ru *RecordUpdate) SetStageID(s string) *RecordUpdate {
+	ru.mutation.SetStageID(s)
 	return ru
 }
 
 // SetNillableStageID sets the "stage_id" field if the given value is not nil.
-func (ru *RecordUpdate) SetNillableStageID(u *uuid.UUID) *RecordUpdate {
-	if u != nil {
-		ru.SetStageID(*u)
+func (ru *RecordUpdate) SetNillableStageID(s *string) *RecordUpdate {
+	if s != nil {
+		ru.SetStageID(*s)
 	}
 	return ru
 }
@@ -286,20 +286,6 @@ func (ru *RecordUpdate) SetIsPerfectPlay(b bool) *RecordUpdate {
 func (ru *RecordUpdate) SetNillableIsPerfectPlay(b *bool) *RecordUpdate {
 	if b != nil {
 		ru.SetIsPerfectPlay(*b)
-	}
-	return ru
-}
-
-// SetPlayedAt sets the "played_at" field.
-func (ru *RecordUpdate) SetPlayedAt(t time.Time) *RecordUpdate {
-	ru.mutation.SetPlayedAt(t)
-	return ru
-}
-
-// SetNillablePlayedAt sets the "played_at" field if the given value is not nil.
-func (ru *RecordUpdate) SetNillablePlayedAt(t *time.Time) *RecordUpdate {
-	if t != nil {
-		ru.SetPlayedAt(*t)
 	}
 	return ru
 }
@@ -533,9 +519,6 @@ func (ru *RecordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := ru.mutation.IsPerfectPlay(); ok {
 		_spec.SetField(record.FieldIsPerfectPlay, field.TypeBool, value)
 	}
-	if value, ok := ru.mutation.PlayedAt(); ok {
-		_spec.SetField(record.FieldPlayedAt, field.TypeTime, value)
-	}
 	if value, ok := ru.mutation.PlayDuration(); ok {
 		_spec.SetField(record.FieldPlayDuration, field.TypeInt, value)
 	}
@@ -591,7 +574,7 @@ func (ru *RecordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{record.MusicColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(music.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(music.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -604,7 +587,7 @@ func (ru *RecordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{record.MusicColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(music.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(music.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -620,7 +603,7 @@ func (ru *RecordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{record.StageColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -633,7 +616,7 @@ func (ru *RecordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{record.StageColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -711,29 +694,29 @@ func (ruo *RecordUpdateOne) SetNillableUserID(u *uuid.UUID) *RecordUpdateOne {
 }
 
 // SetMusicID sets the "music_id" field.
-func (ruo *RecordUpdateOne) SetMusicID(u uuid.UUID) *RecordUpdateOne {
-	ruo.mutation.SetMusicID(u)
+func (ruo *RecordUpdateOne) SetMusicID(s string) *RecordUpdateOne {
+	ruo.mutation.SetMusicID(s)
 	return ruo
 }
 
 // SetNillableMusicID sets the "music_id" field if the given value is not nil.
-func (ruo *RecordUpdateOne) SetNillableMusicID(u *uuid.UUID) *RecordUpdateOne {
-	if u != nil {
-		ruo.SetMusicID(*u)
+func (ruo *RecordUpdateOne) SetNillableMusicID(s *string) *RecordUpdateOne {
+	if s != nil {
+		ruo.SetMusicID(*s)
 	}
 	return ruo
 }
 
 // SetStageID sets the "stage_id" field.
-func (ruo *RecordUpdateOne) SetStageID(u uuid.UUID) *RecordUpdateOne {
-	ruo.mutation.SetStageID(u)
+func (ruo *RecordUpdateOne) SetStageID(s string) *RecordUpdateOne {
+	ruo.mutation.SetStageID(s)
 	return ruo
 }
 
 // SetNillableStageID sets the "stage_id" field if the given value is not nil.
-func (ruo *RecordUpdateOne) SetNillableStageID(u *uuid.UUID) *RecordUpdateOne {
-	if u != nil {
-		ruo.SetStageID(*u)
+func (ruo *RecordUpdateOne) SetNillableStageID(s *string) *RecordUpdateOne {
+	if s != nil {
+		ruo.SetStageID(*s)
 	}
 	return ruo
 }
@@ -943,20 +926,6 @@ func (ruo *RecordUpdateOne) SetIsPerfectPlay(b bool) *RecordUpdateOne {
 func (ruo *RecordUpdateOne) SetNillableIsPerfectPlay(b *bool) *RecordUpdateOne {
 	if b != nil {
 		ruo.SetIsPerfectPlay(*b)
-	}
-	return ruo
-}
-
-// SetPlayedAt sets the "played_at" field.
-func (ruo *RecordUpdateOne) SetPlayedAt(t time.Time) *RecordUpdateOne {
-	ruo.mutation.SetPlayedAt(t)
-	return ruo
-}
-
-// SetNillablePlayedAt sets the "played_at" field if the given value is not nil.
-func (ruo *RecordUpdateOne) SetNillablePlayedAt(t *time.Time) *RecordUpdateOne {
-	if t != nil {
-		ruo.SetPlayedAt(*t)
 	}
 	return ruo
 }
@@ -1220,9 +1189,6 @@ func (ruo *RecordUpdateOne) sqlSave(ctx context.Context) (_node *Record, err err
 	if value, ok := ruo.mutation.IsPerfectPlay(); ok {
 		_spec.SetField(record.FieldIsPerfectPlay, field.TypeBool, value)
 	}
-	if value, ok := ruo.mutation.PlayedAt(); ok {
-		_spec.SetField(record.FieldPlayedAt, field.TypeTime, value)
-	}
 	if value, ok := ruo.mutation.PlayDuration(); ok {
 		_spec.SetField(record.FieldPlayDuration, field.TypeInt, value)
 	}
@@ -1278,7 +1244,7 @@ func (ruo *RecordUpdateOne) sqlSave(ctx context.Context) (_node *Record, err err
 			Columns: []string{record.MusicColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(music.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(music.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1291,7 +1257,7 @@ func (ruo *RecordUpdateOne) sqlSave(ctx context.Context) (_node *Record, err err
 			Columns: []string{record.MusicColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(music.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(music.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -1307,7 +1273,7 @@ func (ruo *RecordUpdateOne) sqlSave(ctx context.Context) (_node *Record, err err
 			Columns: []string{record.StageColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1320,7 +1286,7 @@ func (ruo *RecordUpdateOne) sqlSave(ctx context.Context) (_node *Record, err err
 			Columns: []string{record.StageColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

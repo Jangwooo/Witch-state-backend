@@ -1,10 +1,11 @@
 package schema
 
 import (
+	"time"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"github.com/witchs-lounge_backend/ent/schema/mixin"
 )
 
 // Music holds the schema definition for the Music entity.
@@ -12,26 +13,28 @@ type Music struct {
 	ent.Schema
 }
 
-// Mixin of the Music.
-func (Music) Mixin() []ent.Mixin {
-	return []ent.Mixin{
-		mixin.GlobalMixin{},
-	}
-}
-
 // Fields of the Music.
 func (Music) Fields() []ent.Field {
 	return []ent.Field{
+		field.Text("id").
+			Immutable().
+			Unique().
+			Comment("곡 ID"),
+		field.Time("created_at").
+			Default(time.Now).
+			Immutable().
+			Comment("Created time"),
+		field.Time("updated_at").
+			Default(time.Now).
+			UpdateDefault(time.Now).
+			Comment("Updated time"),
+
 		field.Text("name").
 			Comment("곡 제목"),
 		field.Text("artist").
 			Comment("아티스트"),
 		field.Text("composer").Optional().
 			Comment("작곡가"),
-		field.Text("music_source").
-			Comment("음악 파일 경로"),
-		field.Text("jacket_source").
-			Comment("재킷 이미지 경로"),
 		field.Float("duration").
 			Comment("곡 길이(초)"),
 		field.Float("bpm").

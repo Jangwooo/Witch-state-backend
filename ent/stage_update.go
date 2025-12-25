@@ -38,15 +38,15 @@ func (su *StageUpdate) SetUpdatedAt(t time.Time) *StageUpdate {
 }
 
 // SetMusicID sets the "music_id" field.
-func (su *StageUpdate) SetMusicID(u uuid.UUID) *StageUpdate {
-	su.mutation.SetMusicID(u)
+func (su *StageUpdate) SetMusicID(s string) *StageUpdate {
+	su.mutation.SetMusicID(s)
 	return su
 }
 
 // SetNillableMusicID sets the "music_id" field if the given value is not nil.
-func (su *StageUpdate) SetNillableMusicID(u *uuid.UUID) *StageUpdate {
-	if u != nil {
-		su.SetMusicID(*u)
+func (su *StageUpdate) SetNillableMusicID(s *string) *StageUpdate {
+	if s != nil {
+		su.SetMusicID(*s)
 	}
 	return su
 }
@@ -285,7 +285,7 @@ func (su *StageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := su.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(stage.Table, stage.Columns, sqlgraph.NewFieldSpec(stage.FieldID, field.TypeUUID))
+	_spec := sqlgraph.NewUpdateSpec(stage.Table, stage.Columns, sqlgraph.NewFieldSpec(stage.FieldID, field.TypeString))
 	if ps := su.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -334,7 +334,7 @@ func (su *StageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{stage.MusicColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(music.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(music.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -347,7 +347,7 @@ func (su *StageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{stage.MusicColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(music.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(music.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -427,15 +427,15 @@ func (suo *StageUpdateOne) SetUpdatedAt(t time.Time) *StageUpdateOne {
 }
 
 // SetMusicID sets the "music_id" field.
-func (suo *StageUpdateOne) SetMusicID(u uuid.UUID) *StageUpdateOne {
-	suo.mutation.SetMusicID(u)
+func (suo *StageUpdateOne) SetMusicID(s string) *StageUpdateOne {
+	suo.mutation.SetMusicID(s)
 	return suo
 }
 
 // SetNillableMusicID sets the "music_id" field if the given value is not nil.
-func (suo *StageUpdateOne) SetNillableMusicID(u *uuid.UUID) *StageUpdateOne {
-	if u != nil {
-		suo.SetMusicID(*u)
+func (suo *StageUpdateOne) SetNillableMusicID(s *string) *StageUpdateOne {
+	if s != nil {
+		suo.SetMusicID(*s)
 	}
 	return suo
 }
@@ -687,7 +687,7 @@ func (suo *StageUpdateOne) sqlSave(ctx context.Context) (_node *Stage, err error
 	if err := suo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(stage.Table, stage.Columns, sqlgraph.NewFieldSpec(stage.FieldID, field.TypeUUID))
+	_spec := sqlgraph.NewUpdateSpec(stage.Table, stage.Columns, sqlgraph.NewFieldSpec(stage.FieldID, field.TypeString))
 	id, ok := suo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Stage.id" for update`)}
@@ -753,7 +753,7 @@ func (suo *StageUpdateOne) sqlSave(ctx context.Context) (_node *Stage, err error
 			Columns: []string{stage.MusicColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(music.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(music.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -766,7 +766,7 @@ func (suo *StageUpdateOne) sqlSave(ctx context.Context) (_node *Stage, err error
 			Columns: []string{stage.MusicColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(music.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(music.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

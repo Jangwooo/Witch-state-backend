@@ -72,12 +72,12 @@ func UserID(v uuid.UUID) predicate.Record {
 }
 
 // MusicID applies equality check predicate on the "music_id" field. It's identical to MusicIDEQ.
-func MusicID(v uuid.UUID) predicate.Record {
+func MusicID(v string) predicate.Record {
 	return predicate.Record(sql.FieldEQ(FieldMusicID, v))
 }
 
 // StageID applies equality check predicate on the "stage_id" field. It's identical to StageIDEQ.
-func StageID(v uuid.UUID) predicate.Record {
+func StageID(v string) predicate.Record {
 	return predicate.Record(sql.FieldEQ(FieldStageID, v))
 }
 
@@ -129,11 +129,6 @@ func IsFullCombo(v bool) predicate.Record {
 // IsPerfectPlay applies equality check predicate on the "is_perfect_play" field. It's identical to IsPerfectPlayEQ.
 func IsPerfectPlay(v bool) predicate.Record {
 	return predicate.Record(sql.FieldEQ(FieldIsPerfectPlay, v))
-}
-
-// PlayedAt applies equality check predicate on the "played_at" field. It's identical to PlayedAtEQ.
-func PlayedAt(v time.Time) predicate.Record {
-	return predicate.Record(sql.FieldEQ(FieldPlayedAt, v))
 }
 
 // PlayDuration applies equality check predicate on the "play_duration" field. It's identical to PlayDurationEQ.
@@ -247,43 +242,133 @@ func UserIDNotIn(vs ...uuid.UUID) predicate.Record {
 }
 
 // MusicIDEQ applies the EQ predicate on the "music_id" field.
-func MusicIDEQ(v uuid.UUID) predicate.Record {
+func MusicIDEQ(v string) predicate.Record {
 	return predicate.Record(sql.FieldEQ(FieldMusicID, v))
 }
 
 // MusicIDNEQ applies the NEQ predicate on the "music_id" field.
-func MusicIDNEQ(v uuid.UUID) predicate.Record {
+func MusicIDNEQ(v string) predicate.Record {
 	return predicate.Record(sql.FieldNEQ(FieldMusicID, v))
 }
 
 // MusicIDIn applies the In predicate on the "music_id" field.
-func MusicIDIn(vs ...uuid.UUID) predicate.Record {
+func MusicIDIn(vs ...string) predicate.Record {
 	return predicate.Record(sql.FieldIn(FieldMusicID, vs...))
 }
 
 // MusicIDNotIn applies the NotIn predicate on the "music_id" field.
-func MusicIDNotIn(vs ...uuid.UUID) predicate.Record {
+func MusicIDNotIn(vs ...string) predicate.Record {
 	return predicate.Record(sql.FieldNotIn(FieldMusicID, vs...))
 }
 
+// MusicIDGT applies the GT predicate on the "music_id" field.
+func MusicIDGT(v string) predicate.Record {
+	return predicate.Record(sql.FieldGT(FieldMusicID, v))
+}
+
+// MusicIDGTE applies the GTE predicate on the "music_id" field.
+func MusicIDGTE(v string) predicate.Record {
+	return predicate.Record(sql.FieldGTE(FieldMusicID, v))
+}
+
+// MusicIDLT applies the LT predicate on the "music_id" field.
+func MusicIDLT(v string) predicate.Record {
+	return predicate.Record(sql.FieldLT(FieldMusicID, v))
+}
+
+// MusicIDLTE applies the LTE predicate on the "music_id" field.
+func MusicIDLTE(v string) predicate.Record {
+	return predicate.Record(sql.FieldLTE(FieldMusicID, v))
+}
+
+// MusicIDContains applies the Contains predicate on the "music_id" field.
+func MusicIDContains(v string) predicate.Record {
+	return predicate.Record(sql.FieldContains(FieldMusicID, v))
+}
+
+// MusicIDHasPrefix applies the HasPrefix predicate on the "music_id" field.
+func MusicIDHasPrefix(v string) predicate.Record {
+	return predicate.Record(sql.FieldHasPrefix(FieldMusicID, v))
+}
+
+// MusicIDHasSuffix applies the HasSuffix predicate on the "music_id" field.
+func MusicIDHasSuffix(v string) predicate.Record {
+	return predicate.Record(sql.FieldHasSuffix(FieldMusicID, v))
+}
+
+// MusicIDEqualFold applies the EqualFold predicate on the "music_id" field.
+func MusicIDEqualFold(v string) predicate.Record {
+	return predicate.Record(sql.FieldEqualFold(FieldMusicID, v))
+}
+
+// MusicIDContainsFold applies the ContainsFold predicate on the "music_id" field.
+func MusicIDContainsFold(v string) predicate.Record {
+	return predicate.Record(sql.FieldContainsFold(FieldMusicID, v))
+}
+
 // StageIDEQ applies the EQ predicate on the "stage_id" field.
-func StageIDEQ(v uuid.UUID) predicate.Record {
+func StageIDEQ(v string) predicate.Record {
 	return predicate.Record(sql.FieldEQ(FieldStageID, v))
 }
 
 // StageIDNEQ applies the NEQ predicate on the "stage_id" field.
-func StageIDNEQ(v uuid.UUID) predicate.Record {
+func StageIDNEQ(v string) predicate.Record {
 	return predicate.Record(sql.FieldNEQ(FieldStageID, v))
 }
 
 // StageIDIn applies the In predicate on the "stage_id" field.
-func StageIDIn(vs ...uuid.UUID) predicate.Record {
+func StageIDIn(vs ...string) predicate.Record {
 	return predicate.Record(sql.FieldIn(FieldStageID, vs...))
 }
 
 // StageIDNotIn applies the NotIn predicate on the "stage_id" field.
-func StageIDNotIn(vs ...uuid.UUID) predicate.Record {
+func StageIDNotIn(vs ...string) predicate.Record {
 	return predicate.Record(sql.FieldNotIn(FieldStageID, vs...))
+}
+
+// StageIDGT applies the GT predicate on the "stage_id" field.
+func StageIDGT(v string) predicate.Record {
+	return predicate.Record(sql.FieldGT(FieldStageID, v))
+}
+
+// StageIDGTE applies the GTE predicate on the "stage_id" field.
+func StageIDGTE(v string) predicate.Record {
+	return predicate.Record(sql.FieldGTE(FieldStageID, v))
+}
+
+// StageIDLT applies the LT predicate on the "stage_id" field.
+func StageIDLT(v string) predicate.Record {
+	return predicate.Record(sql.FieldLT(FieldStageID, v))
+}
+
+// StageIDLTE applies the LTE predicate on the "stage_id" field.
+func StageIDLTE(v string) predicate.Record {
+	return predicate.Record(sql.FieldLTE(FieldStageID, v))
+}
+
+// StageIDContains applies the Contains predicate on the "stage_id" field.
+func StageIDContains(v string) predicate.Record {
+	return predicate.Record(sql.FieldContains(FieldStageID, v))
+}
+
+// StageIDHasPrefix applies the HasPrefix predicate on the "stage_id" field.
+func StageIDHasPrefix(v string) predicate.Record {
+	return predicate.Record(sql.FieldHasPrefix(FieldStageID, v))
+}
+
+// StageIDHasSuffix applies the HasSuffix predicate on the "stage_id" field.
+func StageIDHasSuffix(v string) predicate.Record {
+	return predicate.Record(sql.FieldHasSuffix(FieldStageID, v))
+}
+
+// StageIDEqualFold applies the EqualFold predicate on the "stage_id" field.
+func StageIDEqualFold(v string) predicate.Record {
+	return predicate.Record(sql.FieldEqualFold(FieldStageID, v))
+}
+
+// StageIDContainsFold applies the ContainsFold predicate on the "stage_id" field.
+func StageIDContainsFold(v string) predicate.Record {
+	return predicate.Record(sql.FieldContainsFold(FieldStageID, v))
 }
 
 // CharacterIDEQ applies the EQ predicate on the "character_id" field.
@@ -634,46 +719,6 @@ func IsPerfectPlayEQ(v bool) predicate.Record {
 // IsPerfectPlayNEQ applies the NEQ predicate on the "is_perfect_play" field.
 func IsPerfectPlayNEQ(v bool) predicate.Record {
 	return predicate.Record(sql.FieldNEQ(FieldIsPerfectPlay, v))
-}
-
-// PlayedAtEQ applies the EQ predicate on the "played_at" field.
-func PlayedAtEQ(v time.Time) predicate.Record {
-	return predicate.Record(sql.FieldEQ(FieldPlayedAt, v))
-}
-
-// PlayedAtNEQ applies the NEQ predicate on the "played_at" field.
-func PlayedAtNEQ(v time.Time) predicate.Record {
-	return predicate.Record(sql.FieldNEQ(FieldPlayedAt, v))
-}
-
-// PlayedAtIn applies the In predicate on the "played_at" field.
-func PlayedAtIn(vs ...time.Time) predicate.Record {
-	return predicate.Record(sql.FieldIn(FieldPlayedAt, vs...))
-}
-
-// PlayedAtNotIn applies the NotIn predicate on the "played_at" field.
-func PlayedAtNotIn(vs ...time.Time) predicate.Record {
-	return predicate.Record(sql.FieldNotIn(FieldPlayedAt, vs...))
-}
-
-// PlayedAtGT applies the GT predicate on the "played_at" field.
-func PlayedAtGT(v time.Time) predicate.Record {
-	return predicate.Record(sql.FieldGT(FieldPlayedAt, v))
-}
-
-// PlayedAtGTE applies the GTE predicate on the "played_at" field.
-func PlayedAtGTE(v time.Time) predicate.Record {
-	return predicate.Record(sql.FieldGTE(FieldPlayedAt, v))
-}
-
-// PlayedAtLT applies the LT predicate on the "played_at" field.
-func PlayedAtLT(v time.Time) predicate.Record {
-	return predicate.Record(sql.FieldLT(FieldPlayedAt, v))
-}
-
-// PlayedAtLTE applies the LTE predicate on the "played_at" field.
-func PlayedAtLTE(v time.Time) predicate.Record {
-	return predicate.Record(sql.FieldLTE(FieldPlayedAt, v))
 }
 
 // PlayDurationEQ applies the EQ predicate on the "play_duration" field.

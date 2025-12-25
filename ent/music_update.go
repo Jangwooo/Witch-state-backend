@@ -85,34 +85,6 @@ func (mu *MusicUpdate) ClearComposer() *MusicUpdate {
 	return mu
 }
 
-// SetMusicSource sets the "music_source" field.
-func (mu *MusicUpdate) SetMusicSource(s string) *MusicUpdate {
-	mu.mutation.SetMusicSource(s)
-	return mu
-}
-
-// SetNillableMusicSource sets the "music_source" field if the given value is not nil.
-func (mu *MusicUpdate) SetNillableMusicSource(s *string) *MusicUpdate {
-	if s != nil {
-		mu.SetMusicSource(*s)
-	}
-	return mu
-}
-
-// SetJacketSource sets the "jacket_source" field.
-func (mu *MusicUpdate) SetJacketSource(s string) *MusicUpdate {
-	mu.mutation.SetJacketSource(s)
-	return mu
-}
-
-// SetNillableJacketSource sets the "jacket_source" field if the given value is not nil.
-func (mu *MusicUpdate) SetNillableJacketSource(s *string) *MusicUpdate {
-	if s != nil {
-		mu.SetJacketSource(*s)
-	}
-	return mu
-}
-
 // SetDuration sets the "duration" field.
 func (mu *MusicUpdate) SetDuration(f float64) *MusicUpdate {
 	mu.mutation.ResetDuration()
@@ -279,14 +251,14 @@ func (mu *MusicUpdate) SetNillableIsActive(b *bool) *MusicUpdate {
 }
 
 // AddStageIDs adds the "stages" edge to the Stage entity by IDs.
-func (mu *MusicUpdate) AddStageIDs(ids ...uuid.UUID) *MusicUpdate {
+func (mu *MusicUpdate) AddStageIDs(ids ...string) *MusicUpdate {
 	mu.mutation.AddStageIDs(ids...)
 	return mu
 }
 
 // AddStages adds the "stages" edges to the Stage entity.
 func (mu *MusicUpdate) AddStages(s ...*Stage) *MusicUpdate {
-	ids := make([]uuid.UUID, len(s))
+	ids := make([]string, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -320,14 +292,14 @@ func (mu *MusicUpdate) ClearStages() *MusicUpdate {
 }
 
 // RemoveStageIDs removes the "stages" edge to Stage entities by IDs.
-func (mu *MusicUpdate) RemoveStageIDs(ids ...uuid.UUID) *MusicUpdate {
+func (mu *MusicUpdate) RemoveStageIDs(ids ...string) *MusicUpdate {
 	mu.mutation.RemoveStageIDs(ids...)
 	return mu
 }
 
 // RemoveStages removes "stages" edges to Stage entities.
 func (mu *MusicUpdate) RemoveStages(s ...*Stage) *MusicUpdate {
-	ids := make([]uuid.UUID, len(s))
+	ids := make([]string, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -392,7 +364,7 @@ func (mu *MusicUpdate) defaults() {
 }
 
 func (mu *MusicUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := sqlgraph.NewUpdateSpec(music.Table, music.Columns, sqlgraph.NewFieldSpec(music.FieldID, field.TypeUUID))
+	_spec := sqlgraph.NewUpdateSpec(music.Table, music.Columns, sqlgraph.NewFieldSpec(music.FieldID, field.TypeString))
 	if ps := mu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -414,12 +386,6 @@ func (mu *MusicUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if mu.mutation.ComposerCleared() {
 		_spec.ClearField(music.FieldComposer, field.TypeString)
-	}
-	if value, ok := mu.mutation.MusicSource(); ok {
-		_spec.SetField(music.FieldMusicSource, field.TypeString, value)
-	}
-	if value, ok := mu.mutation.JacketSource(); ok {
-		_spec.SetField(music.FieldJacketSource, field.TypeString, value)
 	}
 	if value, ok := mu.mutation.Duration(); ok {
 		_spec.SetField(music.FieldDuration, field.TypeFloat64, value)
@@ -474,7 +440,7 @@ func (mu *MusicUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{music.StagesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -487,7 +453,7 @@ func (mu *MusicUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{music.StagesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -503,7 +469,7 @@ func (mu *MusicUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{music.StagesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -627,34 +593,6 @@ func (muo *MusicUpdateOne) SetNillableComposer(s *string) *MusicUpdateOne {
 // ClearComposer clears the value of the "composer" field.
 func (muo *MusicUpdateOne) ClearComposer() *MusicUpdateOne {
 	muo.mutation.ClearComposer()
-	return muo
-}
-
-// SetMusicSource sets the "music_source" field.
-func (muo *MusicUpdateOne) SetMusicSource(s string) *MusicUpdateOne {
-	muo.mutation.SetMusicSource(s)
-	return muo
-}
-
-// SetNillableMusicSource sets the "music_source" field if the given value is not nil.
-func (muo *MusicUpdateOne) SetNillableMusicSource(s *string) *MusicUpdateOne {
-	if s != nil {
-		muo.SetMusicSource(*s)
-	}
-	return muo
-}
-
-// SetJacketSource sets the "jacket_source" field.
-func (muo *MusicUpdateOne) SetJacketSource(s string) *MusicUpdateOne {
-	muo.mutation.SetJacketSource(s)
-	return muo
-}
-
-// SetNillableJacketSource sets the "jacket_source" field if the given value is not nil.
-func (muo *MusicUpdateOne) SetNillableJacketSource(s *string) *MusicUpdateOne {
-	if s != nil {
-		muo.SetJacketSource(*s)
-	}
 	return muo
 }
 
@@ -824,14 +762,14 @@ func (muo *MusicUpdateOne) SetNillableIsActive(b *bool) *MusicUpdateOne {
 }
 
 // AddStageIDs adds the "stages" edge to the Stage entity by IDs.
-func (muo *MusicUpdateOne) AddStageIDs(ids ...uuid.UUID) *MusicUpdateOne {
+func (muo *MusicUpdateOne) AddStageIDs(ids ...string) *MusicUpdateOne {
 	muo.mutation.AddStageIDs(ids...)
 	return muo
 }
 
 // AddStages adds the "stages" edges to the Stage entity.
 func (muo *MusicUpdateOne) AddStages(s ...*Stage) *MusicUpdateOne {
-	ids := make([]uuid.UUID, len(s))
+	ids := make([]string, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -865,14 +803,14 @@ func (muo *MusicUpdateOne) ClearStages() *MusicUpdateOne {
 }
 
 // RemoveStageIDs removes the "stages" edge to Stage entities by IDs.
-func (muo *MusicUpdateOne) RemoveStageIDs(ids ...uuid.UUID) *MusicUpdateOne {
+func (muo *MusicUpdateOne) RemoveStageIDs(ids ...string) *MusicUpdateOne {
 	muo.mutation.RemoveStageIDs(ids...)
 	return muo
 }
 
 // RemoveStages removes "stages" edges to Stage entities.
 func (muo *MusicUpdateOne) RemoveStages(s ...*Stage) *MusicUpdateOne {
-	ids := make([]uuid.UUID, len(s))
+	ids := make([]string, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -950,7 +888,7 @@ func (muo *MusicUpdateOne) defaults() {
 }
 
 func (muo *MusicUpdateOne) sqlSave(ctx context.Context) (_node *Music, err error) {
-	_spec := sqlgraph.NewUpdateSpec(music.Table, music.Columns, sqlgraph.NewFieldSpec(music.FieldID, field.TypeUUID))
+	_spec := sqlgraph.NewUpdateSpec(music.Table, music.Columns, sqlgraph.NewFieldSpec(music.FieldID, field.TypeString))
 	id, ok := muo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Music.id" for update`)}
@@ -989,12 +927,6 @@ func (muo *MusicUpdateOne) sqlSave(ctx context.Context) (_node *Music, err error
 	}
 	if muo.mutation.ComposerCleared() {
 		_spec.ClearField(music.FieldComposer, field.TypeString)
-	}
-	if value, ok := muo.mutation.MusicSource(); ok {
-		_spec.SetField(music.FieldMusicSource, field.TypeString, value)
-	}
-	if value, ok := muo.mutation.JacketSource(); ok {
-		_spec.SetField(music.FieldJacketSource, field.TypeString, value)
 	}
 	if value, ok := muo.mutation.Duration(); ok {
 		_spec.SetField(music.FieldDuration, field.TypeFloat64, value)
@@ -1049,7 +981,7 @@ func (muo *MusicUpdateOne) sqlSave(ctx context.Context) (_node *Music, err error
 			Columns: []string{music.StagesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1062,7 +994,7 @@ func (muo *MusicUpdateOne) sqlSave(ctx context.Context) (_node *Music, err error
 			Columns: []string{music.StagesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -1078,7 +1010,7 @@ func (muo *MusicUpdateOne) sqlSave(ctx context.Context) (_node *Music, err error
 			Columns: []string{music.StagesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

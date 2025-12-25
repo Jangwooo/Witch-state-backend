@@ -10,8 +10,9 @@ import (
 type RouterConfig struct {
 	SessionStore session.SessionStore
 
-	StoveHandler *handler.StoveHandler
-	UserHandler  *handler.UserHandler
+	StoveHandler  *handler.StoveHandler
+	UserHandler   *handler.UserHandler
+	RecordHandler *handler.RecordHandler
 }
 
 // SetupRoutes 모든 라우터를 마운트
@@ -19,6 +20,7 @@ func SetupRoutes(app *fiber.App, config *RouterConfig) {
 	// V1 API 라우터 등록
 	NewStoveRouter(app, config.StoveHandler)
 	NewUserRouter(app, config.UserHandler, config.SessionStore)
+	NewRecordRouter(app, config.RecordHandler, config.SessionStore)
 
 	// 추가 라우터는 여기에 등록
 	// 인증 불필요: NewPublicRouter(app, handler)

@@ -48,8 +48,6 @@ const (
 	FieldIsFullCombo = "is_full_combo"
 	// FieldIsPerfectPlay holds the string denoting the is_perfect_play field in the database.
 	FieldIsPerfectPlay = "is_perfect_play"
-	// FieldPlayedAt holds the string denoting the played_at field in the database.
-	FieldPlayedAt = "played_at"
 	// FieldPlayDuration holds the string denoting the play_duration field in the database.
 	FieldPlayDuration = "play_duration"
 	// FieldAdditionalInfo holds the string denoting the additional_info field in the database.
@@ -115,7 +113,6 @@ var Columns = []string{
 	FieldRank,
 	FieldIsFullCombo,
 	FieldIsPerfectPlay,
-	FieldPlayedAt,
 	FieldPlayDuration,
 	FieldAdditionalInfo,
 	FieldIsValid,
@@ -154,8 +151,6 @@ var (
 	DefaultIsFullCombo bool
 	// DefaultIsPerfectPlay holds the default value on creation for the "is_perfect_play" field.
 	DefaultIsPerfectPlay bool
-	// DefaultPlayedAt holds the default value on creation for the "played_at" field.
-	DefaultPlayedAt func() time.Time
 	// DefaultIsValid holds the default value on creation for the "is_valid" field.
 	DefaultIsValid bool
 	// DefaultID holds the default value on creation for the "id" field.
@@ -277,11 +272,6 @@ func ByIsFullCombo(opts ...sql.OrderTermOption) OrderOption {
 // ByIsPerfectPlay orders the results by the is_perfect_play field.
 func ByIsPerfectPlay(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsPerfectPlay, opts...).ToFunc()
-}
-
-// ByPlayedAt orders the results by the played_at field.
-func ByPlayedAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPlayedAt, opts...).ToFunc()
 }
 
 // ByPlayDuration orders the results by the play_duration field.

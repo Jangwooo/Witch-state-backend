@@ -100,41 +100,34 @@ func init() {
 	itemDescID := itemMixinFields0[0].Descriptor()
 	// item.DefaultID holds the default value on creation for the id field.
 	item.DefaultID = itemDescID.Default.(func() uuid.UUID)
-	musicMixin := schema.Music{}.Mixin()
-	musicMixinFields0 := musicMixin[0].Fields()
-	_ = musicMixinFields0
 	musicFields := schema.Music{}.Fields()
 	_ = musicFields
 	// musicDescCreatedAt is the schema descriptor for created_at field.
-	musicDescCreatedAt := musicMixinFields0[1].Descriptor()
+	musicDescCreatedAt := musicFields[1].Descriptor()
 	// music.DefaultCreatedAt holds the default value on creation for the created_at field.
 	music.DefaultCreatedAt = musicDescCreatedAt.Default.(func() time.Time)
 	// musicDescUpdatedAt is the schema descriptor for updated_at field.
-	musicDescUpdatedAt := musicMixinFields0[2].Descriptor()
+	musicDescUpdatedAt := musicFields[2].Descriptor()
 	// music.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	music.DefaultUpdatedAt = musicDescUpdatedAt.Default.(func() time.Time)
 	// music.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	music.UpdateDefaultUpdatedAt = musicDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// musicDescIsFeatured is the schema descriptor for is_featured field.
-	musicDescIsFeatured := musicFields[9].Descriptor()
+	musicDescIsFeatured := musicFields[10].Descriptor()
 	// music.DefaultIsFeatured holds the default value on creation for the is_featured field.
 	music.DefaultIsFeatured = musicDescIsFeatured.Default.(bool)
 	// musicDescIsFree is the schema descriptor for is_free field.
-	musicDescIsFree := musicFields[10].Descriptor()
+	musicDescIsFree := musicFields[11].Descriptor()
 	// music.DefaultIsFree holds the default value on creation for the is_free field.
 	music.DefaultIsFree = musicDescIsFree.Default.(bool)
 	// musicDescUnlockLevel is the schema descriptor for unlock_level field.
-	musicDescUnlockLevel := musicFields[11].Descriptor()
+	musicDescUnlockLevel := musicFields[12].Descriptor()
 	// music.DefaultUnlockLevel holds the default value on creation for the unlock_level field.
 	music.DefaultUnlockLevel = musicDescUnlockLevel.Default.(int)
 	// musicDescIsActive is the schema descriptor for is_active field.
-	musicDescIsActive := musicFields[13].Descriptor()
+	musicDescIsActive := musicFields[14].Descriptor()
 	// music.DefaultIsActive holds the default value on creation for the is_active field.
 	music.DefaultIsActive = musicDescIsActive.Default.(bool)
-	// musicDescID is the schema descriptor for id field.
-	musicDescID := musicMixinFields0[0].Descriptor()
-	// music.DefaultID holds the default value on creation for the id field.
-	music.DefaultID = musicDescID.Default.(func() uuid.UUID)
 	productMixin := schema.Product{}.Mixin()
 	productMixinFields0 := productMixin[0].Fields()
 	_ = productMixinFields0
@@ -209,53 +202,42 @@ func init() {
 	recordDescIsPerfectPlay := recordFields[13].Descriptor()
 	// record.DefaultIsPerfectPlay holds the default value on creation for the is_perfect_play field.
 	record.DefaultIsPerfectPlay = recordDescIsPerfectPlay.Default.(bool)
-	// recordDescPlayedAt is the schema descriptor for played_at field.
-	recordDescPlayedAt := recordFields[14].Descriptor()
-	// record.DefaultPlayedAt holds the default value on creation for the played_at field.
-	record.DefaultPlayedAt = recordDescPlayedAt.Default.(func() time.Time)
 	// recordDescIsValid is the schema descriptor for is_valid field.
-	recordDescIsValid := recordFields[17].Descriptor()
+	recordDescIsValid := recordFields[16].Descriptor()
 	// record.DefaultIsValid holds the default value on creation for the is_valid field.
 	record.DefaultIsValid = recordDescIsValid.Default.(bool)
 	// recordDescID is the schema descriptor for id field.
 	recordDescID := recordMixinFields0[0].Descriptor()
 	// record.DefaultID holds the default value on creation for the id field.
 	record.DefaultID = recordDescID.Default.(func() uuid.UUID)
-	stageMixin := schema.Stage{}.Mixin()
-	stageMixinFields0 := stageMixin[0].Fields()
-	_ = stageMixinFields0
 	stageFields := schema.Stage{}.Fields()
 	_ = stageFields
 	// stageDescCreatedAt is the schema descriptor for created_at field.
-	stageDescCreatedAt := stageMixinFields0[1].Descriptor()
+	stageDescCreatedAt := stageFields[1].Descriptor()
 	// stage.DefaultCreatedAt holds the default value on creation for the created_at field.
 	stage.DefaultCreatedAt = stageDescCreatedAt.Default.(func() time.Time)
 	// stageDescUpdatedAt is the schema descriptor for updated_at field.
-	stageDescUpdatedAt := stageMixinFields0[2].Descriptor()
+	stageDescUpdatedAt := stageFields[2].Descriptor()
 	// stage.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	stage.DefaultUpdatedAt = stageDescUpdatedAt.Default.(func() time.Time)
 	// stage.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	stage.UpdateDefaultUpdatedAt = stageDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// stageDescLevelName is the schema descriptor for level_name field.
-	stageDescLevelName := stageFields[1].Descriptor()
+	stageDescLevelName := stageFields[4].Descriptor()
 	// stage.LevelNameValidator is a validator for the "level_name" field. It is called by the builders before save.
 	stage.LevelNameValidator = stageDescLevelName.Validators[0].(func(string) error)
 	// stageDescLevelAddress is the schema descriptor for level_address field.
-	stageDescLevelAddress := stageFields[3].Descriptor()
+	stageDescLevelAddress := stageFields[6].Descriptor()
 	// stage.LevelAddressValidator is a validator for the "level_address" field. It is called by the builders before save.
 	stage.LevelAddressValidator = stageDescLevelAddress.Validators[0].(func(string) error)
 	// stageDescJacketAddress is the schema descriptor for jacket_address field.
-	stageDescJacketAddress := stageFields[4].Descriptor()
+	stageDescJacketAddress := stageFields[7].Descriptor()
 	// stage.JacketAddressValidator is a validator for the "jacket_address" field. It is called by the builders before save.
 	stage.JacketAddressValidator = stageDescJacketAddress.Validators[0].(func(string) error)
 	// stageDescIsActive is the schema descriptor for is_active field.
-	stageDescIsActive := stageFields[7].Descriptor()
+	stageDescIsActive := stageFields[10].Descriptor()
 	// stage.DefaultIsActive holds the default value on creation for the is_active field.
 	stage.DefaultIsActive = stageDescIsActive.Default.(bool)
-	// stageDescID is the schema descriptor for id field.
-	stageDescID := stageMixinFields0[0].Descriptor()
-	// stage.DefaultID holds the default value on creation for the id field.
-	stage.DefaultID = stageDescID.Default.(func() uuid.UUID)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

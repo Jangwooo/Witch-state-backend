@@ -1,0 +1,94 @@
+name: CI/CD Deployment to On-Prem Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Checkout Code
+        uses: actions/checkout@v4
+
+      # ----------------------------------------------------
+      # 1. CI: Docker 이미지 빌드 및 푸시
+      # ----------------------------------------------------
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+
+      - name: Get Image Tag
+        # Git SHA를 기반으로 고유한 태그를 생성하고, 'latest' 태그도 함께 사용합니다.
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/witchs_lounge_backend
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.prod
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+
+      # ----------------------------------------------------
+      # 2. Deploy Preparation: 설정 파일 전송 및 생성
+      # ----------------------------------------------------
+      - name: Transfer Docker Compose File
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          source: "docker-compose.prod.yml"
+          target: ${{ secrets.DEPLOY_PATH }}
+
+      - name: Create .env.prod file on server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            echo "Creating .env.prod file in ${{ secrets.DEPLOY_PATH }}"
+            cat <<EOF > "${{ secrets.DEPLOY_PATH }}/.env.prod"
+            DB_USER='${{ secrets.DB_USER }}'
+            DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
+            DB_HOST='${{ secrets.DB_HOST }}'
+            DB_PORT='${{ secrets.DB_PORT }}'
+            DB_NAME='${{ secrets.DB_NAME }}'
+            DB_SSLMODE='${{ secrets.DB_SSLMODE }}'
+            DB_TZ='${{ secrets.DB_TZ }}'
+            REDIS_HOST='${{ secrets.REDIS_HOST }}'
+            REDIS_PASSWORD='${{ secrets.REDIS_PASSWORD }}'
+            REDIS_DB='${{ secrets.REDIS_DB }}'
+            EOF
+
+      # ----------------------------------------------------
+      # 3. Deploy: Docker Compose 업데이트
+      # ----------------------------------------------------
+      - name: 🚀 Deploy with Docker Compose
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            cd ${{ secrets.DEPLOY_PATH }}
+            docker-compose -f docker-compose.prod.yml pull
+            docker-compose -f docker-compose.prod.yml up -d
+            docker image prune -f

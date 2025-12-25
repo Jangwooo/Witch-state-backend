@@ -77,18 +77,6 @@ func (mc *MusicCreate) SetNillableComposer(s *string) *MusicCreate {
 	return mc
 }
 
-// SetMusicSource sets the "music_source" field.
-func (mc *MusicCreate) SetMusicSource(s string) *MusicCreate {
-	mc.mutation.SetMusicSource(s)
-	return mc
-}
-
-// SetJacketSource sets the "jacket_source" field.
-func (mc *MusicCreate) SetJacketSource(s string) *MusicCreate {
-	mc.mutation.SetJacketSource(s)
-	return mc
-}
-
 // SetDuration sets the "duration" field.
 func (mc *MusicCreate) SetDuration(f float64) *MusicCreate {
 	mc.mutation.SetDuration(f)
@@ -200,28 +188,20 @@ func (mc *MusicCreate) SetNillableIsActive(b *bool) *MusicCreate {
 }
 
 // SetID sets the "id" field.
-func (mc *MusicCreate) SetID(u uuid.UUID) *MusicCreate {
-	mc.mutation.SetID(u)
-	return mc
-}
-
-// SetNillableID sets the "id" field if the given value is not nil.
-func (mc *MusicCreate) SetNillableID(u *uuid.UUID) *MusicCreate {
-	if u != nil {
-		mc.SetID(*u)
-	}
+func (mc *MusicCreate) SetID(s string) *MusicCreate {
+	mc.mutation.SetID(s)
 	return mc
 }
 
 // AddStageIDs adds the "stages" edge to the Stage entity by IDs.
-func (mc *MusicCreate) AddStageIDs(ids ...uuid.UUID) *MusicCreate {
+func (mc *MusicCreate) AddStageIDs(ids ...string) *MusicCreate {
 	mc.mutation.AddStageIDs(ids...)
 	return mc
 }
 
 // AddStages adds the "stages" edges to the Stage entity.
 func (mc *MusicCreate) AddStages(s ...*Stage) *MusicCreate {
-	ids := make([]uuid.UUID, len(s))
+	ids := make([]string, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -302,10 +282,6 @@ func (mc *MusicCreate) defaults() {
 		v := music.DefaultIsActive
 		mc.mutation.SetIsActive(v)
 	}
-	if _, ok := mc.mutation.ID(); !ok {
-		v := music.DefaultID()
-		mc.mutation.SetID(v)
-	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -321,12 +297,6 @@ func (mc *MusicCreate) check() error {
 	}
 	if _, ok := mc.mutation.Artist(); !ok {
 		return &ValidationError{Name: "artist", err: errors.New(`ent: missing required field "Music.artist"`)}
-	}
-	if _, ok := mc.mutation.MusicSource(); !ok {
-		return &ValidationError{Name: "music_source", err: errors.New(`ent: missing required field "Music.music_source"`)}
-	}
-	if _, ok := mc.mutation.JacketSource(); !ok {
-		return &ValidationError{Name: "jacket_source", err: errors.New(`ent: missing required field "Music.jacket_source"`)}
 	}
 	if _, ok := mc.mutation.Duration(); !ok {
 		return &ValidationError{Name: "duration", err: errors.New(`ent: missing required field "Music.duration"`)}
@@ -361,10 +331,10 @@ func (mc *MusicCreate) sqlSave(ctx context.Context) (*Music, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
-			_node.ID = *id
-		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
-			return nil, err
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected Music.ID type: %T", _spec.ID.Value)
 		}
 	}
 	mc.mutation.id = &_node.ID
@@ -375,11 +345,11 @@ func (mc *MusicCreate) sqlSave(ctx context.Context) (*Music, error) {
 func (mc *MusicCreate) createSpec() (*Music, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Music{config: mc.config}
-		_spec = sqlgraph.NewCreateSpec(music.Table, sqlgraph.NewFieldSpec(music.FieldID, field.TypeUUID))
+		_spec = sqlgraph.NewCreateSpec(music.Table, sqlgraph.NewFieldSpec(music.FieldID, field.TypeString))
 	)
 	if id, ok := mc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = &id
+		_spec.ID.Value = id
 	}
 	if value, ok := mc.mutation.CreatedAt(); ok {
 		_spec.SetField(music.FieldCreatedAt, field.TypeTime, value)
@@ -400,14 +370,6 @@ func (mc *MusicCreate) createSpec() (*Music, *sqlgraph.CreateSpec) {
 	if value, ok := mc.mutation.Composer(); ok {
 		_spec.SetField(music.FieldComposer, field.TypeString, value)
 		_node.Composer = value
-	}
-	if value, ok := mc.mutation.MusicSource(); ok {
-		_spec.SetField(music.FieldMusicSource, field.TypeString, value)
-		_node.MusicSource = value
-	}
-	if value, ok := mc.mutation.JacketSource(); ok {
-		_spec.SetField(music.FieldJacketSource, field.TypeString, value)
-		_node.JacketSource = value
 	}
 	if value, ok := mc.mutation.Duration(); ok {
 		_spec.SetField(music.FieldDuration, field.TypeFloat64, value)
@@ -453,7 +415,7 @@ func (mc *MusicCreate) createSpec() (*Music, *sqlgraph.CreateSpec) {
 			Columns: []string{music.StagesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

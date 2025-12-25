@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 	"github.com/witchs-lounge_backend/ent/music"
 	"github.com/witchs-lounge_backend/ent/predicate"
 	"github.com/witchs-lounge_backend/ent/record"
@@ -132,8 +131,8 @@ func (mq *MusicQuery) FirstX(ctx context.Context) *Music {
 
 // FirstID returns the first Music ID from the query.
 // Returns a *NotFoundError when no Music ID was found.
-func (mq *MusicQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
-	var ids []uuid.UUID
+func (mq *MusicQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = mq.Limit(1).IDs(setContextOp(ctx, mq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -145,7 +144,7 @@ func (mq *MusicQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (mq *MusicQuery) FirstIDX(ctx context.Context) uuid.UUID {
+func (mq *MusicQuery) FirstIDX(ctx context.Context) string {
 	id, err := mq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -183,8 +182,8 @@ func (mq *MusicQuery) OnlyX(ctx context.Context) *Music {
 // OnlyID is like Only, but returns the only Music ID in the query.
 // Returns a *NotSingularError when more than one Music ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (mq *MusicQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
-	var ids []uuid.UUID
+func (mq *MusicQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = mq.Limit(2).IDs(setContextOp(ctx, mq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -200,7 +199,7 @@ func (mq *MusicQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (mq *MusicQuery) OnlyIDX(ctx context.Context) uuid.UUID {
+func (mq *MusicQuery) OnlyIDX(ctx context.Context) string {
 	id, err := mq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -228,7 +227,7 @@ func (mq *MusicQuery) AllX(ctx context.Context) []*Music {
 }
 
 // IDs executes the query and returns a list of Music IDs.
-func (mq *MusicQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+func (mq *MusicQuery) IDs(ctx context.Context) (ids []string, err error) {
 	if mq.ctx.Unique == nil && mq.path != nil {
 		mq.Unique(true)
 	}
@@ -240,7 +239,7 @@ func (mq *MusicQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (mq *MusicQuery) IDsX(ctx context.Context) []uuid.UUID {
+func (mq *MusicQuery) IDsX(ctx context.Context) []string {
 	ids, err := mq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -450,7 +449,7 @@ func (mq *MusicQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Music,
 
 func (mq *MusicQuery) loadStages(ctx context.Context, query *StageQuery, nodes []*Music, init func(*Music), assign func(*Music, *Stage)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*Music)
+	nodeids := make(map[string]*Music)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -480,7 +479,7 @@ func (mq *MusicQuery) loadStages(ctx context.Context, query *StageQuery, nodes [
 }
 func (mq *MusicQuery) loadRecords(ctx context.Context, query *RecordQuery, nodes []*Music, init func(*Music), assign func(*Music, *Record)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*Music)
+	nodeids := make(map[string]*Music)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -519,7 +518,7 @@ func (mq *MusicQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (mq *MusicQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(music.Table, music.Columns, sqlgraph.NewFieldSpec(music.FieldID, field.TypeUUID))
+	_spec := sqlgraph.NewQuerySpec(music.Table, music.Columns, sqlgraph.NewFieldSpec(music.FieldID, field.TypeString))
 	_spec.From = mq.sql
 	if unique := mq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
