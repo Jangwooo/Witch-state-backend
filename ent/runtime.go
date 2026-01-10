@@ -226,16 +226,8 @@ func init() {
 	stageDescLevelName := stageFields[4].Descriptor()
 	// stage.LevelNameValidator is a validator for the "level_name" field. It is called by the builders before save.
 	stage.LevelNameValidator = stageDescLevelName.Validators[0].(func(string) error)
-	// stageDescLevelAddress is the schema descriptor for level_address field.
-	stageDescLevelAddress := stageFields[6].Descriptor()
-	// stage.LevelAddressValidator is a validator for the "level_address" field. It is called by the builders before save.
-	stage.LevelAddressValidator = stageDescLevelAddress.Validators[0].(func(string) error)
-	// stageDescJacketAddress is the schema descriptor for jacket_address field.
-	stageDescJacketAddress := stageFields[7].Descriptor()
-	// stage.JacketAddressValidator is a validator for the "jacket_address" field. It is called by the builders before save.
-	stage.JacketAddressValidator = stageDescJacketAddress.Validators[0].(func(string) error)
 	// stageDescIsActive is the schema descriptor for is_active field.
-	stageDescIsActive := stageFields[10].Descriptor()
+	stageDescIsActive := stageFields[8].Descriptor()
 	// stage.DefaultIsActive holds the default value on creation for the is_active field.
 	stage.DefaultIsActive = stageDescIsActive.Default.(bool)
 	userMixin := schema.User{}.Mixin()

@@ -29,10 +29,6 @@ type Stage struct {
 	LevelName string `json:"level_name,omitempty"`
 	// 난이도 수치 (1-10)
 	Difficulty int `json:"difficulty,omitempty"`
-	// 채보 파일 경로
-	LevelAddress string `json:"level_address,omitempty"`
-	// 난이도별 재킷 이미지 경로
-	JacketAddress string `json:"jacket_address,omitempty"`
 	// 총 노트 수
 	TotalNotes int `json:"total_notes,omitempty"`
 	// 최대 콤보
@@ -85,7 +81,7 @@ func (*Stage) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case stage.FieldDifficulty, stage.FieldTotalNotes, stage.FieldMaxCombo:
 			values[i] = new(sql.NullInt64)
-		case stage.FieldID, stage.FieldMusicID, stage.FieldLevelName, stage.FieldLevelAddress, stage.FieldJacketAddress:
+		case stage.FieldID, stage.FieldMusicID, stage.FieldLevelName:
 			values[i] = new(sql.NullString)
 		case stage.FieldCreatedAt, stage.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -139,18 +135,6 @@ func (s *Stage) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field difficulty", values[i])
 			} else if value.Valid {
 				s.Difficulty = int(value.Int64)
-			}
-		case stage.FieldLevelAddress:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field level_address", values[i])
-			} else if value.Valid {
-				s.LevelAddress = value.String
-			}
-		case stage.FieldJacketAddress:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field jacket_address", values[i])
-			} else if value.Valid {
-				s.JacketAddress = value.String
 			}
 		case stage.FieldTotalNotes:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -230,12 +214,6 @@ func (s *Stage) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("difficulty=")
 	builder.WriteString(fmt.Sprintf("%v", s.Difficulty))
-	builder.WriteString(", ")
-	builder.WriteString("level_address=")
-	builder.WriteString(s.LevelAddress)
-	builder.WriteString(", ")
-	builder.WriteString("jacket_address=")
-	builder.WriteString(s.JacketAddress)
 	builder.WriteString(", ")
 	builder.WriteString("total_notes=")
 	builder.WriteString(fmt.Sprintf("%v", s.TotalNotes))

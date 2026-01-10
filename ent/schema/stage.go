@@ -35,10 +35,6 @@ func (Stage) Fields() []ent.Field {
 			Comment("난이도 이름 (Easy, Normal, Hard, Expert)"),
 		field.Int("difficulty").
 			Comment("난이도 수치 (1-10)"),
-		field.Text("level_address").NotEmpty().
-			Comment("채보 파일 경로"),
-		field.Text("jacket_address").NotEmpty().
-			Comment("난이도별 재킷 이미지 경로"),
 		field.Int("total_notes").
 			Comment("총 노트 수"),
 		field.Int("max_combo").

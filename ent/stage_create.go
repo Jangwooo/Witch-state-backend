@@ -69,18 +69,6 @@ func (sc *StageCreate) SetDifficulty(i int) *StageCreate {
 	return sc
 }
 
-// SetLevelAddress sets the "level_address" field.
-func (sc *StageCreate) SetLevelAddress(s string) *StageCreate {
-	sc.mutation.SetLevelAddress(s)
-	return sc
-}
-
-// SetJacketAddress sets the "jacket_address" field.
-func (sc *StageCreate) SetJacketAddress(s string) *StageCreate {
-	sc.mutation.SetJacketAddress(s)
-	return sc
-}
-
 // SetTotalNotes sets the "total_notes" field.
 func (sc *StageCreate) SetTotalNotes(i int) *StageCreate {
 	sc.mutation.SetTotalNotes(i)
@@ -204,22 +192,6 @@ func (sc *StageCreate) check() error {
 	if _, ok := sc.mutation.Difficulty(); !ok {
 		return &ValidationError{Name: "difficulty", err: errors.New(`ent: missing required field "Stage.difficulty"`)}
 	}
-	if _, ok := sc.mutation.LevelAddress(); !ok {
-		return &ValidationError{Name: "level_address", err: errors.New(`ent: missing required field "Stage.level_address"`)}
-	}
-	if v, ok := sc.mutation.LevelAddress(); ok {
-		if err := stage.LevelAddressValidator(v); err != nil {
-			return &ValidationError{Name: "level_address", err: fmt.Errorf(`ent: validator failed for field "Stage.level_address": %w`, err)}
-		}
-	}
-	if _, ok := sc.mutation.JacketAddress(); !ok {
-		return &ValidationError{Name: "jacket_address", err: errors.New(`ent: missing required field "Stage.jacket_address"`)}
-	}
-	if v, ok := sc.mutation.JacketAddress(); ok {
-		if err := stage.JacketAddressValidator(v); err != nil {
-			return &ValidationError{Name: "jacket_address", err: fmt.Errorf(`ent: validator failed for field "Stage.jacket_address": %w`, err)}
-		}
-	}
 	if _, ok := sc.mutation.TotalNotes(); !ok {
 		return &ValidationError{Name: "total_notes", err: errors.New(`ent: missing required field "Stage.total_notes"`)}
 	}
@@ -282,14 +254,6 @@ func (sc *StageCreate) createSpec() (*Stage, *sqlgraph.CreateSpec) {
 	if value, ok := sc.mutation.Difficulty(); ok {
 		_spec.SetField(stage.FieldDifficulty, field.TypeInt, value)
 		_node.Difficulty = value
-	}
-	if value, ok := sc.mutation.LevelAddress(); ok {
-		_spec.SetField(stage.FieldLevelAddress, field.TypeString, value)
-		_node.LevelAddress = value
-	}
-	if value, ok := sc.mutation.JacketAddress(); ok {
-		_spec.SetField(stage.FieldJacketAddress, field.TypeString, value)
-		_node.JacketAddress = value
 	}
 	if value, ok := sc.mutation.TotalNotes(); ok {
 		_spec.SetField(stage.FieldTotalNotes, field.TypeInt, value)

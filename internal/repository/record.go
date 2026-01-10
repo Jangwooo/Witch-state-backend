@@ -19,7 +19,7 @@ func NewRecordRepository(client *ent.Client) repository.RecordRepository {
 }
 
 func (r *recordRepository) Create(ctx context.Context, userID uuid.UUID, req *entity.CreateRecordRequest) (*entity.Record, error) {
-	rec, err := r.client.Record.Create().
+	create := r.client.Record.Create().
 		SetUserID(userID).
 		SetMusicID(req.MusicID).
 		SetStageID(req.StageID).
@@ -34,16 +34,17 @@ func (r *recordRepository) Create(ctx context.Context, userID uuid.UUID, req *en
 		SetRank(record.Rank(req.Rank)).
 		SetIsFullCombo(req.IsFullCombo).
 		SetIsPerfectPlay(req.IsPerfectPlay).
-		Save(ctx)
-	if err != nil {
-		return nil, err
+		SetNillablePlayDuration(req.PlayDuration)
+
+	if req.Additional != nil {
+		create.SetAdditionalInfo(req.Additional)
+	} else {
+		create.SetAdditionalInfo(map[string]interface{}{})
 	}
 
-	if req.PlayDuration != nil {
-		_, _ = r.client.Record.UpdateOneID(rec.ID).SetPlayDuration(*req.PlayDuration).Save(ctx)
-	}
-	if req.Additional != nil {
-		_, _ = r.client.Record.UpdateOneID(rec.ID).SetAdditionalInfo(req.Additional).Save(ctx)
+	rec, err := create.Save(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	return entity.NewRecord(rec), nil

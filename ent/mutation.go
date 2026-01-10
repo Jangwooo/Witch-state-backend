@@ -6785,8 +6785,6 @@ type StageMutation struct {
 	level_name     *string
 	difficulty     *int
 	adddifficulty  *int
-	level_address  *string
-	jacket_address *string
 	total_notes    *int
 	addtotal_notes *int
 	max_combo      *int
@@ -7107,78 +7105,6 @@ func (m *StageMutation) ResetDifficulty() {
 	m.adddifficulty = nil
 }
 
-// SetLevelAddress sets the "level_address" field.
-func (m *StageMutation) SetLevelAddress(s string) {
-	m.level_address = &s
-}
-
-// LevelAddress returns the value of the "level_address" field in the mutation.
-func (m *StageMutation) LevelAddress() (r string, exists bool) {
-	v := m.level_address
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldLevelAddress returns the old "level_address" field's value of the Stage entity.
-// If the Stage object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StageMutation) OldLevelAddress(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLevelAddress is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLevelAddress requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLevelAddress: %w", err)
-	}
-	return oldValue.LevelAddress, nil
-}
-
-// ResetLevelAddress resets all changes to the "level_address" field.
-func (m *StageMutation) ResetLevelAddress() {
-	m.level_address = nil
-}
-
-// SetJacketAddress sets the "jacket_address" field.
-func (m *StageMutation) SetJacketAddress(s string) {
-	m.jacket_address = &s
-}
-
-// JacketAddress returns the value of the "jacket_address" field in the mutation.
-func (m *StageMutation) JacketAddress() (r string, exists bool) {
-	v := m.jacket_address
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldJacketAddress returns the old "jacket_address" field's value of the Stage entity.
-// If the Stage object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StageMutation) OldJacketAddress(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldJacketAddress is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldJacketAddress requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldJacketAddress: %w", err)
-	}
-	return oldValue.JacketAddress, nil
-}
-
-// ResetJacketAddress resets all changes to the "jacket_address" field.
-func (m *StageMutation) ResetJacketAddress() {
-	m.jacket_address = nil
-}
-
 // SetTotalNotes sets the "total_notes" field.
 func (m *StageMutation) SetTotalNotes(i int) {
 	m.total_notes = &i
@@ -7442,7 +7368,7 @@ func (m *StageMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *StageMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 8)
 	if m.created_at != nil {
 		fields = append(fields, stage.FieldCreatedAt)
 	}
@@ -7457,12 +7383,6 @@ func (m *StageMutation) Fields() []string {
 	}
 	if m.difficulty != nil {
 		fields = append(fields, stage.FieldDifficulty)
-	}
-	if m.level_address != nil {
-		fields = append(fields, stage.FieldLevelAddress)
-	}
-	if m.jacket_address != nil {
-		fields = append(fields, stage.FieldJacketAddress)
 	}
 	if m.total_notes != nil {
 		fields = append(fields, stage.FieldTotalNotes)
@@ -7491,10 +7411,6 @@ func (m *StageMutation) Field(name string) (ent.Value, bool) {
 		return m.LevelName()
 	case stage.FieldDifficulty:
 		return m.Difficulty()
-	case stage.FieldLevelAddress:
-		return m.LevelAddress()
-	case stage.FieldJacketAddress:
-		return m.JacketAddress()
 	case stage.FieldTotalNotes:
 		return m.TotalNotes()
 	case stage.FieldMaxCombo:
@@ -7520,10 +7436,6 @@ func (m *StageMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldLevelName(ctx)
 	case stage.FieldDifficulty:
 		return m.OldDifficulty(ctx)
-	case stage.FieldLevelAddress:
-		return m.OldLevelAddress(ctx)
-	case stage.FieldJacketAddress:
-		return m.OldJacketAddress(ctx)
 	case stage.FieldTotalNotes:
 		return m.OldTotalNotes(ctx)
 	case stage.FieldMaxCombo:
@@ -7573,20 +7485,6 @@ func (m *StageMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDifficulty(v)
-		return nil
-	case stage.FieldLevelAddress:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetLevelAddress(v)
-		return nil
-	case stage.FieldJacketAddress:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetJacketAddress(v)
 		return nil
 	case stage.FieldTotalNotes:
 		v, ok := value.(int)
@@ -7711,12 +7609,6 @@ func (m *StageMutation) ResetField(name string) error {
 		return nil
 	case stage.FieldDifficulty:
 		m.ResetDifficulty()
-		return nil
-	case stage.FieldLevelAddress:
-		m.ResetLevelAddress()
-		return nil
-	case stage.FieldJacketAddress:
-		m.ResetJacketAddress()
 		return nil
 	case stage.FieldTotalNotes:
 		m.ResetTotalNotes()

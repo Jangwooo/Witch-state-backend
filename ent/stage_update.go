@@ -86,34 +86,6 @@ func (su *StageUpdate) AddDifficulty(i int) *StageUpdate {
 	return su
 }
 
-// SetLevelAddress sets the "level_address" field.
-func (su *StageUpdate) SetLevelAddress(s string) *StageUpdate {
-	su.mutation.SetLevelAddress(s)
-	return su
-}
-
-// SetNillableLevelAddress sets the "level_address" field if the given value is not nil.
-func (su *StageUpdate) SetNillableLevelAddress(s *string) *StageUpdate {
-	if s != nil {
-		su.SetLevelAddress(*s)
-	}
-	return su
-}
-
-// SetJacketAddress sets the "jacket_address" field.
-func (su *StageUpdate) SetJacketAddress(s string) *StageUpdate {
-	su.mutation.SetJacketAddress(s)
-	return su
-}
-
-// SetNillableJacketAddress sets the "jacket_address" field if the given value is not nil.
-func (su *StageUpdate) SetNillableJacketAddress(s *string) *StageUpdate {
-	if s != nil {
-		su.SetJacketAddress(*s)
-	}
-	return su
-}
-
 // SetTotalNotes sets the "total_notes" field.
 func (su *StageUpdate) SetTotalNotes(i int) *StageUpdate {
 	su.mutation.ResetTotalNotes()
@@ -265,16 +237,6 @@ func (su *StageUpdate) check() error {
 			return &ValidationError{Name: "level_name", err: fmt.Errorf(`ent: validator failed for field "Stage.level_name": %w`, err)}
 		}
 	}
-	if v, ok := su.mutation.LevelAddress(); ok {
-		if err := stage.LevelAddressValidator(v); err != nil {
-			return &ValidationError{Name: "level_address", err: fmt.Errorf(`ent: validator failed for field "Stage.level_address": %w`, err)}
-		}
-	}
-	if v, ok := su.mutation.JacketAddress(); ok {
-		if err := stage.JacketAddressValidator(v); err != nil {
-			return &ValidationError{Name: "jacket_address", err: fmt.Errorf(`ent: validator failed for field "Stage.jacket_address": %w`, err)}
-		}
-	}
 	if su.mutation.MusicCleared() && len(su.mutation.MusicIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Stage.music"`)
 	}
@@ -304,12 +266,6 @@ func (su *StageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := su.mutation.AddedDifficulty(); ok {
 		_spec.AddField(stage.FieldDifficulty, field.TypeInt, value)
-	}
-	if value, ok := su.mutation.LevelAddress(); ok {
-		_spec.SetField(stage.FieldLevelAddress, field.TypeString, value)
-	}
-	if value, ok := su.mutation.JacketAddress(); ok {
-		_spec.SetField(stage.FieldJacketAddress, field.TypeString, value)
 	}
 	if value, ok := su.mutation.TotalNotes(); ok {
 		_spec.SetField(stage.FieldTotalNotes, field.TypeInt, value)
@@ -472,34 +428,6 @@ func (suo *StageUpdateOne) SetNillableDifficulty(i *int) *StageUpdateOne {
 // AddDifficulty adds i to the "difficulty" field.
 func (suo *StageUpdateOne) AddDifficulty(i int) *StageUpdateOne {
 	suo.mutation.AddDifficulty(i)
-	return suo
-}
-
-// SetLevelAddress sets the "level_address" field.
-func (suo *StageUpdateOne) SetLevelAddress(s string) *StageUpdateOne {
-	suo.mutation.SetLevelAddress(s)
-	return suo
-}
-
-// SetNillableLevelAddress sets the "level_address" field if the given value is not nil.
-func (suo *StageUpdateOne) SetNillableLevelAddress(s *string) *StageUpdateOne {
-	if s != nil {
-		suo.SetLevelAddress(*s)
-	}
-	return suo
-}
-
-// SetJacketAddress sets the "jacket_address" field.
-func (suo *StageUpdateOne) SetJacketAddress(s string) *StageUpdateOne {
-	suo.mutation.SetJacketAddress(s)
-	return suo
-}
-
-// SetNillableJacketAddress sets the "jacket_address" field if the given value is not nil.
-func (suo *StageUpdateOne) SetNillableJacketAddress(s *string) *StageUpdateOne {
-	if s != nil {
-		suo.SetJacketAddress(*s)
-	}
 	return suo
 }
 
@@ -667,16 +595,6 @@ func (suo *StageUpdateOne) check() error {
 			return &ValidationError{Name: "level_name", err: fmt.Errorf(`ent: validator failed for field "Stage.level_name": %w`, err)}
 		}
 	}
-	if v, ok := suo.mutation.LevelAddress(); ok {
-		if err := stage.LevelAddressValidator(v); err != nil {
-			return &ValidationError{Name: "level_address", err: fmt.Errorf(`ent: validator failed for field "Stage.level_address": %w`, err)}
-		}
-	}
-	if v, ok := suo.mutation.JacketAddress(); ok {
-		if err := stage.JacketAddressValidator(v); err != nil {
-			return &ValidationError{Name: "jacket_address", err: fmt.Errorf(`ent: validator failed for field "Stage.jacket_address": %w`, err)}
-		}
-	}
 	if suo.mutation.MusicCleared() && len(suo.mutation.MusicIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Stage.music"`)
 	}
@@ -723,12 +641,6 @@ func (suo *StageUpdateOne) sqlSave(ctx context.Context) (_node *Stage, err error
 	}
 	if value, ok := suo.mutation.AddedDifficulty(); ok {
 		_spec.AddField(stage.FieldDifficulty, field.TypeInt, value)
-	}
-	if value, ok := suo.mutation.LevelAddress(); ok {
-		_spec.SetField(stage.FieldLevelAddress, field.TypeString, value)
-	}
-	if value, ok := suo.mutation.JacketAddress(); ok {
-		_spec.SetField(stage.FieldJacketAddress, field.TypeString, value)
 	}
 	if value, ok := suo.mutation.TotalNotes(); ok {
 		_spec.SetField(stage.FieldTotalNotes, field.TypeInt, value)

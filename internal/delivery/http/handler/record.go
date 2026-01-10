@@ -23,10 +23,10 @@ func NewRecordHandler(recordUseCase usecase.RecordUseCase) *RecordHandler {
 // @Security BearerAuth
 // @Param body body entity.CreateRecordRequest true "플레이 기록 요청"
 // @Success 200 {object} repository.SingleRecordResponse "생성된 기록"
-// @Failure 400 {object} entity.ErrorResponse "요청 데이터 검증 실패"
+// @Failure 400 {object} entity.ErrorResponse "잘못된 요청 형식"
 // @Failure 401 {object} entity.ErrorResponse "인증 필요"
 // @Failure 500 {object} entity.ErrorResponse "서버 내부 오류"
-// @Router /records [post]
+// @Router /api/v1/records [post]
 func (h *RecordHandler) CreateRecord(c *fiber.Ctx) error {
 	usr := c.Locals("user")
 	if usr == nil {

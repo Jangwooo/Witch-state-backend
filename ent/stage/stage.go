@@ -24,10 +24,6 @@ const (
 	FieldLevelName = "level_name"
 	// FieldDifficulty holds the string denoting the difficulty field in the database.
 	FieldDifficulty = "difficulty"
-	// FieldLevelAddress holds the string denoting the level_address field in the database.
-	FieldLevelAddress = "level_address"
-	// FieldJacketAddress holds the string denoting the jacket_address field in the database.
-	FieldJacketAddress = "jacket_address"
 	// FieldTotalNotes holds the string denoting the total_notes field in the database.
 	FieldTotalNotes = "total_notes"
 	// FieldMaxCombo holds the string denoting the max_combo field in the database.
@@ -64,8 +60,6 @@ var Columns = []string{
 	FieldMusicID,
 	FieldLevelName,
 	FieldDifficulty,
-	FieldLevelAddress,
-	FieldJacketAddress,
 	FieldTotalNotes,
 	FieldMaxCombo,
 	FieldIsActive,
@@ -90,10 +84,6 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// LevelNameValidator is a validator for the "level_name" field. It is called by the builders before save.
 	LevelNameValidator func(string) error
-	// LevelAddressValidator is a validator for the "level_address" field. It is called by the builders before save.
-	LevelAddressValidator func(string) error
-	// JacketAddressValidator is a validator for the "jacket_address" field. It is called by the builders before save.
-	JacketAddressValidator func(string) error
 	// DefaultIsActive holds the default value on creation for the "is_active" field.
 	DefaultIsActive bool
 )
@@ -129,16 +119,6 @@ func ByLevelName(opts ...sql.OrderTermOption) OrderOption {
 // ByDifficulty orders the results by the difficulty field.
 func ByDifficulty(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDifficulty, opts...).ToFunc()
-}
-
-// ByLevelAddress orders the results by the level_address field.
-func ByLevelAddress(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldLevelAddress, opts...).ToFunc()
-}
-
-// ByJacketAddress orders the results by the jacket_address field.
-func ByJacketAddress(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldJacketAddress, opts...).ToFunc()
 }
 
 // ByTotalNotes orders the results by the total_notes field.
