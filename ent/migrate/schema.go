@@ -218,8 +218,6 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "level_name", Type: field.TypeString, Size: 2147483647},
 		{Name: "difficulty", Type: field.TypeInt},
-		{Name: "level_address", Type: field.TypeString, Size: 2147483647},
-		{Name: "jacket_address", Type: field.TypeString, Size: 2147483647},
 		{Name: "total_notes", Type: field.TypeInt},
 		{Name: "max_combo", Type: field.TypeInt},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
@@ -233,7 +231,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "stages_musics_stages",
-				Columns:    []*schema.Column{StagesColumns[10]},
+				Columns:    []*schema.Column{StagesColumns[8]},
 				RefColumns: []*schema.Column{MusicsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
