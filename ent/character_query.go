@@ -489,9 +489,7 @@ func (cq *CharacterQuery) loadRecords(ctx context.Context, query *RecordQuery, n
 			init(nodes[i])
 		}
 	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(record.FieldCharacterID)
-	}
+	query.withFKs = true
 	query.Where(predicate.Record(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(character.RecordsColumn), fks...))
 	}))
@@ -500,10 +498,13 @@ func (cq *CharacterQuery) loadRecords(ctx context.Context, query *RecordQuery, n
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.CharacterID
-		node, ok := nodeids[fk]
+		fk := n.character_records
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "character_records" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "character_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "character_records" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

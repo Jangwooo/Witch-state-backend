@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/witchs-lounge_backend/ent/character"
 	"github.com/witchs-lounge_backend/ent/music"
 	"github.com/witchs-lounge_backend/ent/predicate"
 	"github.com/witchs-lounge_backend/ent/record"
@@ -77,20 +76,6 @@ func (ru *RecordUpdate) SetStageID(s string) *RecordUpdate {
 func (ru *RecordUpdate) SetNillableStageID(s *string) *RecordUpdate {
 	if s != nil {
 		ru.SetStageID(*s)
-	}
-	return ru
-}
-
-// SetCharacterID sets the "character_id" field.
-func (ru *RecordUpdate) SetCharacterID(u uuid.UUID) *RecordUpdate {
-	ru.mutation.SetCharacterID(u)
-	return ru
-}
-
-// SetNillableCharacterID sets the "character_id" field if the given value is not nil.
-func (ru *RecordUpdate) SetNillableCharacterID(u *uuid.UUID) *RecordUpdate {
-	if u != nil {
-		ru.SetCharacterID(*u)
 	}
 	return ru
 }
@@ -290,33 +275,6 @@ func (ru *RecordUpdate) SetNillableIsPerfectPlay(b *bool) *RecordUpdate {
 	return ru
 }
 
-// SetPlayDuration sets the "play_duration" field.
-func (ru *RecordUpdate) SetPlayDuration(i int) *RecordUpdate {
-	ru.mutation.ResetPlayDuration()
-	ru.mutation.SetPlayDuration(i)
-	return ru
-}
-
-// SetNillablePlayDuration sets the "play_duration" field if the given value is not nil.
-func (ru *RecordUpdate) SetNillablePlayDuration(i *int) *RecordUpdate {
-	if i != nil {
-		ru.SetPlayDuration(*i)
-	}
-	return ru
-}
-
-// AddPlayDuration adds i to the "play_duration" field.
-func (ru *RecordUpdate) AddPlayDuration(i int) *RecordUpdate {
-	ru.mutation.AddPlayDuration(i)
-	return ru
-}
-
-// ClearPlayDuration clears the value of the "play_duration" field.
-func (ru *RecordUpdate) ClearPlayDuration() *RecordUpdate {
-	ru.mutation.ClearPlayDuration()
-	return ru
-}
-
 // SetAdditionalInfo sets the "additional_info" field.
 func (ru *RecordUpdate) SetAdditionalInfo(m map[string]interface{}) *RecordUpdate {
 	ru.mutation.SetAdditionalInfo(m)
@@ -358,11 +316,6 @@ func (ru *RecordUpdate) SetStage(s *Stage) *RecordUpdate {
 	return ru.SetStageID(s.ID)
 }
 
-// SetCharacter sets the "character" edge to the Character entity.
-func (ru *RecordUpdate) SetCharacter(c *Character) *RecordUpdate {
-	return ru.SetCharacterID(c.ID)
-}
-
 // Mutation returns the RecordMutation object of the builder.
 func (ru *RecordUpdate) Mutation() *RecordMutation {
 	return ru.mutation
@@ -383,12 +336,6 @@ func (ru *RecordUpdate) ClearMusic() *RecordUpdate {
 // ClearStage clears the "stage" edge to the Stage entity.
 func (ru *RecordUpdate) ClearStage() *RecordUpdate {
 	ru.mutation.ClearStage()
-	return ru
-}
-
-// ClearCharacter clears the "character" edge to the Character entity.
-func (ru *RecordUpdate) ClearCharacter() *RecordUpdate {
-	ru.mutation.ClearCharacter()
 	return ru
 }
 
@@ -443,9 +390,6 @@ func (ru *RecordUpdate) check() error {
 	}
 	if ru.mutation.StageCleared() && len(ru.mutation.StageIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Record.stage"`)
-	}
-	if ru.mutation.CharacterCleared() && len(ru.mutation.CharacterIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Record.character"`)
 	}
 	return nil
 }
@@ -518,15 +462,6 @@ func (ru *RecordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := ru.mutation.IsPerfectPlay(); ok {
 		_spec.SetField(record.FieldIsPerfectPlay, field.TypeBool, value)
-	}
-	if value, ok := ru.mutation.PlayDuration(); ok {
-		_spec.SetField(record.FieldPlayDuration, field.TypeInt, value)
-	}
-	if value, ok := ru.mutation.AddedPlayDuration(); ok {
-		_spec.AddField(record.FieldPlayDuration, field.TypeInt, value)
-	}
-	if ru.mutation.PlayDurationCleared() {
-		_spec.ClearField(record.FieldPlayDuration, field.TypeInt)
 	}
 	if value, ok := ru.mutation.AdditionalInfo(); ok {
 		_spec.SetField(record.FieldAdditionalInfo, field.TypeJSON, value)
@@ -624,35 +559,6 @@ func (ru *RecordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if ru.mutation.CharacterCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   record.CharacterTable,
-			Columns: []string{record.CharacterColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := ru.mutation.CharacterIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   record.CharacterTable,
-			Columns: []string{record.CharacterColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ru.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{record.Label}
@@ -717,20 +623,6 @@ func (ruo *RecordUpdateOne) SetStageID(s string) *RecordUpdateOne {
 func (ruo *RecordUpdateOne) SetNillableStageID(s *string) *RecordUpdateOne {
 	if s != nil {
 		ruo.SetStageID(*s)
-	}
-	return ruo
-}
-
-// SetCharacterID sets the "character_id" field.
-func (ruo *RecordUpdateOne) SetCharacterID(u uuid.UUID) *RecordUpdateOne {
-	ruo.mutation.SetCharacterID(u)
-	return ruo
-}
-
-// SetNillableCharacterID sets the "character_id" field if the given value is not nil.
-func (ruo *RecordUpdateOne) SetNillableCharacterID(u *uuid.UUID) *RecordUpdateOne {
-	if u != nil {
-		ruo.SetCharacterID(*u)
 	}
 	return ruo
 }
@@ -930,33 +822,6 @@ func (ruo *RecordUpdateOne) SetNillableIsPerfectPlay(b *bool) *RecordUpdateOne {
 	return ruo
 }
 
-// SetPlayDuration sets the "play_duration" field.
-func (ruo *RecordUpdateOne) SetPlayDuration(i int) *RecordUpdateOne {
-	ruo.mutation.ResetPlayDuration()
-	ruo.mutation.SetPlayDuration(i)
-	return ruo
-}
-
-// SetNillablePlayDuration sets the "play_duration" field if the given value is not nil.
-func (ruo *RecordUpdateOne) SetNillablePlayDuration(i *int) *RecordUpdateOne {
-	if i != nil {
-		ruo.SetPlayDuration(*i)
-	}
-	return ruo
-}
-
-// AddPlayDuration adds i to the "play_duration" field.
-func (ruo *RecordUpdateOne) AddPlayDuration(i int) *RecordUpdateOne {
-	ruo.mutation.AddPlayDuration(i)
-	return ruo
-}
-
-// ClearPlayDuration clears the value of the "play_duration" field.
-func (ruo *RecordUpdateOne) ClearPlayDuration() *RecordUpdateOne {
-	ruo.mutation.ClearPlayDuration()
-	return ruo
-}
-
 // SetAdditionalInfo sets the "additional_info" field.
 func (ruo *RecordUpdateOne) SetAdditionalInfo(m map[string]interface{}) *RecordUpdateOne {
 	ruo.mutation.SetAdditionalInfo(m)
@@ -998,11 +863,6 @@ func (ruo *RecordUpdateOne) SetStage(s *Stage) *RecordUpdateOne {
 	return ruo.SetStageID(s.ID)
 }
 
-// SetCharacter sets the "character" edge to the Character entity.
-func (ruo *RecordUpdateOne) SetCharacter(c *Character) *RecordUpdateOne {
-	return ruo.SetCharacterID(c.ID)
-}
-
 // Mutation returns the RecordMutation object of the builder.
 func (ruo *RecordUpdateOne) Mutation() *RecordMutation {
 	return ruo.mutation
@@ -1023,12 +883,6 @@ func (ruo *RecordUpdateOne) ClearMusic() *RecordUpdateOne {
 // ClearStage clears the "stage" edge to the Stage entity.
 func (ruo *RecordUpdateOne) ClearStage() *RecordUpdateOne {
 	ruo.mutation.ClearStage()
-	return ruo
-}
-
-// ClearCharacter clears the "character" edge to the Character entity.
-func (ruo *RecordUpdateOne) ClearCharacter() *RecordUpdateOne {
-	ruo.mutation.ClearCharacter()
 	return ruo
 }
 
@@ -1096,9 +950,6 @@ func (ruo *RecordUpdateOne) check() error {
 	}
 	if ruo.mutation.StageCleared() && len(ruo.mutation.StageIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Record.stage"`)
-	}
-	if ruo.mutation.CharacterCleared() && len(ruo.mutation.CharacterIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Record.character"`)
 	}
 	return nil
 }
@@ -1189,15 +1040,6 @@ func (ruo *RecordUpdateOne) sqlSave(ctx context.Context) (_node *Record, err err
 	if value, ok := ruo.mutation.IsPerfectPlay(); ok {
 		_spec.SetField(record.FieldIsPerfectPlay, field.TypeBool, value)
 	}
-	if value, ok := ruo.mutation.PlayDuration(); ok {
-		_spec.SetField(record.FieldPlayDuration, field.TypeInt, value)
-	}
-	if value, ok := ruo.mutation.AddedPlayDuration(); ok {
-		_spec.AddField(record.FieldPlayDuration, field.TypeInt, value)
-	}
-	if ruo.mutation.PlayDurationCleared() {
-		_spec.ClearField(record.FieldPlayDuration, field.TypeInt)
-	}
 	if value, ok := ruo.mutation.AdditionalInfo(); ok {
 		_spec.SetField(record.FieldAdditionalInfo, field.TypeJSON, value)
 	}
@@ -1287,35 +1129,6 @@ func (ruo *RecordUpdateOne) sqlSave(ctx context.Context) (_node *Record, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(stage.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if ruo.mutation.CharacterCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   record.CharacterTable,
-			Columns: []string{record.CharacterColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := ruo.mutation.CharacterIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   record.CharacterTable,
-			Columns: []string{record.CharacterColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

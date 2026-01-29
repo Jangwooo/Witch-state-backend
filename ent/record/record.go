@@ -26,8 +26,6 @@ const (
 	FieldMusicID = "music_id"
 	// FieldStageID holds the string denoting the stage_id field in the database.
 	FieldStageID = "stage_id"
-	// FieldCharacterID holds the string denoting the character_id field in the database.
-	FieldCharacterID = "character_id"
 	// FieldScore holds the string denoting the score field in the database.
 	FieldScore = "score"
 	// FieldPerfectCount holds the string denoting the perfect_count field in the database.
@@ -48,8 +46,6 @@ const (
 	FieldIsFullCombo = "is_full_combo"
 	// FieldIsPerfectPlay holds the string denoting the is_perfect_play field in the database.
 	FieldIsPerfectPlay = "is_perfect_play"
-	// FieldPlayDuration holds the string denoting the play_duration field in the database.
-	FieldPlayDuration = "play_duration"
 	// FieldAdditionalInfo holds the string denoting the additional_info field in the database.
 	FieldAdditionalInfo = "additional_info"
 	// FieldIsValid holds the string denoting the is_valid field in the database.
@@ -60,8 +56,6 @@ const (
 	EdgeMusic = "music"
 	// EdgeStage holds the string denoting the stage edge name in mutations.
 	EdgeStage = "stage"
-	// EdgeCharacter holds the string denoting the character edge name in mutations.
-	EdgeCharacter = "character"
 	// Table holds the table name of the record in the database.
 	Table = "records"
 	// UserTable is the table that holds the user relation/edge.
@@ -85,13 +79,6 @@ const (
 	StageInverseTable = "stages"
 	// StageColumn is the table column denoting the stage relation/edge.
 	StageColumn = "stage_id"
-	// CharacterTable is the table that holds the character relation/edge.
-	CharacterTable = "records"
-	// CharacterInverseTable is the table name for the Character entity.
-	// It exists in this package in order to avoid circular dependency with the "character" package.
-	CharacterInverseTable = "characters"
-	// CharacterColumn is the table column denoting the character relation/edge.
-	CharacterColumn = "character_id"
 )
 
 // Columns holds all SQL columns for record fields.
@@ -102,7 +89,6 @@ var Columns = []string{
 	FieldUserID,
 	FieldMusicID,
 	FieldStageID,
-	FieldCharacterID,
 	FieldScore,
 	FieldPerfectCount,
 	FieldGoodCount,
@@ -113,15 +99,25 @@ var Columns = []string{
 	FieldRank,
 	FieldIsFullCombo,
 	FieldIsPerfectPlay,
-	FieldPlayDuration,
 	FieldAdditionalInfo,
 	FieldIsValid,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the "records"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"character_records",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -219,11 +215,6 @@ func ByStageID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStageID, opts...).ToFunc()
 }
 
-// ByCharacterID orders the results by the character_id field.
-func ByCharacterID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCharacterID, opts...).ToFunc()
-}
-
 // ByScore orders the results by the score field.
 func ByScore(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldScore, opts...).ToFunc()
@@ -274,11 +265,6 @@ func ByIsPerfectPlay(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsPerfectPlay, opts...).ToFunc()
 }
 
-// ByPlayDuration orders the results by the play_duration field.
-func ByPlayDuration(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPlayDuration, opts...).ToFunc()
-}
-
 // ByIsValid orders the results by the is_valid field.
 func ByIsValid(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsValid, opts...).ToFunc()
@@ -304,13 +290,6 @@ func ByStageField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newStageStep(), sql.OrderByField(field, opts...))
 	}
 }
-
-// ByCharacterField orders the results by character field.
-func ByCharacterField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newCharacterStep(), sql.OrderByField(field, opts...))
-	}
-}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -330,12 +309,5 @@ func newStageStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(StageInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, StageTable, StageColumn),
-	)
-}
-func newCharacterStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(CharacterInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, CharacterTable, CharacterColumn),
 	)
 }

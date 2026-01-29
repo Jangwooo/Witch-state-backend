@@ -23,7 +23,6 @@ func (r *recordRepository) Create(ctx context.Context, userID uuid.UUID, req *en
 		SetUserID(userID).
 		SetMusicID(req.MusicID).
 		SetStageID(req.StageID).
-		SetCharacterID(req.CharacterID).
 		SetScore(req.Score).
 		SetPerfectCount(req.PerfectCount).
 		SetGoodCount(req.GoodCount).
@@ -33,8 +32,7 @@ func (r *recordRepository) Create(ctx context.Context, userID uuid.UUID, req *en
 		SetAccuracy(req.Accuracy).
 		SetRank(record.Rank(req.Rank)).
 		SetIsFullCombo(req.IsFullCombo).
-		SetIsPerfectPlay(req.IsPerfectPlay).
-		SetNillablePlayDuration(req.PlayDuration)
+		SetIsPerfectPlay(req.IsPerfectPlay)
 
 	if req.Additional != nil {
 		create.SetAdditionalInfo(req.Additional)

@@ -44,7 +44,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "record" package.
 	RecordsInverseTable = "records"
 	// RecordsColumn is the table column denoting the records relation/edge.
-	RecordsColumn = "character_id"
+	RecordsColumn = "character_records"
 )
 
 // Columns holds all SQL columns for character fields.

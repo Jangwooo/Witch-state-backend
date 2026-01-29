@@ -27,8 +27,6 @@ definitions:
         type: integer
       play_duration:
         type: integer
-      played_at:
-        type: string
       rank:
         type: string
       score:
@@ -178,6 +176,42 @@ info:
   title: Witch's Lounge API
   version: "1.0"
 paths:
+  /api/v1/records:
+    post:
+      consumes:
+      - application/json
+      description: 플레이 기록을 저장합니다
+      parameters:
+      - description: 플레이 기록 요청
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.CreateRecordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 생성된 기록
+          schema:
+            $ref: '#/definitions/repository.SingleRecordResponse'
+        "400":
+          description: 잘못된 요청 형식
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+        "401":
+          description: 인증 필요
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+        "500":
+          description: 서버 내부 오류
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 플레이 기록 저장
+      tags:
+      - Record
   /records:
     get:
       consumes:
@@ -216,41 +250,6 @@ paths:
       security:
       - BearerAuth: []
       summary: 전체 기록 조회
-      tags:
-      - Record
-    post:
-      consumes:
-      - application/json
-      description: 플레이 기록을 저장합니다
-      parameters:
-      - description: 플레이 기록 요청
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/entity.CreateRecordRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 생성된 기록
-          schema:
-            $ref: '#/definitions/repository.SingleRecordResponse'
-        "400":
-          description: 요청 데이터 검증 실패
-          schema:
-            $ref: '#/definitions/entity.ErrorResponse'
-        "401":
-          description: 인증 필요
-          schema:
-            $ref: '#/definitions/entity.ErrorResponse'
-        "500":
-          description: 서버 내부 오류
-          schema:
-            $ref: '#/definitions/entity.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: 플레이 기록 저장
       tags:
       - Record
   /records/best:

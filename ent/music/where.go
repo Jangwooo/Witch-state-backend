@@ -90,11 +90,6 @@ func Composer(v string) predicate.Music {
 	return predicate.Music(sql.FieldEQ(FieldComposer, v))
 }
 
-// Duration applies equality check predicate on the "duration" field. It's identical to DurationEQ.
-func Duration(v float64) predicate.Music {
-	return predicate.Music(sql.FieldEQ(FieldDuration, v))
-}
-
 // Bpm applies equality check predicate on the "bpm" field. It's identical to BpmEQ.
 func Bpm(v float64) predicate.Music {
 	return predicate.Music(sql.FieldEQ(FieldBpm, v))
@@ -110,9 +105,9 @@ func Description(v string) predicate.Music {
 	return predicate.Music(sql.FieldEQ(FieldDescription, v))
 }
 
-// IsFeatured applies equality check predicate on the "is_featured" field. It's identical to IsFeaturedEQ.
-func IsFeatured(v bool) predicate.Music {
-	return predicate.Music(sql.FieldEQ(FieldIsFeatured, v))
+// IsRecommended applies equality check predicate on the "is_recommended" field. It's identical to IsRecommendedEQ.
+func IsRecommended(v bool) predicate.Music {
+	return predicate.Music(sql.FieldEQ(FieldIsRecommended, v))
 }
 
 // IsFree applies equality check predicate on the "is_free" field. It's identical to IsFreeEQ.
@@ -420,46 +415,6 @@ func ComposerContainsFold(v string) predicate.Music {
 	return predicate.Music(sql.FieldContainsFold(FieldComposer, v))
 }
 
-// DurationEQ applies the EQ predicate on the "duration" field.
-func DurationEQ(v float64) predicate.Music {
-	return predicate.Music(sql.FieldEQ(FieldDuration, v))
-}
-
-// DurationNEQ applies the NEQ predicate on the "duration" field.
-func DurationNEQ(v float64) predicate.Music {
-	return predicate.Music(sql.FieldNEQ(FieldDuration, v))
-}
-
-// DurationIn applies the In predicate on the "duration" field.
-func DurationIn(vs ...float64) predicate.Music {
-	return predicate.Music(sql.FieldIn(FieldDuration, vs...))
-}
-
-// DurationNotIn applies the NotIn predicate on the "duration" field.
-func DurationNotIn(vs ...float64) predicate.Music {
-	return predicate.Music(sql.FieldNotIn(FieldDuration, vs...))
-}
-
-// DurationGT applies the GT predicate on the "duration" field.
-func DurationGT(v float64) predicate.Music {
-	return predicate.Music(sql.FieldGT(FieldDuration, v))
-}
-
-// DurationGTE applies the GTE predicate on the "duration" field.
-func DurationGTE(v float64) predicate.Music {
-	return predicate.Music(sql.FieldGTE(FieldDuration, v))
-}
-
-// DurationLT applies the LT predicate on the "duration" field.
-func DurationLT(v float64) predicate.Music {
-	return predicate.Music(sql.FieldLT(FieldDuration, v))
-}
-
-// DurationLTE applies the LTE predicate on the "duration" field.
-func DurationLTE(v float64) predicate.Music {
-	return predicate.Music(sql.FieldLTE(FieldDuration, v))
-}
-
 // BpmEQ applies the EQ predicate on the "bpm" field.
 func BpmEQ(v float64) predicate.Music {
 	return predicate.Music(sql.FieldEQ(FieldBpm, v))
@@ -650,14 +605,14 @@ func DescriptionContainsFold(v string) predicate.Music {
 	return predicate.Music(sql.FieldContainsFold(FieldDescription, v))
 }
 
-// IsFeaturedEQ applies the EQ predicate on the "is_featured" field.
-func IsFeaturedEQ(v bool) predicate.Music {
-	return predicate.Music(sql.FieldEQ(FieldIsFeatured, v))
+// IsRecommendedEQ applies the EQ predicate on the "is_recommended" field.
+func IsRecommendedEQ(v bool) predicate.Music {
+	return predicate.Music(sql.FieldEQ(FieldIsRecommended, v))
 }
 
-// IsFeaturedNEQ applies the NEQ predicate on the "is_featured" field.
-func IsFeaturedNEQ(v bool) predicate.Music {
-	return predicate.Music(sql.FieldNEQ(FieldIsFeatured, v))
+// IsRecommendedNEQ applies the NEQ predicate on the "is_recommended" field.
+func IsRecommendedNEQ(v bool) predicate.Music {
+	return predicate.Music(sql.FieldNEQ(FieldIsRecommended, v))
 }
 
 // IsFreeEQ applies the EQ predicate on the "is_free" field.

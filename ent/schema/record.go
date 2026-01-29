@@ -30,8 +30,6 @@ func (Record) Fields() []ent.Field {
 			Comment("음악 ID"),
 		field.Text("stage_id").
 			Comment("스테이지 ID"),
-		field.UUID("character_id", uuid.UUID{}).
-			Comment("캐릭터 ID"),
 		field.Int("score").
 			Comment("점수"),
 		field.Int("perfect_count").Default(0).
@@ -52,8 +50,6 @@ func (Record) Fields() []ent.Field {
 			Comment("풀콤보 여부"),
 		field.Bool("is_perfect_play").Default(false).
 			Comment("퍼펙트 플레이 여부"),
-		field.Int("play_duration").Optional().
-			Comment("플레이 소요시간(초)"),
 		field.JSON("additional_info", map[string]interface{}{}).Optional().
 			Comment("추가 정보"),
 		field.Bool("is_valid").Default(true).
@@ -77,11 +73,6 @@ func (Record) Edges() []ent.Edge {
 		edge.From("stage", Stage.Type).
 			Ref("records").
 			Field("stage_id").
-			Unique().
-			Required(),
-		edge.From("character", Character.Type).
-			Ref("records").
-			Field("character_id").
 			Unique().
 			Required(),
 	}

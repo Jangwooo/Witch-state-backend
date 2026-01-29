@@ -18,6 +18,63 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/records": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "플레이 기록을 저장합니다",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Record"
+                ],
+                "summary": "플레이 기록 저장",
+                "parameters": [
+                    {
+                        "description": "플레이 기록 요청",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.CreateRecordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "생성된 기록",
+                        "schema": {
+                            "$ref": "#/definitions/repository.SingleRecordResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "잘못된 요청 형식",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "인증 필요",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "서버 내부 오류",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/records": {
             "get": {
                 "security": [
@@ -73,61 +130,6 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/entity.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "플레이 기록을 저장합니다",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Record"
-                ],
-                "summary": "플레이 기록 저장",
-                "parameters": [
-                    {
-                        "description": "플레이 기록 요청",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/entity.CreateRecordRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "생성된 기록",
-                        "schema": {
-                            "$ref": "#/definitions/repository.SingleRecordResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "요청 데이터 검증 실패",
-                        "schema": {
-                            "$ref": "#/definitions/entity.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "인증 필요",
-                        "schema": {
-                            "$ref": "#/definitions/entity.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "서버 내부 오류",
                         "schema": {
                             "$ref": "#/definitions/entity.ErrorResponse"
                         }
@@ -330,9 +332,6 @@ const docTemplate = `{
                 },
                 "play_duration": {
                     "type": "integer"
-                },
-                "played_at": {
-                    "type": "string"
                 },
                 "rank": {
                     "type": "string"

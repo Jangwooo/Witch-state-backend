@@ -1261,22 +1261,6 @@ func (c *RecordClient) QueryStage(r *Record) *StageQuery {
 	return query
 }
 
-// QueryCharacter queries the character edge of a Record.
-func (c *RecordClient) QueryCharacter(r *Record) *CharacterQuery {
-	query := (&CharacterClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := r.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(record.Table, record.FieldID, id),
-			sqlgraph.To(character.Table, character.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, record.CharacterTable, record.CharacterColumn),
-		)
-		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // Hooks returns the client hooks.
 func (c *RecordClient) Hooks() []Hook {
 	return c.hooks.Record

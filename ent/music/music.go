@@ -24,16 +24,14 @@ const (
 	FieldArtist = "artist"
 	// FieldComposer holds the string denoting the composer field in the database.
 	FieldComposer = "composer"
-	// FieldDuration holds the string denoting the duration field in the database.
-	FieldDuration = "duration"
 	// FieldBpm holds the string denoting the bpm field in the database.
 	FieldBpm = "bpm"
 	// FieldGenre holds the string denoting the genre field in the database.
 	FieldGenre = "genre"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
-	// FieldIsFeatured holds the string denoting the is_featured field in the database.
-	FieldIsFeatured = "is_featured"
+	// FieldIsRecommended holds the string denoting the is_recommended field in the database.
+	FieldIsRecommended = "is_recommended"
 	// FieldIsFree holds the string denoting the is_free field in the database.
 	FieldIsFree = "is_free"
 	// FieldUnlockLevel holds the string denoting the unlock_level field in the database.
@@ -72,11 +70,10 @@ var Columns = []string{
 	FieldName,
 	FieldArtist,
 	FieldComposer,
-	FieldDuration,
 	FieldBpm,
 	FieldGenre,
 	FieldDescription,
-	FieldIsFeatured,
+	FieldIsRecommended,
 	FieldIsFree,
 	FieldUnlockLevel,
 	FieldReleaseDate,
@@ -100,8 +97,8 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
-	// DefaultIsFeatured holds the default value on creation for the "is_featured" field.
-	DefaultIsFeatured bool
+	// DefaultIsRecommended holds the default value on creation for the "is_recommended" field.
+	DefaultIsRecommended bool
 	// DefaultIsFree holds the default value on creation for the "is_free" field.
 	DefaultIsFree bool
 	// DefaultUnlockLevel holds the default value on creation for the "unlock_level" field.
@@ -143,11 +140,6 @@ func ByComposer(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldComposer, opts...).ToFunc()
 }
 
-// ByDuration orders the results by the duration field.
-func ByDuration(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldDuration, opts...).ToFunc()
-}
-
 // ByBpm orders the results by the bpm field.
 func ByBpm(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBpm, opts...).ToFunc()
@@ -163,9 +155,9 @@ func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
 }
 
-// ByIsFeatured orders the results by the is_featured field.
-func ByIsFeatured(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldIsFeatured, opts...).ToFunc()
+// ByIsRecommended orders the results by the is_recommended field.
+func ByIsRecommended(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsRecommended, opts...).ToFunc()
 }
 
 // ByIsFree orders the results by the is_free field.

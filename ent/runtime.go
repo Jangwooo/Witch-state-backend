@@ -112,20 +112,20 @@ func init() {
 	music.DefaultUpdatedAt = musicDescUpdatedAt.Default.(func() time.Time)
 	// music.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	music.UpdateDefaultUpdatedAt = musicDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// musicDescIsFeatured is the schema descriptor for is_featured field.
-	musicDescIsFeatured := musicFields[10].Descriptor()
-	// music.DefaultIsFeatured holds the default value on creation for the is_featured field.
-	music.DefaultIsFeatured = musicDescIsFeatured.Default.(bool)
+	// musicDescIsRecommended is the schema descriptor for is_recommended field.
+	musicDescIsRecommended := musicFields[9].Descriptor()
+	// music.DefaultIsRecommended holds the default value on creation for the is_recommended field.
+	music.DefaultIsRecommended = musicDescIsRecommended.Default.(bool)
 	// musicDescIsFree is the schema descriptor for is_free field.
-	musicDescIsFree := musicFields[11].Descriptor()
+	musicDescIsFree := musicFields[10].Descriptor()
 	// music.DefaultIsFree holds the default value on creation for the is_free field.
 	music.DefaultIsFree = musicDescIsFree.Default.(bool)
 	// musicDescUnlockLevel is the schema descriptor for unlock_level field.
-	musicDescUnlockLevel := musicFields[12].Descriptor()
+	musicDescUnlockLevel := musicFields[11].Descriptor()
 	// music.DefaultUnlockLevel holds the default value on creation for the unlock_level field.
 	music.DefaultUnlockLevel = musicDescUnlockLevel.Default.(int)
 	// musicDescIsActive is the schema descriptor for is_active field.
-	musicDescIsActive := musicFields[14].Descriptor()
+	musicDescIsActive := musicFields[13].Descriptor()
 	// music.DefaultIsActive holds the default value on creation for the is_active field.
 	music.DefaultIsActive = musicDescIsActive.Default.(bool)
 	productMixin := schema.Product{}.Mixin()
@@ -171,39 +171,39 @@ func init() {
 	// record.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	record.UpdateDefaultUpdatedAt = recordDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// recordDescPerfectCount is the schema descriptor for perfect_count field.
-	recordDescPerfectCount := recordFields[5].Descriptor()
+	recordDescPerfectCount := recordFields[4].Descriptor()
 	// record.DefaultPerfectCount holds the default value on creation for the perfect_count field.
 	record.DefaultPerfectCount = recordDescPerfectCount.Default.(int)
 	// recordDescGoodCount is the schema descriptor for good_count field.
-	recordDescGoodCount := recordFields[6].Descriptor()
+	recordDescGoodCount := recordFields[5].Descriptor()
 	// record.DefaultGoodCount holds the default value on creation for the good_count field.
 	record.DefaultGoodCount = recordDescGoodCount.Default.(int)
 	// recordDescBadCount is the schema descriptor for bad_count field.
-	recordDescBadCount := recordFields[7].Descriptor()
+	recordDescBadCount := recordFields[6].Descriptor()
 	// record.DefaultBadCount holds the default value on creation for the bad_count field.
 	record.DefaultBadCount = recordDescBadCount.Default.(int)
 	// recordDescMissCount is the schema descriptor for miss_count field.
-	recordDescMissCount := recordFields[8].Descriptor()
+	recordDescMissCount := recordFields[7].Descriptor()
 	// record.DefaultMissCount holds the default value on creation for the miss_count field.
 	record.DefaultMissCount = recordDescMissCount.Default.(int)
 	// recordDescMaxCombo is the schema descriptor for max_combo field.
-	recordDescMaxCombo := recordFields[9].Descriptor()
+	recordDescMaxCombo := recordFields[8].Descriptor()
 	// record.DefaultMaxCombo holds the default value on creation for the max_combo field.
 	record.DefaultMaxCombo = recordDescMaxCombo.Default.(int)
 	// recordDescAccuracy is the schema descriptor for accuracy field.
-	recordDescAccuracy := recordFields[10].Descriptor()
+	recordDescAccuracy := recordFields[9].Descriptor()
 	// record.DefaultAccuracy holds the default value on creation for the accuracy field.
 	record.DefaultAccuracy = recordDescAccuracy.Default.(float64)
 	// recordDescIsFullCombo is the schema descriptor for is_full_combo field.
-	recordDescIsFullCombo := recordFields[12].Descriptor()
+	recordDescIsFullCombo := recordFields[11].Descriptor()
 	// record.DefaultIsFullCombo holds the default value on creation for the is_full_combo field.
 	record.DefaultIsFullCombo = recordDescIsFullCombo.Default.(bool)
 	// recordDescIsPerfectPlay is the schema descriptor for is_perfect_play field.
-	recordDescIsPerfectPlay := recordFields[13].Descriptor()
+	recordDescIsPerfectPlay := recordFields[12].Descriptor()
 	// record.DefaultIsPerfectPlay holds the default value on creation for the is_perfect_play field.
 	record.DefaultIsPerfectPlay = recordDescIsPerfectPlay.Default.(bool)
 	// recordDescIsValid is the schema descriptor for is_valid field.
-	recordDescIsValid := recordFields[16].Descriptor()
+	recordDescIsValid := recordFields[14].Descriptor()
 	// record.DefaultIsValid holds the default value on creation for the is_valid field.
 	record.DefaultIsValid = recordDescIsValid.Default.(bool)
 	// recordDescID is the schema descriptor for id field.
