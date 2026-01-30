@@ -22,7 +22,7 @@ func NewRecordHandler(recordUseCase usecase.RecordUseCase) *RecordHandler {
 // @Produce json
 // @Security BearerAuth
 // @Param body body entity.CreateRecordRequest true "플레이 기록 요청"
-// @Success 200 {object} repository.SingleRecordResponse "생성된 기록"
+// @Success 200 {object} entity.Response{data=repository.SingleRecordResponse} "생성된 기록"
 // @Failure 400 {object} entity.ErrorResponse "잘못된 요청 형식"
 // @Failure 401 {object} entity.ErrorResponse "인증 필요"
 // @Failure 500 {object} entity.ErrorResponse "서버 내부 오류"
@@ -30,11 +30,17 @@ func NewRecordHandler(recordUseCase usecase.RecordUseCase) *RecordHandler {
 func (h *RecordHandler) CreateRecord(c *fiber.Ctx) error {
 	usr := c.Locals("user")
 	if usr == nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "인증 필요"})
+		return c.Status(fiber.StatusUnauthorized).JSON(entity.ErrorResponse{
+			Message: "인증 필요",
+			Error:   "unauthorized",
+		})
 	}
 	userEntity, ok := usr.(*entity.User)
 	if !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "사용자 정보 형식 오류"})
+		return c.Status(fiber.StatusInternalServerError).JSON(entity.ErrorResponse{
+			Message: "사용자 정보 형식 오류",
+			Error:   "invalid_user_context",
+		})
 	}
 
 	var req entity.CreateRecordRequest
@@ -46,7 +52,10 @@ func (h *RecordHandler) CreateRecord(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(entity.ErrorResponse{Message: "기록 처리 실패", Error: err.Error()})
 	}
-	return c.Status(fiber.StatusOK).JSON(resp)
+	return c.Status(fiber.StatusOK).JSON(entity.Response{
+		Message: "기록 저장 성공",
+		Data:    resp,
+	})
 }
 
 // ListRecords 전체 기록 조회
@@ -58,7 +67,7 @@ func (h *RecordHandler) CreateRecord(c *fiber.Ctx) error {
 // @Security BearerAuth
 // @Param music_id query string true "음악 ID(UUID)"
 // @Param stage_id query string true "스테이지 ID(UUID)"
-// @Success 200 {object} repository.ListRecordResponse "전체 기록"
+// @Success 200 {object} entity.Response{data=repository.ListRecordResponse} "전체 기록"
 // @Failure 400 {object} entity.ErrorResponse
 // @Failure 401 {object} entity.ErrorResponse
 // @Failure 500 {object} entity.ErrorResponse
@@ -66,11 +75,17 @@ func (h *RecordHandler) CreateRecord(c *fiber.Ctx) error {
 func (h *RecordHandler) ListRecords(c *fiber.Ctx) error {
 	usr := c.Locals("user")
 	if usr == nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "인증 필요"})
+		return c.Status(fiber.StatusUnauthorized).JSON(entity.ErrorResponse{
+			Message: "인증 필요",
+			Error:   "unauthorized",
+		})
 	}
 	userEntity, ok := usr.(*entity.User)
 	if !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "사용자 정보 형식 오류"})
+		return c.Status(fiber.StatusInternalServerError).JSON(entity.ErrorResponse{
+			Message: "사용자 정보 형식 오류",
+			Error:   "invalid_user_context",
+		})
 	}
 
 	musicID, stageID := c.Query("music_id"), c.Query("stage_id")
@@ -79,7 +94,10 @@ func (h *RecordHandler) ListRecords(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(entity.ErrorResponse{Message: "기록 조회 실패", Error: err.Error()})
 	}
-	return c.Status(fiber.StatusOK).JSON(resp)
+	return c.Status(fiber.StatusOK).JSON(entity.Response{
+		Message: "기록 조회 성공",
+		Data:    resp,
+	})
 }
 
 // BestRecord 최고 기록 조회
@@ -91,7 +109,7 @@ func (h *RecordHandler) ListRecords(c *fiber.Ctx) error {
 // @Security BearerAuth
 // @Param music_id query string true "음악 ID(UUID)"
 // @Param stage_id query string true "스테이지 ID(UUID)"
-// @Success 200 {object} repository.BestRecordResponse "최고 기록"
+// @Success 200 {object} entity.Response{data=repository.BestRecordResponse} "최고 기록"
 // @Failure 400 {object} entity.ErrorResponse
 // @Failure 401 {object} entity.ErrorResponse
 // @Failure 500 {object} entity.ErrorResponse
@@ -99,11 +117,17 @@ func (h *RecordHandler) ListRecords(c *fiber.Ctx) error {
 func (h *RecordHandler) BestRecord(c *fiber.Ctx) error {
 	usr := c.Locals("user")
 	if usr == nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "인증 필요"})
+		return c.Status(fiber.StatusUnauthorized).JSON(entity.ErrorResponse{
+			Message: "인증 필요",
+			Error:   "unauthorized",
+		})
 	}
 	userEntity, ok := usr.(*entity.User)
 	if !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "사용자 정보 형식 오류"})
+		return c.Status(fiber.StatusInternalServerError).JSON(entity.ErrorResponse{
+			Message: "사용자 정보 형식 오류",
+			Error:   "invalid_user_context",
+		})
 	}
 
 	musicID, stageID := c.Query("music_id"), c.Query("stage_id")
@@ -115,7 +139,10 @@ func (h *RecordHandler) BestRecord(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(entity.ErrorResponse{Message: "최고 기록 조회 실패", Error: err.Error()})
 	}
-	return c.Status(fiber.StatusOK).JSON(resp)
+	return c.Status(fiber.StatusOK).JSON(entity.Response{
+		Message: "최고 기록 조회 성공",
+		Data:    resp,
+	})
 }
 
 // parseUUID2 보조 함수

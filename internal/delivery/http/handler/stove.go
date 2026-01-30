@@ -25,7 +25,7 @@ func NewStoveHandler(stoveUseCase usecase.StoveUseCase) *StoveHandler {
 // @Accept json
 // @Produce json
 // @Param body body entity.StoveSignInRequest true "Stove 로그인 요청 정보"
-// @Success 200 {object} entity.SessionResponse "로그인 성공 및 세션 정보"
+// @Success 200 {object} entity.Response{data=entity.SessionResponse} "로그인 성공 및 세션 정보"
 // @Failure 400 {object} entity.ErrorResponse "요청 데이터 검증 실패"
 // @Failure 500 {object} entity.ErrorResponse "서버 내부 오류"
 // @Router /stove/signin [post]
@@ -45,10 +45,14 @@ func (h *StoveHandler) SignIn(c *fiber.Ctx) error {
 		DisplayName: req.DisplayName,
 	})
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
+		return c.Status(fiber.StatusInternalServerError).JSON(entity.ErrorResponse{
+			Message: "Stove 로그인 처리 실패",
+			Error:   err.Error(),
 		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(sessionResp)
+	return c.Status(fiber.StatusOK).JSON(entity.Response{
+		Message: "로그인 성공",
+		Data:    sessionResp,
+	})
 }

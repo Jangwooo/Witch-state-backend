@@ -51,7 +51,19 @@ const docTemplate = `{
                     "200": {
                         "description": "생성된 기록",
                         "schema": {
-                            "$ref": "#/definitions/repository.SingleRecordResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/entity.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/repository.SingleRecordResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -222,7 +234,19 @@ const docTemplate = `{
                     "200": {
                         "description": "전체 기록",
                         "schema": {
-                            "$ref": "#/definitions/repository.ListRecordResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/entity.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/repository.ListRecordResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -284,7 +308,19 @@ const docTemplate = `{
                     "200": {
                         "description": "최고 기록",
                         "schema": {
-                            "$ref": "#/definitions/repository.BestRecordResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/entity.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/repository.BestRecordResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -336,7 +372,19 @@ const docTemplate = `{
                     "200": {
                         "description": "로그인 성공 및 세션 정보",
                         "schema": {
-                            "$ref": "#/definitions/entity.SessionResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/entity.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.SessionResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -376,7 +424,19 @@ const docTemplate = `{
                     "200": {
                         "description": "사용자 정보",
                         "schema": {
-                            "$ref": "#/definitions/entity.UserResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/entity.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.UserResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "401": {

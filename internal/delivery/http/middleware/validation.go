@@ -7,14 +7,16 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/witchs-lounge_backend/internal/domain/entity"
 )
 
 func ValidateBody[T any]() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var body T
 		if err := c.BodyParser(&body); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "잘못된 요청 형식입니다",
+			return c.Status(fiber.StatusBadRequest).JSON(entity.ErrorResponse{
+				Message: "잘못된 요청 형식입니다",
+				Error:   err.Error(),
 			})
 		}
 
@@ -34,13 +36,15 @@ func ValidateBody[T any]() fiber.Handler {
 					}
 					details[jsonName] = e.Tag()
 				}
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error":   "유효하지 않은 요청 필드입니다",
-					"details": details,
+				return c.Status(fiber.StatusBadRequest).JSON(entity.ErrorResponse{
+					Message: "유효하지 않은 요청 필드입니다",
+					Error:   "validation_error",
+					Details: details,
 				})
 			}
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
+			return c.Status(fiber.StatusBadRequest).JSON(entity.ErrorResponse{
+				Message: "요청 검증에 실패했습니다",
+				Error:   err.Error(),
 			})
 		}
 

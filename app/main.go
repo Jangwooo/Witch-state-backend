@@ -12,6 +12,7 @@ import (
 	_ "github.com/witchs-lounge_backend/docs"
 	"github.com/witchs-lounge_backend/ent"
 	v1 "github.com/witchs-lounge_backend/internal/delivery/http/router/v1"
+	"github.com/witchs-lounge_backend/internal/domain/entity"
 	"github.com/witchs-lounge_backend/internal/infrastructure/bootstrap"
 )
 
@@ -74,10 +75,13 @@ func main() {
 
 	// 7. Health check
 	app.Get("/api/v1/health", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{
-			"status":      "ok",
-			"server_mode": *mode,
-			"version":     "1.0.0",
+		return c.JSON(entity.Response{
+			Message: "ok",
+			Data: fiber.Map{
+				"status":      "ok",
+				"server_mode": *mode,
+				"version":     "1.0.0",
+			},
 		})
 	})
 

@@ -240,7 +240,12 @@ paths:
         "200":
           description: 생성된 기록
           schema:
-            $ref: '#/definitions/repository.SingleRecordResponse'
+            allOf:
+            - $ref: '#/definitions/entity.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/repository.SingleRecordResponse'
+              type: object
         "400":
           description: 잘못된 요청 형식
           schema:
@@ -346,7 +351,12 @@ paths:
         "200":
           description: 전체 기록
           schema:
-            $ref: '#/definitions/repository.ListRecordResponse'
+            allOf:
+            - $ref: '#/definitions/entity.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/repository.ListRecordResponse'
+              type: object
         "400":
           description: Bad Request
           schema:
@@ -386,7 +396,12 @@ paths:
         "200":
           description: 최고 기록
           schema:
-            $ref: '#/definitions/repository.BestRecordResponse'
+            allOf:
+            - $ref: '#/definitions/entity.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/repository.BestRecordResponse'
+              type: object
         "400":
           description: Bad Request
           schema:
@@ -422,7 +437,12 @@ paths:
         "200":
           description: 로그인 성공 및 세션 정보
           schema:
-            $ref: '#/definitions/entity.SessionResponse'
+            allOf:
+            - $ref: '#/definitions/entity.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.SessionResponse'
+              type: object
         "400":
           description: 요청 데이터 검증 실패
           schema:
@@ -445,7 +465,12 @@ paths:
         "200":
           description: 사용자 정보
           schema:
-            $ref: '#/definitions/entity.UserResponse'
+            allOf:
+            - $ref: '#/definitions/entity.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.UserResponse'
+              type: object
         "401":
           description: 인증 정보 없음
           schema:
