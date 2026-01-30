@@ -13,14 +13,21 @@ type RouterConfig struct {
 	StoveHandler  *handler.StoveHandler
 	UserHandler   *handler.UserHandler
 	RecordHandler *handler.RecordHandler
+	MusicHandler  *handler.MusicHandler
+	StageHandler  *handler.StageHandler
 }
 
 // SetupRoutes 모든 라우터를 마운트
 func SetupRoutes(app *fiber.App, config *RouterConfig) {
 	// V1 API 라우터 등록
-	NewStoveRouter(app, config.StoveHandler)
-	NewUserRouter(app, config.UserHandler, config.SessionStore)
-	NewRecordRouter(app, config.RecordHandler, config.SessionStore)
+
+	v1 := app.Group("/api/v1")
+
+	NewStoveRouter(v1, config.StoveHandler)
+	NewUserRouter(v1, config.UserHandler, config.SessionStore)
+	NewRecordRouter(v1, config.RecordHandler, config.SessionStore)
+	MusicRouter(v1, config.MusicHandler)
+	StageRouter(v1, config.StageHandler)
 
 	// 추가 라우터는 여기에 등록
 	// 인증 불필요: NewPublicRouter(app, handler)

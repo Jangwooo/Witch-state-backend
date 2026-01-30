@@ -18,6 +18,172 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/records": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "플레이 기록을 저장합니다",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Record"
+                ],
+                "summary": "플레이 기록 저장",
+                "parameters": [
+                    {
+                        "description": "플레이 기록 요청",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.CreateRecordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "생성된 기록",
+                        "schema": {
+                            "$ref": "#/definitions/repository.SingleRecordResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "잘못된 요청 형식",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "인증 필요",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "서버 내부 오류",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/musics": {
+            "get": {
+                "description": "활성화 된 악곡들을 가져옵니다",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Musics"
+                ],
+                "summary": "활성화 된 악곡들을 가져옵니다",
+                "responses": {
+                    "200": {
+                        "description": "성공",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/entity.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.MusicResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "서버 에러",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/musics/{music_id}/stages": {
+            "get": {
+                "description": "음악 id에 따른 스테이지들을 가져옵니다",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stages"
+                ],
+                "summary": "음악 id에 따른 스테이지들을 가져옵니다",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Music ID",
+                        "name": "music_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/entity.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.StageResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "잘못된 요청",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "음악이 비활성화됨",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "서버 에러",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/records": {
             "get": {
                 "security": [
@@ -73,61 +239,6 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/entity.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "플레이 기록을 저장합니다",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Record"
-                ],
-                "summary": "플레이 기록 저장",
-                "parameters": [
-                    {
-                        "description": "플레이 기록 요청",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/entity.CreateRecordRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "생성된 기록",
-                        "schema": {
-                            "$ref": "#/definitions/repository.SingleRecordResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "요청 데이터 검증 실패",
-                        "schema": {
-                            "$ref": "#/definitions/entity.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "인증 필요",
-                        "schema": {
-                            "$ref": "#/definitions/entity.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "서버 내부 오류",
                         "schema": {
                             "$ref": "#/definitions/entity.ErrorResponse"
                         }
@@ -285,6 +396,67 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.MusicResponse": {
+            "type": "object",
+            "properties": {
+                "artist": {
+                    "type": "string"
+                },
+                "bpm": {
+                    "type": "number"
+                },
+                "composer": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "genre": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_free": {
+                    "type": "boolean"
+                },
+                "is_recommended": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "release_date": {
+                    "type": "string"
+                },
+                "unlock_level": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.StageResponse": {
+            "type": "object",
+            "properties": {
+                "difficulty": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "level_name": {
+                    "type": "string"
+                },
+                "max_combo": {
+                    "type": "integer"
+                },
+                "music_id": {
+                    "type": "string"
+                },
+                "total_notes": {
+                    "type": "integer"
+                }
+            }
+        },
         "entity.CreateRecordRequest": {
             "type": "object",
             "required": [
@@ -331,9 +503,6 @@ const docTemplate = `{
                 "play_duration": {
                     "type": "integer"
                 },
-                "played_at": {
-                    "type": "string"
-                },
                 "rank": {
                     "type": "string"
                 },
@@ -353,6 +522,15 @@ const docTemplate = `{
                 "error": {
                     "type": "string"
                 },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.Response": {
+            "type": "object",
+            "properties": {
+                "data": {},
                 "message": {
                     "type": "string"
                 }

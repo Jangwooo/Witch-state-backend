@@ -81,11 +81,6 @@ func StageID(v string) predicate.Record {
 	return predicate.Record(sql.FieldEQ(FieldStageID, v))
 }
 
-// CharacterID applies equality check predicate on the "character_id" field. It's identical to CharacterIDEQ.
-func CharacterID(v uuid.UUID) predicate.Record {
-	return predicate.Record(sql.FieldEQ(FieldCharacterID, v))
-}
-
 // Score applies equality check predicate on the "score" field. It's identical to ScoreEQ.
 func Score(v int) predicate.Record {
 	return predicate.Record(sql.FieldEQ(FieldScore, v))
@@ -129,11 +124,6 @@ func IsFullCombo(v bool) predicate.Record {
 // IsPerfectPlay applies equality check predicate on the "is_perfect_play" field. It's identical to IsPerfectPlayEQ.
 func IsPerfectPlay(v bool) predicate.Record {
 	return predicate.Record(sql.FieldEQ(FieldIsPerfectPlay, v))
-}
-
-// PlayDuration applies equality check predicate on the "play_duration" field. It's identical to PlayDurationEQ.
-func PlayDuration(v int) predicate.Record {
-	return predicate.Record(sql.FieldEQ(FieldPlayDuration, v))
 }
 
 // IsValid applies equality check predicate on the "is_valid" field. It's identical to IsValidEQ.
@@ -369,26 +359,6 @@ func StageIDEqualFold(v string) predicate.Record {
 // StageIDContainsFold applies the ContainsFold predicate on the "stage_id" field.
 func StageIDContainsFold(v string) predicate.Record {
 	return predicate.Record(sql.FieldContainsFold(FieldStageID, v))
-}
-
-// CharacterIDEQ applies the EQ predicate on the "character_id" field.
-func CharacterIDEQ(v uuid.UUID) predicate.Record {
-	return predicate.Record(sql.FieldEQ(FieldCharacterID, v))
-}
-
-// CharacterIDNEQ applies the NEQ predicate on the "character_id" field.
-func CharacterIDNEQ(v uuid.UUID) predicate.Record {
-	return predicate.Record(sql.FieldNEQ(FieldCharacterID, v))
-}
-
-// CharacterIDIn applies the In predicate on the "character_id" field.
-func CharacterIDIn(vs ...uuid.UUID) predicate.Record {
-	return predicate.Record(sql.FieldIn(FieldCharacterID, vs...))
-}
-
-// CharacterIDNotIn applies the NotIn predicate on the "character_id" field.
-func CharacterIDNotIn(vs ...uuid.UUID) predicate.Record {
-	return predicate.Record(sql.FieldNotIn(FieldCharacterID, vs...))
 }
 
 // ScoreEQ applies the EQ predicate on the "score" field.
@@ -721,56 +691,6 @@ func IsPerfectPlayNEQ(v bool) predicate.Record {
 	return predicate.Record(sql.FieldNEQ(FieldIsPerfectPlay, v))
 }
 
-// PlayDurationEQ applies the EQ predicate on the "play_duration" field.
-func PlayDurationEQ(v int) predicate.Record {
-	return predicate.Record(sql.FieldEQ(FieldPlayDuration, v))
-}
-
-// PlayDurationNEQ applies the NEQ predicate on the "play_duration" field.
-func PlayDurationNEQ(v int) predicate.Record {
-	return predicate.Record(sql.FieldNEQ(FieldPlayDuration, v))
-}
-
-// PlayDurationIn applies the In predicate on the "play_duration" field.
-func PlayDurationIn(vs ...int) predicate.Record {
-	return predicate.Record(sql.FieldIn(FieldPlayDuration, vs...))
-}
-
-// PlayDurationNotIn applies the NotIn predicate on the "play_duration" field.
-func PlayDurationNotIn(vs ...int) predicate.Record {
-	return predicate.Record(sql.FieldNotIn(FieldPlayDuration, vs...))
-}
-
-// PlayDurationGT applies the GT predicate on the "play_duration" field.
-func PlayDurationGT(v int) predicate.Record {
-	return predicate.Record(sql.FieldGT(FieldPlayDuration, v))
-}
-
-// PlayDurationGTE applies the GTE predicate on the "play_duration" field.
-func PlayDurationGTE(v int) predicate.Record {
-	return predicate.Record(sql.FieldGTE(FieldPlayDuration, v))
-}
-
-// PlayDurationLT applies the LT predicate on the "play_duration" field.
-func PlayDurationLT(v int) predicate.Record {
-	return predicate.Record(sql.FieldLT(FieldPlayDuration, v))
-}
-
-// PlayDurationLTE applies the LTE predicate on the "play_duration" field.
-func PlayDurationLTE(v int) predicate.Record {
-	return predicate.Record(sql.FieldLTE(FieldPlayDuration, v))
-}
-
-// PlayDurationIsNil applies the IsNil predicate on the "play_duration" field.
-func PlayDurationIsNil() predicate.Record {
-	return predicate.Record(sql.FieldIsNull(FieldPlayDuration))
-}
-
-// PlayDurationNotNil applies the NotNil predicate on the "play_duration" field.
-func PlayDurationNotNil() predicate.Record {
-	return predicate.Record(sql.FieldNotNull(FieldPlayDuration))
-}
-
 // AdditionalInfoIsNil applies the IsNil predicate on the "additional_info" field.
 func AdditionalInfoIsNil() predicate.Record {
 	return predicate.Record(sql.FieldIsNull(FieldAdditionalInfo))
@@ -852,29 +772,6 @@ func HasStage() predicate.Record {
 func HasStageWith(preds ...predicate.Stage) predicate.Record {
 	return predicate.Record(func(s *sql.Selector) {
 		step := newStageStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasCharacter applies the HasEdge predicate on the "character" edge.
-func HasCharacter() predicate.Record {
-	return predicate.Record(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, CharacterTable, CharacterColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasCharacterWith applies the HasEdge predicate on the "character" edge with a given conditions (other predicates).
-func HasCharacterWith(preds ...predicate.Character) predicate.Record {
-	return predicate.Record(func(s *sql.Selector) {
-		step := newCharacterStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

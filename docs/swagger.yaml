@@ -1,5 +1,45 @@
 basePath: /api/v1
 definitions:
+  dto.MusicResponse:
+    properties:
+      artist:
+        type: string
+      bpm:
+        type: number
+      composer:
+        type: string
+      description:
+        type: string
+      genre:
+        type: string
+      id:
+        type: string
+      is_free:
+        type: boolean
+      is_recommended:
+        type: boolean
+      name:
+        type: string
+      release_date:
+        type: string
+      unlock_level:
+        type: integer
+    type: object
+  dto.StageResponse:
+    properties:
+      difficulty:
+        type: integer
+      id:
+        type: string
+      level_name:
+        type: string
+      max_combo:
+        type: integer
+      music_id:
+        type: string
+      total_notes:
+        type: integer
+    type: object
   entity.CreateRecordRequest:
     properties:
       accuracy:
@@ -27,8 +67,6 @@ definitions:
         type: integer
       play_duration:
         type: integer
-      played_at:
-        type: string
       rank:
         type: string
       score:
@@ -47,6 +85,12 @@ definitions:
       details: {}
       error:
         type: string
+      message:
+        type: string
+    type: object
+  entity.Response:
+    properties:
+      data: {}
       message:
         type: string
     type: object
@@ -178,6 +222,108 @@ info:
   title: Witch's Lounge API
   version: "1.0"
 paths:
+  /api/v1/records:
+    post:
+      consumes:
+      - application/json
+      description: 플레이 기록을 저장합니다
+      parameters:
+      - description: 플레이 기록 요청
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.CreateRecordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 생성된 기록
+          schema:
+            $ref: '#/definitions/repository.SingleRecordResponse'
+        "400":
+          description: 잘못된 요청 형식
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+        "401":
+          description: 인증 필요
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+        "500":
+          description: 서버 내부 오류
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 플레이 기록 저장
+      tags:
+      - Record
+  /musics:
+    get:
+      consumes:
+      - application/json
+      description: 활성화 된 악곡들을 가져옵니다
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 성공
+          schema:
+            allOf:
+            - $ref: '#/definitions/entity.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.MusicResponse'
+                  type: array
+              type: object
+        "500":
+          description: 서버 에러
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      summary: 활성화 된 악곡들을 가져옵니다
+      tags:
+      - Musics
+  /musics/{music_id}/stages:
+    get:
+      consumes:
+      - application/json
+      description: 음악 id에 따른 스테이지들을 가져옵니다
+      parameters:
+      - description: Music ID
+        in: path
+        name: music_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 성공
+          schema:
+            allOf:
+            - $ref: '#/definitions/entity.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.StageResponse'
+                  type: array
+              type: object
+        "400":
+          description: 잘못된 요청
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+        "403":
+          description: 음악이 비활성화됨
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+        "500":
+          description: 서버 에러
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      summary: 음악 id에 따른 스테이지들을 가져옵니다
+      tags:
+      - Stages
   /records:
     get:
       consumes:
@@ -216,41 +362,6 @@ paths:
       security:
       - BearerAuth: []
       summary: 전체 기록 조회
-      tags:
-      - Record
-    post:
-      consumes:
-      - application/json
-      description: 플레이 기록을 저장합니다
-      parameters:
-      - description: 플레이 기록 요청
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/entity.CreateRecordRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 생성된 기록
-          schema:
-            $ref: '#/definitions/repository.SingleRecordResponse'
-        "400":
-          description: 요청 데이터 검증 실패
-          schema:
-            $ref: '#/definitions/entity.ErrorResponse'
-        "401":
-          description: 인증 필요
-          schema:
-            $ref: '#/definitions/entity.ErrorResponse'
-        "500":
-          description: 서버 내부 오류
-          schema:
-            $ref: '#/definitions/entity.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: 플레이 기록 저장
       tags:
       - Record
   /records/best:

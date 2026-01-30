@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/witchs-lounge_backend/ent/character"
 	"github.com/witchs-lounge_backend/ent/music"
 	"github.com/witchs-lounge_backend/ent/predicate"
 	"github.com/witchs-lounge_backend/ent/record"
@@ -23,14 +22,14 @@ import (
 // RecordQuery is the builder for querying Record entities.
 type RecordQuery struct {
 	config
-	ctx           *QueryContext
-	order         []record.OrderOption
-	inters        []Interceptor
-	predicates    []predicate.Record
-	withUser      *UserQuery
-	withMusic     *MusicQuery
-	withStage     *StageQuery
-	withCharacter *CharacterQuery
+	ctx        *QueryContext
+	order      []record.OrderOption
+	inters     []Interceptor
+	predicates []predicate.Record
+	withUser   *UserQuery
+	withMusic  *MusicQuery
+	withStage  *StageQuery
+	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -126,28 +125,6 @@ func (rq *RecordQuery) QueryStage() *StageQuery {
 			sqlgraph.From(record.Table, record.FieldID, selector),
 			sqlgraph.To(stage.Table, stage.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, record.StageTable, record.StageColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryCharacter chains the current query on the "character" edge.
-func (rq *RecordQuery) QueryCharacter() *CharacterQuery {
-	query := (&CharacterClient{config: rq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := rq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := rq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(record.Table, record.FieldID, selector),
-			sqlgraph.To(character.Table, character.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, record.CharacterTable, record.CharacterColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
 		return fromU, nil
@@ -342,15 +319,14 @@ func (rq *RecordQuery) Clone() *RecordQuery {
 		return nil
 	}
 	return &RecordQuery{
-		config:        rq.config,
-		ctx:           rq.ctx.Clone(),
-		order:         append([]record.OrderOption{}, rq.order...),
-		inters:        append([]Interceptor{}, rq.inters...),
-		predicates:    append([]predicate.Record{}, rq.predicates...),
-		withUser:      rq.withUser.Clone(),
-		withMusic:     rq.withMusic.Clone(),
-		withStage:     rq.withStage.Clone(),
-		withCharacter: rq.withCharacter.Clone(),
+		config:     rq.config,
+		ctx:        rq.ctx.Clone(),
+		order:      append([]record.OrderOption{}, rq.order...),
+		inters:     append([]Interceptor{}, rq.inters...),
+		predicates: append([]predicate.Record{}, rq.predicates...),
+		withUser:   rq.withUser.Clone(),
+		withMusic:  rq.withMusic.Clone(),
+		withStage:  rq.withStage.Clone(),
 		// clone intermediate query.
 		sql:  rq.sql.Clone(),
 		path: rq.path,
@@ -387,17 +363,6 @@ func (rq *RecordQuery) WithStage(opts ...func(*StageQuery)) *RecordQuery {
 		opt(query)
 	}
 	rq.withStage = query
-	return rq
-}
-
-// WithCharacter tells the query-builder to eager-load the nodes that are connected to
-// the "character" edge. The optional arguments are used to configure the query builder of the edge.
-func (rq *RecordQuery) WithCharacter(opts ...func(*CharacterQuery)) *RecordQuery {
-	query := (&CharacterClient{config: rq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	rq.withCharacter = query
 	return rq
 }
 
@@ -478,14 +443,17 @@ func (rq *RecordQuery) prepareQuery(ctx context.Context) error {
 func (rq *RecordQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Record, error) {
 	var (
 		nodes       = []*Record{}
+		withFKs     = rq.withFKs
 		_spec       = rq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [3]bool{
 			rq.withUser != nil,
 			rq.withMusic != nil,
 			rq.withStage != nil,
-			rq.withCharacter != nil,
 		}
 	)
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, record.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Record).scanValues(nil, columns)
 	}
@@ -519,12 +487,6 @@ func (rq *RecordQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Recor
 	if query := rq.withStage; query != nil {
 		if err := rq.loadStage(ctx, query, nodes, nil,
 			func(n *Record, e *Stage) { n.Edges.Stage = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := rq.withCharacter; query != nil {
-		if err := rq.loadCharacter(ctx, query, nodes, nil,
-			func(n *Record, e *Character) { n.Edges.Character = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -618,35 +580,6 @@ func (rq *RecordQuery) loadStage(ctx context.Context, query *StageQuery, nodes [
 	}
 	return nil
 }
-func (rq *RecordQuery) loadCharacter(ctx context.Context, query *CharacterQuery, nodes []*Record, init func(*Record), assign func(*Record, *Character)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*Record)
-	for i := range nodes {
-		fk := nodes[i].CharacterID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(character.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "character_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
 
 func (rq *RecordQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := rq.querySpec()
@@ -681,9 +614,6 @@ func (rq *RecordQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if rq.withStage != nil {
 			_spec.Node.AddColumnOnce(record.FieldStageID)
-		}
-		if rq.withCharacter != nil {
-			_spec.Node.AddColumnOnce(record.FieldCharacterID)
 		}
 	}
 	if ps := rq.predicates; len(ps) > 0 {

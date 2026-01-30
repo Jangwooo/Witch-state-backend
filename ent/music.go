@@ -28,8 +28,6 @@ type Music struct {
 	Artist string `json:"artist,omitempty"`
 	// 작곡가
 	Composer string `json:"composer,omitempty"`
-	// 곡 길이(초)
-	Duration float64 `json:"duration,omitempty"`
 	// BPM
 	Bpm float64 `json:"bpm,omitempty"`
 	// 장르
@@ -37,7 +35,7 @@ type Music struct {
 	// 곡 설명
 	Description string `json:"description,omitempty"`
 	// 추천곡 여부
-	IsFeatured bool `json:"is_featured,omitempty"`
+	IsRecommended bool `json:"is_recommended,omitempty"`
 	// 무료곡 여부
 	IsFree bool `json:"is_free,omitempty"`
 	// 해금 레벨
@@ -86,9 +84,9 @@ func (*Music) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case music.FieldIsFeatured, music.FieldIsFree, music.FieldIsActive:
+		case music.FieldIsRecommended, music.FieldIsFree, music.FieldIsActive:
 			values[i] = new(sql.NullBool)
-		case music.FieldDuration, music.FieldBpm:
+		case music.FieldBpm:
 			values[i] = new(sql.NullFloat64)
 		case music.FieldUnlockLevel:
 			values[i] = new(sql.NullInt64)
@@ -147,12 +145,6 @@ func (m *Music) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				m.Composer = value.String
 			}
-		case music.FieldDuration:
-			if value, ok := values[i].(*sql.NullFloat64); !ok {
-				return fmt.Errorf("unexpected type %T for field duration", values[i])
-			} else if value.Valid {
-				m.Duration = value.Float64
-			}
 		case music.FieldBpm:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field bpm", values[i])
@@ -171,11 +163,11 @@ func (m *Music) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				m.Description = value.String
 			}
-		case music.FieldIsFeatured:
+		case music.FieldIsRecommended:
 			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_featured", values[i])
+				return fmt.Errorf("unexpected type %T for field is_recommended", values[i])
 			} else if value.Valid {
-				m.IsFeatured = value.Bool
+				m.IsRecommended = value.Bool
 			}
 		case music.FieldIsFree:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -263,9 +255,6 @@ func (m *Music) String() string {
 	builder.WriteString("composer=")
 	builder.WriteString(m.Composer)
 	builder.WriteString(", ")
-	builder.WriteString("duration=")
-	builder.WriteString(fmt.Sprintf("%v", m.Duration))
-	builder.WriteString(", ")
 	builder.WriteString("bpm=")
 	builder.WriteString(fmt.Sprintf("%v", m.Bpm))
 	builder.WriteString(", ")
@@ -275,8 +264,8 @@ func (m *Music) String() string {
 	builder.WriteString("description=")
 	builder.WriteString(m.Description)
 	builder.WriteString(", ")
-	builder.WriteString("is_featured=")
-	builder.WriteString(fmt.Sprintf("%v", m.IsFeatured))
+	builder.WriteString("is_recommended=")
+	builder.WriteString(fmt.Sprintf("%v", m.IsRecommended))
 	builder.WriteString(", ")
 	builder.WriteString("is_free=")
 	builder.WriteString(fmt.Sprintf("%v", m.IsFree))

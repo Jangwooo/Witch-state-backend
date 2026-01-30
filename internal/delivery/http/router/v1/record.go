@@ -7,8 +7,8 @@ import (
 	"github.com/witchs-lounge_backend/internal/infrastructure/session"
 )
 
-func NewRecordRouter(app *fiber.App, recordHandler *handler.RecordHandler, sessionStore session.SessionStore) {
-	rec := app.Group("/api/v1/records")
+func NewRecordRouter(router fiber.Router, recordHandler *handler.RecordHandler, sessionStore session.SessionStore) {
+	rec := router.Group("/api/v1/records")
 
 	// 인증 필요
 	rec.Post("/", middleware.AuthMiddleware(sessionStore), recordHandler.CreateRecord)

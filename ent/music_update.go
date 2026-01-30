@@ -85,27 +85,6 @@ func (mu *MusicUpdate) ClearComposer() *MusicUpdate {
 	return mu
 }
 
-// SetDuration sets the "duration" field.
-func (mu *MusicUpdate) SetDuration(f float64) *MusicUpdate {
-	mu.mutation.ResetDuration()
-	mu.mutation.SetDuration(f)
-	return mu
-}
-
-// SetNillableDuration sets the "duration" field if the given value is not nil.
-func (mu *MusicUpdate) SetNillableDuration(f *float64) *MusicUpdate {
-	if f != nil {
-		mu.SetDuration(*f)
-	}
-	return mu
-}
-
-// AddDuration adds f to the "duration" field.
-func (mu *MusicUpdate) AddDuration(f float64) *MusicUpdate {
-	mu.mutation.AddDuration(f)
-	return mu
-}
-
 // SetBpm sets the "bpm" field.
 func (mu *MusicUpdate) SetBpm(f float64) *MusicUpdate {
 	mu.mutation.ResetBpm()
@@ -167,16 +146,16 @@ func (mu *MusicUpdate) ClearDescription() *MusicUpdate {
 	return mu
 }
 
-// SetIsFeatured sets the "is_featured" field.
-func (mu *MusicUpdate) SetIsFeatured(b bool) *MusicUpdate {
-	mu.mutation.SetIsFeatured(b)
+// SetIsRecommended sets the "is_recommended" field.
+func (mu *MusicUpdate) SetIsRecommended(b bool) *MusicUpdate {
+	mu.mutation.SetIsRecommended(b)
 	return mu
 }
 
-// SetNillableIsFeatured sets the "is_featured" field if the given value is not nil.
-func (mu *MusicUpdate) SetNillableIsFeatured(b *bool) *MusicUpdate {
+// SetNillableIsRecommended sets the "is_recommended" field if the given value is not nil.
+func (mu *MusicUpdate) SetNillableIsRecommended(b *bool) *MusicUpdate {
 	if b != nil {
-		mu.SetIsFeatured(*b)
+		mu.SetIsRecommended(*b)
 	}
 	return mu
 }
@@ -387,12 +366,6 @@ func (mu *MusicUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if mu.mutation.ComposerCleared() {
 		_spec.ClearField(music.FieldComposer, field.TypeString)
 	}
-	if value, ok := mu.mutation.Duration(); ok {
-		_spec.SetField(music.FieldDuration, field.TypeFloat64, value)
-	}
-	if value, ok := mu.mutation.AddedDuration(); ok {
-		_spec.AddField(music.FieldDuration, field.TypeFloat64, value)
-	}
 	if value, ok := mu.mutation.Bpm(); ok {
 		_spec.SetField(music.FieldBpm, field.TypeFloat64, value)
 	}
@@ -411,8 +384,8 @@ func (mu *MusicUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if mu.mutation.DescriptionCleared() {
 		_spec.ClearField(music.FieldDescription, field.TypeString)
 	}
-	if value, ok := mu.mutation.IsFeatured(); ok {
-		_spec.SetField(music.FieldIsFeatured, field.TypeBool, value)
+	if value, ok := mu.mutation.IsRecommended(); ok {
+		_spec.SetField(music.FieldIsRecommended, field.TypeBool, value)
 	}
 	if value, ok := mu.mutation.IsFree(); ok {
 		_spec.SetField(music.FieldIsFree, field.TypeBool, value)
@@ -596,27 +569,6 @@ func (muo *MusicUpdateOne) ClearComposer() *MusicUpdateOne {
 	return muo
 }
 
-// SetDuration sets the "duration" field.
-func (muo *MusicUpdateOne) SetDuration(f float64) *MusicUpdateOne {
-	muo.mutation.ResetDuration()
-	muo.mutation.SetDuration(f)
-	return muo
-}
-
-// SetNillableDuration sets the "duration" field if the given value is not nil.
-func (muo *MusicUpdateOne) SetNillableDuration(f *float64) *MusicUpdateOne {
-	if f != nil {
-		muo.SetDuration(*f)
-	}
-	return muo
-}
-
-// AddDuration adds f to the "duration" field.
-func (muo *MusicUpdateOne) AddDuration(f float64) *MusicUpdateOne {
-	muo.mutation.AddDuration(f)
-	return muo
-}
-
 // SetBpm sets the "bpm" field.
 func (muo *MusicUpdateOne) SetBpm(f float64) *MusicUpdateOne {
 	muo.mutation.ResetBpm()
@@ -678,16 +630,16 @@ func (muo *MusicUpdateOne) ClearDescription() *MusicUpdateOne {
 	return muo
 }
 
-// SetIsFeatured sets the "is_featured" field.
-func (muo *MusicUpdateOne) SetIsFeatured(b bool) *MusicUpdateOne {
-	muo.mutation.SetIsFeatured(b)
+// SetIsRecommended sets the "is_recommended" field.
+func (muo *MusicUpdateOne) SetIsRecommended(b bool) *MusicUpdateOne {
+	muo.mutation.SetIsRecommended(b)
 	return muo
 }
 
-// SetNillableIsFeatured sets the "is_featured" field if the given value is not nil.
-func (muo *MusicUpdateOne) SetNillableIsFeatured(b *bool) *MusicUpdateOne {
+// SetNillableIsRecommended sets the "is_recommended" field if the given value is not nil.
+func (muo *MusicUpdateOne) SetNillableIsRecommended(b *bool) *MusicUpdateOne {
 	if b != nil {
-		muo.SetIsFeatured(*b)
+		muo.SetIsRecommended(*b)
 	}
 	return muo
 }
@@ -928,12 +880,6 @@ func (muo *MusicUpdateOne) sqlSave(ctx context.Context) (_node *Music, err error
 	if muo.mutation.ComposerCleared() {
 		_spec.ClearField(music.FieldComposer, field.TypeString)
 	}
-	if value, ok := muo.mutation.Duration(); ok {
-		_spec.SetField(music.FieldDuration, field.TypeFloat64, value)
-	}
-	if value, ok := muo.mutation.AddedDuration(); ok {
-		_spec.AddField(music.FieldDuration, field.TypeFloat64, value)
-	}
 	if value, ok := muo.mutation.Bpm(); ok {
 		_spec.SetField(music.FieldBpm, field.TypeFloat64, value)
 	}
@@ -952,8 +898,8 @@ func (muo *MusicUpdateOne) sqlSave(ctx context.Context) (_node *Music, err error
 	if muo.mutation.DescriptionCleared() {
 		_spec.ClearField(music.FieldDescription, field.TypeString)
 	}
-	if value, ok := muo.mutation.IsFeatured(); ok {
-		_spec.SetField(music.FieldIsFeatured, field.TypeBool, value)
+	if value, ok := muo.mutation.IsRecommended(); ok {
+		_spec.SetField(music.FieldIsRecommended, field.TypeBool, value)
 	}
 	if value, ok := muo.mutation.IsFree(); ok {
 		_spec.SetField(music.FieldIsFree, field.TypeBool, value)

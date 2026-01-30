@@ -35,15 +35,13 @@ func (Music) Fields() []ent.Field {
 			Comment("아티스트"),
 		field.Text("composer").Optional().
 			Comment("작곡가"),
-		field.Float("duration").
-			Comment("곡 길이(초)"),
 		field.Float("bpm").
 			Comment("BPM"),
 		field.Text("genre").Optional().
 			Comment("장르"),
 		field.Text("description").Optional().
 			Comment("곡 설명"),
-		field.Bool("is_featured").Default(false).
+		field.Bool("is_recommended").Default(false).
 			Comment("추천곡 여부"),
 		field.Bool("is_free").Default(true).
 			Comment("무료곡 여부"),

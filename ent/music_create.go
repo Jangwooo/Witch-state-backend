@@ -77,12 +77,6 @@ func (mc *MusicCreate) SetNillableComposer(s *string) *MusicCreate {
 	return mc
 }
 
-// SetDuration sets the "duration" field.
-func (mc *MusicCreate) SetDuration(f float64) *MusicCreate {
-	mc.mutation.SetDuration(f)
-	return mc
-}
-
 // SetBpm sets the "bpm" field.
 func (mc *MusicCreate) SetBpm(f float64) *MusicCreate {
 	mc.mutation.SetBpm(f)
@@ -117,16 +111,16 @@ func (mc *MusicCreate) SetNillableDescription(s *string) *MusicCreate {
 	return mc
 }
 
-// SetIsFeatured sets the "is_featured" field.
-func (mc *MusicCreate) SetIsFeatured(b bool) *MusicCreate {
-	mc.mutation.SetIsFeatured(b)
+// SetIsRecommended sets the "is_recommended" field.
+func (mc *MusicCreate) SetIsRecommended(b bool) *MusicCreate {
+	mc.mutation.SetIsRecommended(b)
 	return mc
 }
 
-// SetNillableIsFeatured sets the "is_featured" field if the given value is not nil.
-func (mc *MusicCreate) SetNillableIsFeatured(b *bool) *MusicCreate {
+// SetNillableIsRecommended sets the "is_recommended" field if the given value is not nil.
+func (mc *MusicCreate) SetNillableIsRecommended(b *bool) *MusicCreate {
 	if b != nil {
-		mc.SetIsFeatured(*b)
+		mc.SetIsRecommended(*b)
 	}
 	return mc
 }
@@ -266,9 +260,9 @@ func (mc *MusicCreate) defaults() {
 		v := music.DefaultUpdatedAt()
 		mc.mutation.SetUpdatedAt(v)
 	}
-	if _, ok := mc.mutation.IsFeatured(); !ok {
-		v := music.DefaultIsFeatured
-		mc.mutation.SetIsFeatured(v)
+	if _, ok := mc.mutation.IsRecommended(); !ok {
+		v := music.DefaultIsRecommended
+		mc.mutation.SetIsRecommended(v)
 	}
 	if _, ok := mc.mutation.IsFree(); !ok {
 		v := music.DefaultIsFree
@@ -298,14 +292,11 @@ func (mc *MusicCreate) check() error {
 	if _, ok := mc.mutation.Artist(); !ok {
 		return &ValidationError{Name: "artist", err: errors.New(`ent: missing required field "Music.artist"`)}
 	}
-	if _, ok := mc.mutation.Duration(); !ok {
-		return &ValidationError{Name: "duration", err: errors.New(`ent: missing required field "Music.duration"`)}
-	}
 	if _, ok := mc.mutation.Bpm(); !ok {
 		return &ValidationError{Name: "bpm", err: errors.New(`ent: missing required field "Music.bpm"`)}
 	}
-	if _, ok := mc.mutation.IsFeatured(); !ok {
-		return &ValidationError{Name: "is_featured", err: errors.New(`ent: missing required field "Music.is_featured"`)}
+	if _, ok := mc.mutation.IsRecommended(); !ok {
+		return &ValidationError{Name: "is_recommended", err: errors.New(`ent: missing required field "Music.is_recommended"`)}
 	}
 	if _, ok := mc.mutation.IsFree(); !ok {
 		return &ValidationError{Name: "is_free", err: errors.New(`ent: missing required field "Music.is_free"`)}
@@ -371,10 +362,6 @@ func (mc *MusicCreate) createSpec() (*Music, *sqlgraph.CreateSpec) {
 		_spec.SetField(music.FieldComposer, field.TypeString, value)
 		_node.Composer = value
 	}
-	if value, ok := mc.mutation.Duration(); ok {
-		_spec.SetField(music.FieldDuration, field.TypeFloat64, value)
-		_node.Duration = value
-	}
 	if value, ok := mc.mutation.Bpm(); ok {
 		_spec.SetField(music.FieldBpm, field.TypeFloat64, value)
 		_node.Bpm = value
@@ -387,9 +374,9 @@ func (mc *MusicCreate) createSpec() (*Music, *sqlgraph.CreateSpec) {
 		_spec.SetField(music.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
-	if value, ok := mc.mutation.IsFeatured(); ok {
-		_spec.SetField(music.FieldIsFeatured, field.TypeBool, value)
-		_node.IsFeatured = value
+	if value, ok := mc.mutation.IsRecommended(); ok {
+		_spec.SetField(music.FieldIsRecommended, field.TypeBool, value)
+		_node.IsRecommended = value
 	}
 	if value, ok := mc.mutation.IsFree(); ok {
 		_spec.SetField(music.FieldIsFree, field.TypeBool, value)

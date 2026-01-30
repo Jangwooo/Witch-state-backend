@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/witchs-lounge_backend/ent/character"
 	"github.com/witchs-lounge_backend/ent/music"
 	"github.com/witchs-lounge_backend/ent/record"
 	"github.com/witchs-lounge_backend/ent/stage"
@@ -34,8 +33,6 @@ type Record struct {
 	MusicID string `json:"music_id,omitempty"`
 	// 스테이지 ID
 	StageID string `json:"stage_id,omitempty"`
-	// 캐릭터 ID
-	CharacterID uuid.UUID `json:"character_id,omitempty"`
 	// 점수
 	Score int `json:"score,omitempty"`
 	// Perfect 개수
@@ -56,16 +53,15 @@ type Record struct {
 	IsFullCombo bool `json:"is_full_combo,omitempty"`
 	// 퍼펙트 플레이 여부
 	IsPerfectPlay bool `json:"is_perfect_play,omitempty"`
-	// 플레이 소요시간(초)
-	PlayDuration int `json:"play_duration,omitempty"`
 	// 추가 정보
 	AdditionalInfo map[string]interface{} `json:"additional_info,omitempty"`
 	// 유효한 기록 여부
 	IsValid bool `json:"is_valid,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the RecordQuery when eager-loading is set.
-	Edges        RecordEdges `json:"edges"`
-	selectValues sql.SelectValues
+	Edges             RecordEdges `json:"edges"`
+	character_records *uuid.UUID
+	selectValues      sql.SelectValues
 }
 
 // RecordEdges holds the relations/edges for other nodes in the graph.
@@ -76,11 +72,9 @@ type RecordEdges struct {
 	Music *Music `json:"music,omitempty"`
 	// Stage holds the value of the stage edge.
 	Stage *Stage `json:"stage,omitempty"`
-	// Character holds the value of the character edge.
-	Character *Character `json:"character,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [3]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -116,17 +110,6 @@ func (e RecordEdges) StageOrErr() (*Stage, error) {
 	return nil, &NotLoadedError{edge: "stage"}
 }
 
-// CharacterOrErr returns the Character value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e RecordEdges) CharacterOrErr() (*Character, error) {
-	if e.Character != nil {
-		return e.Character, nil
-	} else if e.loadedTypes[3] {
-		return nil, &NotFoundError{label: character.Label}
-	}
-	return nil, &NotLoadedError{edge: "character"}
-}
-
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Record) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -138,14 +121,16 @@ func (*Record) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case record.FieldAccuracy:
 			values[i] = new(sql.NullFloat64)
-		case record.FieldScore, record.FieldPerfectCount, record.FieldGoodCount, record.FieldBadCount, record.FieldMissCount, record.FieldMaxCombo, record.FieldPlayDuration:
+		case record.FieldScore, record.FieldPerfectCount, record.FieldGoodCount, record.FieldBadCount, record.FieldMissCount, record.FieldMaxCombo:
 			values[i] = new(sql.NullInt64)
 		case record.FieldMusicID, record.FieldStageID, record.FieldRank:
 			values[i] = new(sql.NullString)
 		case record.FieldCreatedAt, record.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case record.FieldID, record.FieldUserID, record.FieldCharacterID:
+		case record.FieldID, record.FieldUserID:
 			values[i] = new(uuid.UUID)
+		case record.ForeignKeys[0]: // character_records
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -196,12 +181,6 @@ func (r *Record) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field stage_id", values[i])
 			} else if value.Valid {
 				r.StageID = value.String
-			}
-		case record.FieldCharacterID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field character_id", values[i])
-			} else if value != nil {
-				r.CharacterID = *value
 			}
 		case record.FieldScore:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -263,12 +242,6 @@ func (r *Record) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				r.IsPerfectPlay = value.Bool
 			}
-		case record.FieldPlayDuration:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field play_duration", values[i])
-			} else if value.Valid {
-				r.PlayDuration = int(value.Int64)
-			}
 		case record.FieldAdditionalInfo:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field additional_info", values[i])
@@ -282,6 +255,13 @@ func (r *Record) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_valid", values[i])
 			} else if value.Valid {
 				r.IsValid = value.Bool
+			}
+		case record.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field character_records", values[i])
+			} else if value.Valid {
+				r.character_records = new(uuid.UUID)
+				*r.character_records = *value.S.(*uuid.UUID)
 			}
 		default:
 			r.selectValues.Set(columns[i], values[i])
@@ -309,11 +289,6 @@ func (r *Record) QueryMusic() *MusicQuery {
 // QueryStage queries the "stage" edge of the Record entity.
 func (r *Record) QueryStage() *StageQuery {
 	return NewRecordClient(r.config).QueryStage(r)
-}
-
-// QueryCharacter queries the "character" edge of the Record entity.
-func (r *Record) QueryCharacter() *CharacterQuery {
-	return NewRecordClient(r.config).QueryCharacter(r)
 }
 
 // Update returns a builder for updating this Record.
@@ -354,9 +329,6 @@ func (r *Record) String() string {
 	builder.WriteString("stage_id=")
 	builder.WriteString(r.StageID)
 	builder.WriteString(", ")
-	builder.WriteString("character_id=")
-	builder.WriteString(fmt.Sprintf("%v", r.CharacterID))
-	builder.WriteString(", ")
 	builder.WriteString("score=")
 	builder.WriteString(fmt.Sprintf("%v", r.Score))
 	builder.WriteString(", ")
@@ -386,9 +358,6 @@ func (r *Record) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_perfect_play=")
 	builder.WriteString(fmt.Sprintf("%v", r.IsPerfectPlay))
-	builder.WriteString(", ")
-	builder.WriteString("play_duration=")
-	builder.WriteString(fmt.Sprintf("%v", r.PlayDuration))
 	builder.WriteString(", ")
 	builder.WriteString("additional_info=")
 	builder.WriteString(fmt.Sprintf("%v", r.AdditionalInfo))

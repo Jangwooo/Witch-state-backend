@@ -2616,13 +2616,11 @@ type MusicMutation struct {
 	name            *string
 	artist          *string
 	composer        *string
-	duration        *float64
-	addduration     *float64
 	bpm             *float64
 	addbpm          *float64
 	genre           *string
 	description     *string
-	is_featured     *bool
+	is_recommended  *bool
 	is_free         *bool
 	unlock_level    *int
 	addunlock_level *int
@@ -2937,62 +2935,6 @@ func (m *MusicMutation) ResetComposer() {
 	delete(m.clearedFields, music.FieldComposer)
 }
 
-// SetDuration sets the "duration" field.
-func (m *MusicMutation) SetDuration(f float64) {
-	m.duration = &f
-	m.addduration = nil
-}
-
-// Duration returns the value of the "duration" field in the mutation.
-func (m *MusicMutation) Duration() (r float64, exists bool) {
-	v := m.duration
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDuration returns the old "duration" field's value of the Music entity.
-// If the Music object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MusicMutation) OldDuration(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDuration is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDuration requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDuration: %w", err)
-	}
-	return oldValue.Duration, nil
-}
-
-// AddDuration adds f to the "duration" field.
-func (m *MusicMutation) AddDuration(f float64) {
-	if m.addduration != nil {
-		*m.addduration += f
-	} else {
-		m.addduration = &f
-	}
-}
-
-// AddedDuration returns the value that was added to the "duration" field in this mutation.
-func (m *MusicMutation) AddedDuration() (r float64, exists bool) {
-	v := m.addduration
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetDuration resets all changes to the "duration" field.
-func (m *MusicMutation) ResetDuration() {
-	m.duration = nil
-	m.addduration = nil
-}
-
 // SetBpm sets the "bpm" field.
 func (m *MusicMutation) SetBpm(f float64) {
 	m.bpm = &f
@@ -3147,40 +3089,40 @@ func (m *MusicMutation) ResetDescription() {
 	delete(m.clearedFields, music.FieldDescription)
 }
 
-// SetIsFeatured sets the "is_featured" field.
-func (m *MusicMutation) SetIsFeatured(b bool) {
-	m.is_featured = &b
+// SetIsRecommended sets the "is_recommended" field.
+func (m *MusicMutation) SetIsRecommended(b bool) {
+	m.is_recommended = &b
 }
 
-// IsFeatured returns the value of the "is_featured" field in the mutation.
-func (m *MusicMutation) IsFeatured() (r bool, exists bool) {
-	v := m.is_featured
+// IsRecommended returns the value of the "is_recommended" field in the mutation.
+func (m *MusicMutation) IsRecommended() (r bool, exists bool) {
+	v := m.is_recommended
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldIsFeatured returns the old "is_featured" field's value of the Music entity.
+// OldIsRecommended returns the old "is_recommended" field's value of the Music entity.
 // If the Music object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MusicMutation) OldIsFeatured(ctx context.Context) (v bool, err error) {
+func (m *MusicMutation) OldIsRecommended(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsFeatured is only allowed on UpdateOne operations")
+		return v, errors.New("OldIsRecommended is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsFeatured requires an ID field in the mutation")
+		return v, errors.New("OldIsRecommended requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsFeatured: %w", err)
+		return v, fmt.Errorf("querying old value for OldIsRecommended: %w", err)
 	}
-	return oldValue.IsFeatured, nil
+	return oldValue.IsRecommended, nil
 }
 
-// ResetIsFeatured resets all changes to the "is_featured" field.
-func (m *MusicMutation) ResetIsFeatured() {
-	m.is_featured = nil
+// ResetIsRecommended resets all changes to the "is_recommended" field.
+func (m *MusicMutation) ResetIsRecommended() {
+	m.is_recommended = nil
 }
 
 // SetIsFree sets the "is_free" field.
@@ -3502,7 +3444,7 @@ func (m *MusicMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MusicMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, music.FieldCreatedAt)
 	}
@@ -3518,9 +3460,6 @@ func (m *MusicMutation) Fields() []string {
 	if m.composer != nil {
 		fields = append(fields, music.FieldComposer)
 	}
-	if m.duration != nil {
-		fields = append(fields, music.FieldDuration)
-	}
 	if m.bpm != nil {
 		fields = append(fields, music.FieldBpm)
 	}
@@ -3530,8 +3469,8 @@ func (m *MusicMutation) Fields() []string {
 	if m.description != nil {
 		fields = append(fields, music.FieldDescription)
 	}
-	if m.is_featured != nil {
-		fields = append(fields, music.FieldIsFeatured)
+	if m.is_recommended != nil {
+		fields = append(fields, music.FieldIsRecommended)
 	}
 	if m.is_free != nil {
 		fields = append(fields, music.FieldIsFree)
@@ -3563,16 +3502,14 @@ func (m *MusicMutation) Field(name string) (ent.Value, bool) {
 		return m.Artist()
 	case music.FieldComposer:
 		return m.Composer()
-	case music.FieldDuration:
-		return m.Duration()
 	case music.FieldBpm:
 		return m.Bpm()
 	case music.FieldGenre:
 		return m.Genre()
 	case music.FieldDescription:
 		return m.Description()
-	case music.FieldIsFeatured:
-		return m.IsFeatured()
+	case music.FieldIsRecommended:
+		return m.IsRecommended()
 	case music.FieldIsFree:
 		return m.IsFree()
 	case music.FieldUnlockLevel:
@@ -3600,16 +3537,14 @@ func (m *MusicMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldArtist(ctx)
 	case music.FieldComposer:
 		return m.OldComposer(ctx)
-	case music.FieldDuration:
-		return m.OldDuration(ctx)
 	case music.FieldBpm:
 		return m.OldBpm(ctx)
 	case music.FieldGenre:
 		return m.OldGenre(ctx)
 	case music.FieldDescription:
 		return m.OldDescription(ctx)
-	case music.FieldIsFeatured:
-		return m.OldIsFeatured(ctx)
+	case music.FieldIsRecommended:
+		return m.OldIsRecommended(ctx)
 	case music.FieldIsFree:
 		return m.OldIsFree(ctx)
 	case music.FieldUnlockLevel:
@@ -3662,13 +3597,6 @@ func (m *MusicMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetComposer(v)
 		return nil
-	case music.FieldDuration:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDuration(v)
-		return nil
 	case music.FieldBpm:
 		v, ok := value.(float64)
 		if !ok {
@@ -3690,12 +3618,12 @@ func (m *MusicMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDescription(v)
 		return nil
-	case music.FieldIsFeatured:
+	case music.FieldIsRecommended:
 		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetIsFeatured(v)
+		m.SetIsRecommended(v)
 		return nil
 	case music.FieldIsFree:
 		v, ok := value.(bool)
@@ -3733,9 +3661,6 @@ func (m *MusicMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *MusicMutation) AddedFields() []string {
 	var fields []string
-	if m.addduration != nil {
-		fields = append(fields, music.FieldDuration)
-	}
 	if m.addbpm != nil {
 		fields = append(fields, music.FieldBpm)
 	}
@@ -3750,8 +3675,6 @@ func (m *MusicMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *MusicMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case music.FieldDuration:
-		return m.AddedDuration()
 	case music.FieldBpm:
 		return m.AddedBpm()
 	case music.FieldUnlockLevel:
@@ -3765,13 +3688,6 @@ func (m *MusicMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *MusicMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case music.FieldDuration:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddDuration(v)
-		return nil
 	case music.FieldBpm:
 		v, ok := value.(float64)
 		if !ok {
@@ -3855,9 +3771,6 @@ func (m *MusicMutation) ResetField(name string) error {
 	case music.FieldComposer:
 		m.ResetComposer()
 		return nil
-	case music.FieldDuration:
-		m.ResetDuration()
-		return nil
 	case music.FieldBpm:
 		m.ResetBpm()
 		return nil
@@ -3867,8 +3780,8 @@ func (m *MusicMutation) ResetField(name string) error {
 	case music.FieldDescription:
 		m.ResetDescription()
 		return nil
-	case music.FieldIsFeatured:
-		m.ResetIsFeatured()
+	case music.FieldIsRecommended:
+		m.ResetIsRecommended()
 		return nil
 	case music.FieldIsFree:
 		m.ResetIsFree()
@@ -4975,8 +4888,6 @@ type RecordMutation struct {
 	rank             *record.Rank
 	is_full_combo    *bool
 	is_perfect_play  *bool
-	play_duration    *int
-	addplay_duration *int
 	additional_info  *map[string]interface{}
 	is_valid         *bool
 	clearedFields    map[string]struct{}
@@ -4986,8 +4897,6 @@ type RecordMutation struct {
 	clearedmusic     bool
 	stage            *string
 	clearedstage     bool
-	character        *uuid.UUID
-	clearedcharacter bool
 	done             bool
 	oldValue         func(context.Context) (*Record, error)
 	predicates       []predicate.Record
@@ -5275,42 +5184,6 @@ func (m *RecordMutation) OldStageID(ctx context.Context) (v string, err error) {
 // ResetStageID resets all changes to the "stage_id" field.
 func (m *RecordMutation) ResetStageID() {
 	m.stage = nil
-}
-
-// SetCharacterID sets the "character_id" field.
-func (m *RecordMutation) SetCharacterID(u uuid.UUID) {
-	m.character = &u
-}
-
-// CharacterID returns the value of the "character_id" field in the mutation.
-func (m *RecordMutation) CharacterID() (r uuid.UUID, exists bool) {
-	v := m.character
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCharacterID returns the old "character_id" field's value of the Record entity.
-// If the Record object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RecordMutation) OldCharacterID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCharacterID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCharacterID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCharacterID: %w", err)
-	}
-	return oldValue.CharacterID, nil
-}
-
-// ResetCharacterID resets all changes to the "character_id" field.
-func (m *RecordMutation) ResetCharacterID() {
-	m.character = nil
 }
 
 // SetScore sets the "score" field.
@@ -5826,76 +5699,6 @@ func (m *RecordMutation) ResetIsPerfectPlay() {
 	m.is_perfect_play = nil
 }
 
-// SetPlayDuration sets the "play_duration" field.
-func (m *RecordMutation) SetPlayDuration(i int) {
-	m.play_duration = &i
-	m.addplay_duration = nil
-}
-
-// PlayDuration returns the value of the "play_duration" field in the mutation.
-func (m *RecordMutation) PlayDuration() (r int, exists bool) {
-	v := m.play_duration
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPlayDuration returns the old "play_duration" field's value of the Record entity.
-// If the Record object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RecordMutation) OldPlayDuration(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPlayDuration is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPlayDuration requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPlayDuration: %w", err)
-	}
-	return oldValue.PlayDuration, nil
-}
-
-// AddPlayDuration adds i to the "play_duration" field.
-func (m *RecordMutation) AddPlayDuration(i int) {
-	if m.addplay_duration != nil {
-		*m.addplay_duration += i
-	} else {
-		m.addplay_duration = &i
-	}
-}
-
-// AddedPlayDuration returns the value that was added to the "play_duration" field in this mutation.
-func (m *RecordMutation) AddedPlayDuration() (r int, exists bool) {
-	v := m.addplay_duration
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ClearPlayDuration clears the value of the "play_duration" field.
-func (m *RecordMutation) ClearPlayDuration() {
-	m.play_duration = nil
-	m.addplay_duration = nil
-	m.clearedFields[record.FieldPlayDuration] = struct{}{}
-}
-
-// PlayDurationCleared returns if the "play_duration" field was cleared in this mutation.
-func (m *RecordMutation) PlayDurationCleared() bool {
-	_, ok := m.clearedFields[record.FieldPlayDuration]
-	return ok
-}
-
-// ResetPlayDuration resets all changes to the "play_duration" field.
-func (m *RecordMutation) ResetPlayDuration() {
-	m.play_duration = nil
-	m.addplay_duration = nil
-	delete(m.clearedFields, record.FieldPlayDuration)
-}
-
 // SetAdditionalInfo sets the "additional_info" field.
 func (m *RecordMutation) SetAdditionalInfo(value map[string]interface{}) {
 	m.additional_info = &value
@@ -6062,33 +5865,6 @@ func (m *RecordMutation) ResetStage() {
 	m.clearedstage = false
 }
 
-// ClearCharacter clears the "character" edge to the Character entity.
-func (m *RecordMutation) ClearCharacter() {
-	m.clearedcharacter = true
-	m.clearedFields[record.FieldCharacterID] = struct{}{}
-}
-
-// CharacterCleared reports if the "character" edge to the Character entity was cleared.
-func (m *RecordMutation) CharacterCleared() bool {
-	return m.clearedcharacter
-}
-
-// CharacterIDs returns the "character" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// CharacterID instead. It exists only for internal usage by the builders.
-func (m *RecordMutation) CharacterIDs() (ids []uuid.UUID) {
-	if id := m.character; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetCharacter resets all changes to the "character" edge.
-func (m *RecordMutation) ResetCharacter() {
-	m.character = nil
-	m.clearedcharacter = false
-}
-
 // Where appends a list predicates to the RecordMutation builder.
 func (m *RecordMutation) Where(ps ...predicate.Record) {
 	m.predicates = append(m.predicates, ps...)
@@ -6123,7 +5899,7 @@ func (m *RecordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RecordMutation) Fields() []string {
-	fields := make([]string, 0, 19)
+	fields := make([]string, 0, 17)
 	if m.created_at != nil {
 		fields = append(fields, record.FieldCreatedAt)
 	}
@@ -6138,9 +5914,6 @@ func (m *RecordMutation) Fields() []string {
 	}
 	if m.stage != nil {
 		fields = append(fields, record.FieldStageID)
-	}
-	if m.character != nil {
-		fields = append(fields, record.FieldCharacterID)
 	}
 	if m.score != nil {
 		fields = append(fields, record.FieldScore)
@@ -6172,9 +5945,6 @@ func (m *RecordMutation) Fields() []string {
 	if m.is_perfect_play != nil {
 		fields = append(fields, record.FieldIsPerfectPlay)
 	}
-	if m.play_duration != nil {
-		fields = append(fields, record.FieldPlayDuration)
-	}
 	if m.additional_info != nil {
 		fields = append(fields, record.FieldAdditionalInfo)
 	}
@@ -6199,8 +5969,6 @@ func (m *RecordMutation) Field(name string) (ent.Value, bool) {
 		return m.MusicID()
 	case record.FieldStageID:
 		return m.StageID()
-	case record.FieldCharacterID:
-		return m.CharacterID()
 	case record.FieldScore:
 		return m.Score()
 	case record.FieldPerfectCount:
@@ -6221,8 +5989,6 @@ func (m *RecordMutation) Field(name string) (ent.Value, bool) {
 		return m.IsFullCombo()
 	case record.FieldIsPerfectPlay:
 		return m.IsPerfectPlay()
-	case record.FieldPlayDuration:
-		return m.PlayDuration()
 	case record.FieldAdditionalInfo:
 		return m.AdditionalInfo()
 	case record.FieldIsValid:
@@ -6246,8 +6012,6 @@ func (m *RecordMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldMusicID(ctx)
 	case record.FieldStageID:
 		return m.OldStageID(ctx)
-	case record.FieldCharacterID:
-		return m.OldCharacterID(ctx)
 	case record.FieldScore:
 		return m.OldScore(ctx)
 	case record.FieldPerfectCount:
@@ -6268,8 +6032,6 @@ func (m *RecordMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldIsFullCombo(ctx)
 	case record.FieldIsPerfectPlay:
 		return m.OldIsPerfectPlay(ctx)
-	case record.FieldPlayDuration:
-		return m.OldPlayDuration(ctx)
 	case record.FieldAdditionalInfo:
 		return m.OldAdditionalInfo(ctx)
 	case record.FieldIsValid:
@@ -6317,13 +6079,6 @@ func (m *RecordMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStageID(v)
-		return nil
-	case record.FieldCharacterID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCharacterID(v)
 		return nil
 	case record.FieldScore:
 		v, ok := value.(int)
@@ -6395,13 +6150,6 @@ func (m *RecordMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIsPerfectPlay(v)
 		return nil
-	case record.FieldPlayDuration:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPlayDuration(v)
-		return nil
 	case record.FieldAdditionalInfo:
 		v, ok := value.(map[string]interface{})
 		if !ok {
@@ -6445,9 +6193,6 @@ func (m *RecordMutation) AddedFields() []string {
 	if m.addaccuracy != nil {
 		fields = append(fields, record.FieldAccuracy)
 	}
-	if m.addplay_duration != nil {
-		fields = append(fields, record.FieldPlayDuration)
-	}
 	return fields
 }
 
@@ -6470,8 +6215,6 @@ func (m *RecordMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedMaxCombo()
 	case record.FieldAccuracy:
 		return m.AddedAccuracy()
-	case record.FieldPlayDuration:
-		return m.AddedPlayDuration()
 	}
 	return nil, false
 }
@@ -6530,13 +6273,6 @@ func (m *RecordMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddAccuracy(v)
 		return nil
-	case record.FieldPlayDuration:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddPlayDuration(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Record numeric field %s", name)
 }
@@ -6547,9 +6283,6 @@ func (m *RecordMutation) ClearedFields() []string {
 	var fields []string
 	if m.FieldCleared(record.FieldRank) {
 		fields = append(fields, record.FieldRank)
-	}
-	if m.FieldCleared(record.FieldPlayDuration) {
-		fields = append(fields, record.FieldPlayDuration)
 	}
 	if m.FieldCleared(record.FieldAdditionalInfo) {
 		fields = append(fields, record.FieldAdditionalInfo)
@@ -6570,9 +6303,6 @@ func (m *RecordMutation) ClearField(name string) error {
 	switch name {
 	case record.FieldRank:
 		m.ClearRank()
-		return nil
-	case record.FieldPlayDuration:
-		m.ClearPlayDuration()
 		return nil
 	case record.FieldAdditionalInfo:
 		m.ClearAdditionalInfo()
@@ -6599,9 +6329,6 @@ func (m *RecordMutation) ResetField(name string) error {
 		return nil
 	case record.FieldStageID:
 		m.ResetStageID()
-		return nil
-	case record.FieldCharacterID:
-		m.ResetCharacterID()
 		return nil
 	case record.FieldScore:
 		m.ResetScore()
@@ -6633,9 +6360,6 @@ func (m *RecordMutation) ResetField(name string) error {
 	case record.FieldIsPerfectPlay:
 		m.ResetIsPerfectPlay()
 		return nil
-	case record.FieldPlayDuration:
-		m.ResetPlayDuration()
-		return nil
 	case record.FieldAdditionalInfo:
 		m.ResetAdditionalInfo()
 		return nil
@@ -6648,7 +6372,7 @@ func (m *RecordMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *RecordMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 3)
 	if m.user != nil {
 		edges = append(edges, record.EdgeUser)
 	}
@@ -6657,9 +6381,6 @@ func (m *RecordMutation) AddedEdges() []string {
 	}
 	if m.stage != nil {
 		edges = append(edges, record.EdgeStage)
-	}
-	if m.character != nil {
-		edges = append(edges, record.EdgeCharacter)
 	}
 	return edges
 }
@@ -6680,17 +6401,13 @@ func (m *RecordMutation) AddedIDs(name string) []ent.Value {
 		if id := m.stage; id != nil {
 			return []ent.Value{*id}
 		}
-	case record.EdgeCharacter:
-		if id := m.character; id != nil {
-			return []ent.Value{*id}
-		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *RecordMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 3)
 	return edges
 }
 
@@ -6702,7 +6419,7 @@ func (m *RecordMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *RecordMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 3)
 	if m.cleareduser {
 		edges = append(edges, record.EdgeUser)
 	}
@@ -6711,9 +6428,6 @@ func (m *RecordMutation) ClearedEdges() []string {
 	}
 	if m.clearedstage {
 		edges = append(edges, record.EdgeStage)
-	}
-	if m.clearedcharacter {
-		edges = append(edges, record.EdgeCharacter)
 	}
 	return edges
 }
@@ -6728,8 +6442,6 @@ func (m *RecordMutation) EdgeCleared(name string) bool {
 		return m.clearedmusic
 	case record.EdgeStage:
 		return m.clearedstage
-	case record.EdgeCharacter:
-		return m.clearedcharacter
 	}
 	return false
 }
@@ -6747,9 +6459,6 @@ func (m *RecordMutation) ClearEdge(name string) error {
 	case record.EdgeStage:
 		m.ClearStage()
 		return nil
-	case record.EdgeCharacter:
-		m.ClearCharacter()
-		return nil
 	}
 	return fmt.Errorf("unknown Record unique edge %s", name)
 }
@@ -6766,9 +6475,6 @@ func (m *RecordMutation) ResetEdge(name string) error {
 		return nil
 	case record.EdgeStage:
 		m.ResetStage()
-		return nil
-	case record.EdgeCharacter:
-		m.ResetCharacter()
 		return nil
 	}
 	return fmt.Errorf("unknown Record edge %s", name)

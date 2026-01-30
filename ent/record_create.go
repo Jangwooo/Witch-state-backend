@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/witchs-lounge_backend/ent/character"
 	"github.com/witchs-lounge_backend/ent/music"
 	"github.com/witchs-lounge_backend/ent/record"
 	"github.com/witchs-lounge_backend/ent/stage"
@@ -68,12 +67,6 @@ func (rc *RecordCreate) SetMusicID(s string) *RecordCreate {
 // SetStageID sets the "stage_id" field.
 func (rc *RecordCreate) SetStageID(s string) *RecordCreate {
 	rc.mutation.SetStageID(s)
-	return rc
-}
-
-// SetCharacterID sets the "character_id" field.
-func (rc *RecordCreate) SetCharacterID(u uuid.UUID) *RecordCreate {
-	rc.mutation.SetCharacterID(u)
 	return rc
 }
 
@@ -209,20 +202,6 @@ func (rc *RecordCreate) SetNillableIsPerfectPlay(b *bool) *RecordCreate {
 	return rc
 }
 
-// SetPlayDuration sets the "play_duration" field.
-func (rc *RecordCreate) SetPlayDuration(i int) *RecordCreate {
-	rc.mutation.SetPlayDuration(i)
-	return rc
-}
-
-// SetNillablePlayDuration sets the "play_duration" field if the given value is not nil.
-func (rc *RecordCreate) SetNillablePlayDuration(i *int) *RecordCreate {
-	if i != nil {
-		rc.SetPlayDuration(*i)
-	}
-	return rc
-}
-
 // SetAdditionalInfo sets the "additional_info" field.
 func (rc *RecordCreate) SetAdditionalInfo(m map[string]interface{}) *RecordCreate {
 	rc.mutation.SetAdditionalInfo(m)
@@ -270,11 +249,6 @@ func (rc *RecordCreate) SetMusic(m *Music) *RecordCreate {
 // SetStage sets the "stage" edge to the Stage entity.
 func (rc *RecordCreate) SetStage(s *Stage) *RecordCreate {
 	return rc.SetStageID(s.ID)
-}
-
-// SetCharacter sets the "character" edge to the Character entity.
-func (rc *RecordCreate) SetCharacter(c *Character) *RecordCreate {
-	return rc.SetCharacterID(c.ID)
 }
 
 // Mutation returns the RecordMutation object of the builder.
@@ -379,9 +353,6 @@ func (rc *RecordCreate) check() error {
 	if _, ok := rc.mutation.StageID(); !ok {
 		return &ValidationError{Name: "stage_id", err: errors.New(`ent: missing required field "Record.stage_id"`)}
 	}
-	if _, ok := rc.mutation.CharacterID(); !ok {
-		return &ValidationError{Name: "character_id", err: errors.New(`ent: missing required field "Record.character_id"`)}
-	}
 	if _, ok := rc.mutation.Score(); !ok {
 		return &ValidationError{Name: "score", err: errors.New(`ent: missing required field "Record.score"`)}
 	}
@@ -425,9 +396,6 @@ func (rc *RecordCreate) check() error {
 	}
 	if len(rc.mutation.StageIDs()) == 0 {
 		return &ValidationError{Name: "stage", err: errors.New(`ent: missing required edge "Record.stage"`)}
-	}
-	if len(rc.mutation.CharacterIDs()) == 0 {
-		return &ValidationError{Name: "character", err: errors.New(`ent: missing required edge "Record.character"`)}
 	}
 	return nil
 }
@@ -512,10 +480,6 @@ func (rc *RecordCreate) createSpec() (*Record, *sqlgraph.CreateSpec) {
 		_spec.SetField(record.FieldIsPerfectPlay, field.TypeBool, value)
 		_node.IsPerfectPlay = value
 	}
-	if value, ok := rc.mutation.PlayDuration(); ok {
-		_spec.SetField(record.FieldPlayDuration, field.TypeInt, value)
-		_node.PlayDuration = value
-	}
 	if value, ok := rc.mutation.AdditionalInfo(); ok {
 		_spec.SetField(record.FieldAdditionalInfo, field.TypeJSON, value)
 		_node.AdditionalInfo = value
@@ -573,23 +537,6 @@ func (rc *RecordCreate) createSpec() (*Record, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.StageID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := rc.mutation.CharacterIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   record.CharacterTable,
-			Columns: []string{record.CharacterColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.CharacterID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
