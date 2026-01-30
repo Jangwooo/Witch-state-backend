@@ -14,6 +14,8 @@ type AppDependencies struct {
 	StoveHandler  *handler.StoveHandler
 	UserHandler   *handler.UserHandler
 	RecordHandler *handler.RecordHandler
+	MusicHandler  *handler.MusicHandler
+	StageHandler  *handler.StageHandler
 
 	// Session
 	SessionStore session.SessionStore
@@ -24,21 +26,30 @@ func SetupAppDependencies(dbClient *ent.Client, sessionStore session.SessionStor
 	// Initialize repositories
 	userRepo := repository.NewUserRepository(dbClient)
 	recordRepo := repository.NewRecordRepository(dbClient)
+	musicRepo := repository.NewMusicRepository(dbClient)
+	stageRepo := repository.NewStageRepository(dbClient)
 
 	// Initialize use cases
 	stoveUseCase := usecase.NewStoveUseCase(userRepo, sessionStore)
 	userUseCase := usecase.NewUserUseCase(userRepo)
 	recordUseCase := usecase.NewRecordUseCase(recordRepo)
+	musicUseCase := usecase.NewMusicUseCase(musicRepo)
+	stageUseCase := usecase.NewStageUseCase(stageRepo, musicRepo)
 
 	// Initialize handlers
 	stoveHandler := handler.NewStoveHandler(stoveUseCase)
 	userHandler := handler.NewUserHandler(userUseCase)
 	recordHandler := handler.NewRecordHandler(recordUseCase)
+	musicHandler := handler.NewMusicHandler(musicUseCase)
+	stageHandler := handler.NewStageHandler(stageUseCase)
 
 	return &AppDependencies{
 		StoveHandler:  stoveHandler,
 		UserHandler:   userHandler,
 		RecordHandler: recordHandler,
-		SessionStore:  sessionStore,
+		MusicHandler:  musicHandler,
+		StageHandler:  stageHandler,
+
+		SessionStore: sessionStore,
 	}
 }

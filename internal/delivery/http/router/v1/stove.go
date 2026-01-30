@@ -7,8 +7,8 @@ import (
 	"github.com/witchs-lounge_backend/internal/domain/entity"
 )
 
-func NewStoveRouter(app *fiber.App, stoveHandler *handler.StoveHandler) {
-	stove := app.Group("/api/v1/stove")
+func NewStoveRouter(router fiber.Router, stoveHandler *handler.StoveHandler) {
+	stove := router.Group("/stove")
 
 	stove.Post("/signin", middleware.ValidateBody[entity.StoveSignInRequest](), stoveHandler.SignIn)
 }

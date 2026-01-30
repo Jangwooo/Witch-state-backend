@@ -72,6 +72,115 @@
                 }
             }
         },
+        "/musics": {
+            "get": {
+                "description": "활성화 된 악곡들을 가져옵니다",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Musics"
+                ],
+                "summary": "활성화 된 악곡들을 가져옵니다",
+                "responses": {
+                    "200": {
+                        "description": "성공",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/entity.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.MusicResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "서버 에러",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/musics/{music_id}/stages": {
+            "get": {
+                "description": "음악 id에 따른 스테이지들을 가져옵니다",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stages"
+                ],
+                "summary": "음악 id에 따른 스테이지들을 가져옵니다",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Music ID",
+                        "name": "music_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/entity.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.StageResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "잘못된 요청",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "음악이 비활성화됨",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "서버 에러",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/records": {
             "get": {
                 "security": [
@@ -284,6 +393,67 @@
         }
     },
     "definitions": {
+        "dto.MusicResponse": {
+            "type": "object",
+            "properties": {
+                "artist": {
+                    "type": "string"
+                },
+                "bpm": {
+                    "type": "number"
+                },
+                "composer": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "genre": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_free": {
+                    "type": "boolean"
+                },
+                "is_recommended": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "release_date": {
+                    "type": "string"
+                },
+                "unlock_level": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.StageResponse": {
+            "type": "object",
+            "properties": {
+                "difficulty": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "level_name": {
+                    "type": "string"
+                },
+                "max_combo": {
+                    "type": "integer"
+                },
+                "music_id": {
+                    "type": "string"
+                },
+                "total_notes": {
+                    "type": "integer"
+                }
+            }
+        },
         "entity.CreateRecordRequest": {
             "type": "object",
             "required": [
@@ -349,6 +519,15 @@
                 "error": {
                     "type": "string"
                 },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.Response": {
+            "type": "object",
+            "properties": {
+                "data": {},
                 "message": {
                     "type": "string"
                 }

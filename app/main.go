@@ -8,7 +8,9 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/swagger"
+	"github.com/redis/go-redis/v9"
 	_ "github.com/witchs-lounge_backend/docs"
+	"github.com/witchs-lounge_backend/ent"
 	v1 "github.com/witchs-lounge_backend/internal/delivery/http/router/v1"
 	"github.com/witchs-lounge_backend/internal/infrastructure/bootstrap"
 )
@@ -39,13 +41,18 @@ func main() {
 	if err != nil {
 		log.Fatalf("데이터베이스 초기화 실패: %v", err)
 	}
-	defer dbClient.Close()
+	defer func(dbClient *ent.Client) {
+		_ = dbClient.Close()
+	}(dbClient)
 
 	// 2. Redis 초기화
-	_, sessionStore, err := bootstrap.SetupRedis(*mode)
+	client, sessionStore, err := bootstrap.SetupRedis(*mode)
 	if err != nil {
 		log.Fatalf("Redis 초기화 실패: %v", err)
 	}
+	defer func(client *redis.Client) {
+		_ = client.Close()
+	}(client)
 
 	// 3. 애플리케이션 의존성 초기화
 	deps := bootstrap.SetupAppDependencies(dbClient, sessionStore)
@@ -80,6 +87,8 @@ func main() {
 		StoveHandler:  deps.StoveHandler,
 		UserHandler:   deps.UserHandler,
 		RecordHandler: deps.RecordHandler,
+		MusicHandler:  deps.MusicHandler,
+		StageHandler:  deps.StageHandler,
 	})
 
 	// 9. 서버 시작

@@ -1,5 +1,45 @@
 basePath: /api/v1
 definitions:
+  dto.MusicResponse:
+    properties:
+      artist:
+        type: string
+      bpm:
+        type: number
+      composer:
+        type: string
+      description:
+        type: string
+      genre:
+        type: string
+      id:
+        type: string
+      is_free:
+        type: boolean
+      is_recommended:
+        type: boolean
+      name:
+        type: string
+      release_date:
+        type: string
+      unlock_level:
+        type: integer
+    type: object
+  dto.StageResponse:
+    properties:
+      difficulty:
+        type: integer
+      id:
+        type: string
+      level_name:
+        type: string
+      max_combo:
+        type: integer
+      music_id:
+        type: string
+      total_notes:
+        type: integer
+    type: object
   entity.CreateRecordRequest:
     properties:
       accuracy:
@@ -45,6 +85,12 @@ definitions:
       details: {}
       error:
         type: string
+      message:
+        type: string
+    type: object
+  entity.Response:
+    properties:
+      data: {}
       message:
         type: string
     type: object
@@ -212,6 +258,72 @@ paths:
       summary: 플레이 기록 저장
       tags:
       - Record
+  /musics:
+    get:
+      consumes:
+      - application/json
+      description: 활성화 된 악곡들을 가져옵니다
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 성공
+          schema:
+            allOf:
+            - $ref: '#/definitions/entity.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.MusicResponse'
+                  type: array
+              type: object
+        "500":
+          description: 서버 에러
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      summary: 활성화 된 악곡들을 가져옵니다
+      tags:
+      - Musics
+  /musics/{music_id}/stages:
+    get:
+      consumes:
+      - application/json
+      description: 음악 id에 따른 스테이지들을 가져옵니다
+      parameters:
+      - description: Music ID
+        in: path
+        name: music_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 성공
+          schema:
+            allOf:
+            - $ref: '#/definitions/entity.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.StageResponse'
+                  type: array
+              type: object
+        "400":
+          description: 잘못된 요청
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+        "403":
+          description: 음악이 비활성화됨
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+        "500":
+          description: 서버 에러
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      summary: 음악 id에 따른 스테이지들을 가져옵니다
+      tags:
+      - Stages
   /records:
     get:
       consumes:
