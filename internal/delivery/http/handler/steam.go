@@ -30,7 +30,7 @@ func NewSteamHandler(steamUseCase usecase.SteamUseCase) *SteamHandler {
 func (h *SteamHandler) SignIn(c *fiber.Ctx) error {
 	req := c.Locals("body").(entity.SteamSignInRequest)
 
-	sessionResp, err := h.steamUseCase.SignInWithSteam(c.Context(), req.SteamID, req.Ticket)
+	sessionResp, err := h.steamUseCase.SignInWithSteam(c.Context(), req.Id, req.Ticket)
 	if err != nil {
 		if usecase.IsAuthError(err) {
 			return c.Status(fiber.StatusUnauthorized).JSON(entity.ErrorResponse{
