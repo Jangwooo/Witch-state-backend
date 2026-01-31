@@ -26,7 +26,7 @@ func NewRecordHandler(recordUseCase usecase.RecordUseCase) *RecordHandler {
 // @Failure 400 {object} entity.ErrorResponse "잘못된 요청 형식"
 // @Failure 401 {object} entity.ErrorResponse "인증 필요"
 // @Failure 500 {object} entity.ErrorResponse "서버 내부 오류"
-// @Router /api/v1/records [post]
+// @Router /records [post]
 func (h *RecordHandler) CreateRecord(c *fiber.Ctx) error {
 	usr := c.Locals("user")
 	if usr == nil {

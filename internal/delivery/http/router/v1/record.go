@@ -8,7 +8,7 @@ import (
 )
 
 func NewRecordRouter(router fiber.Router, recordHandler *handler.RecordHandler, sessionStore session.SessionStore) {
-	rec := router.Group("/api/v1/records")
+	rec := router.Group("/records")
 
 	// 인증 필요
 	rec.Post("/", middleware.AuthMiddleware(sessionStore), recordHandler.CreateRecord)
