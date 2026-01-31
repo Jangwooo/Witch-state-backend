@@ -6,13 +6,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/spf13/viper"
 	"github.com/witchs-lounge_backend/ent"
 	"github.com/witchs-lounge_backend/internal/domain/entity"
 	"github.com/witchs-lounge_backend/internal/domain/repository"
@@ -47,9 +47,9 @@ func NewStoveUseCase(userRepo repository.UserRepository, sessionStore session.Se
 			Timeout: 10 * time.Second,
 		},
 		apiBase:      strings.TrimRight(getEnv("STOVE_API_BASE", "https://api.onstove.com"), "/"),
-		serviceID:    os.Getenv("STOVE_SERVICE_ID"),
-		clientID:     os.Getenv("STOVE_CLIENT_ID"),
-		clientSecret: os.Getenv("STOVE_CLIENT_SECRET"),
+		serviceID:    viper.GetString("STOVE_SERVICE_ID"),
+		clientID:     viper.GetString("STOVE_CLIENT_ID"),
+		clientSecret: viper.GetString("STOVE_CLIENT_SECRET"),
 	}
 }
 
