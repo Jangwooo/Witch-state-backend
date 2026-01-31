@@ -19,7 +19,6 @@ type RecordResponse struct {
 	UserID        uuid.UUID              `json:"user_id"`
 	MusicID       string                 `json:"music_id"`
 	StageID       string                 `json:"stage_id"`
-	CharacterID   uuid.UUID              `json:"character_id"`
 	Score         int                    `json:"score"`
 	PerfectCount  int                    `json:"perfect_count"`
 	GoodCount     int                    `json:"good_count"`
@@ -30,8 +29,6 @@ type RecordResponse struct {
 	Rank          string                 `json:"rank"`
 	IsFullCombo   bool                   `json:"is_full_combo"`
 	IsPerfectPlay bool                   `json:"is_perfect_play"`
-	PlayedAt      string                 `json:"played_at"`
-	PlayDuration  int                    `json:"play_duration"`
 	Additional    map[string]interface{} `json:"additional_info,omitempty"`
 	CreatedAt     string                 `json:"created_at"`
 	UpdatedAt     string                 `json:"updated_at"`
