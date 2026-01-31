@@ -11,6 +11,7 @@ type RouterConfig struct {
 	SessionStore session.SessionStore
 
 	StoveHandler  *handler.StoveHandler
+	SteamHandler  *handler.SteamHandler
 	UserHandler   *handler.UserHandler
 	RecordHandler *handler.RecordHandler
 	MusicHandler  *handler.MusicHandler
@@ -24,6 +25,7 @@ func SetupRoutes(app *fiber.App, config *RouterConfig) {
 	v1 := app.Group("/api/v1")
 
 	NewStoveRouter(v1, config.StoveHandler)
+	NewSteamRouter(v1, config.SteamHandler)
 	NewUserRouter(v1, config.UserHandler, config.SessionStore)
 	NewRecordRouter(v1, config.RecordHandler, config.SessionStore)
 	MusicRouter(v1, config.MusicHandler)

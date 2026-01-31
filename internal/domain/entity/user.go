@@ -65,10 +65,13 @@ type SessionResponse struct {
 
 // StoveSignInRequest Stove 로그인 요청 구조체
 type StoveSignInRequest struct {
-	ID          string `validate:"required" json:"id"`
-	Email       string `validate:"required" json:"email"`
-	AvatarUrl   string `validate:"required" json:"avatar_url"`
-	DisplayName string `validate:"required" json:"display_name"`
+	AccessToken string `validate:"required" json:"access_token"`
+}
+
+// SteamSignInRequest Steam 로그인 요청 구조체
+type SteamSignInRequest struct {
+	SteamID string `validate:"required" json:"steam_id"`
+	Ticket  string `validate:"required" json:"ticket"`
 }
 
 // NewUser creates a new User instance
