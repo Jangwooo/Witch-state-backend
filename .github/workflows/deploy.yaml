@@ -76,6 +76,11 @@ jobs:
             REDIS_HOST='${{ secrets.REDIS_HOST }}'
             REDIS_PASSWORD='${{ secrets.REDIS_PASSWORD }}'
             REDIS_DB='${{ secrets.REDIS_DB }}'
+            STEAM_WEB_API_KEY='${{ secrets.STEAM_WEB_API_KEY }}'
+            STEAM_APP_ID='${{ secrets.STEAM_APP_ID }}'
+            STOVE_CLIENT_ID='${{ secrets.STOVE_CLIENT_ID }}'
+            STOVE_CLIENT_SECRET='${{ secrets.STOVE_CLIENT_SECRET }}'
+            STOVE_SERVICE_ID='${{ secrets.STOVE_SERVICE_ID }}'
             EOF
 
       # ----------------------------------------------------

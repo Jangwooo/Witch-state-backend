@@ -341,9 +341,67 @@
                 }
             }
         },
+        "/steam/signin": {
+            "post": {
+                "description": "Steam 티켓 인증을 통해 로그인 처리 및 세션 생성",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Steam"
+                ],
+                "summary": "Steam 로그인",
+                "parameters": [
+                    {
+                        "description": "Steam 로그인 요청 정보",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.SteamSignInRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "로그인 성공 및 세션 정보",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/entity.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.SessionResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "인증 실패",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "서버 내부 오류",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/stove/signin": {
             "post": {
-                "description": "Stove 플랫폼 사용자 정보로 로그인 처리 및 세션 생성",
+                "description": "Stove 액세스 토큰 검증 후 로그인 처리 및 세션 생성",
                 "consumes": [
                     "application/json"
                 ],
@@ -386,6 +444,12 @@
                     },
                     "400": {
                         "description": "요청 데이터 검증 실패",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "인증 실패",
                         "schema": {
                             "$ref": "#/definitions/entity.ErrorResponse"
                         }
@@ -604,25 +668,28 @@
                 }
             }
         },
+        "entity.SteamSignInRequest": {
+            "type": "object",
+            "required": [
+                "steam_id",
+                "ticket"
+            ],
+            "properties": {
+                "steam_id": {
+                    "type": "string"
+                },
+                "ticket": {
+                    "type": "string"
+                }
+            }
+        },
         "entity.StoveSignInRequest": {
             "type": "object",
             "required": [
-                "avatar_url",
-                "display_name",
-                "email",
-                "id"
+                "access_token"
             ],
             "properties": {
-                "avatar_url": {
-                    "type": "string"
-                },
-                "display_name": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
+                "access_token": {
                     "type": "string"
                 }
             }

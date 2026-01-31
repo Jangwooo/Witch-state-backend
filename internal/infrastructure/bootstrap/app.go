@@ -12,6 +12,7 @@ import (
 type AppDependencies struct {
 	// Handlers
 	StoveHandler  *handler.StoveHandler
+	SteamHandler  *handler.SteamHandler
 	UserHandler   *handler.UserHandler
 	RecordHandler *handler.RecordHandler
 	MusicHandler  *handler.MusicHandler
@@ -31,6 +32,7 @@ func SetupAppDependencies(dbClient *ent.Client, sessionStore session.SessionStor
 
 	// Initialize use cases
 	stoveUseCase := usecase.NewStoveUseCase(userRepo, sessionStore)
+	steamUseCase := usecase.NewSteamUseCase(userRepo, sessionStore)
 	userUseCase := usecase.NewUserUseCase(userRepo)
 	recordUseCase := usecase.NewRecordUseCase(recordRepo)
 	musicUseCase := usecase.NewMusicUseCase(musicRepo)
@@ -38,6 +40,7 @@ func SetupAppDependencies(dbClient *ent.Client, sessionStore session.SessionStor
 
 	// Initialize handlers
 	stoveHandler := handler.NewStoveHandler(stoveUseCase)
+	steamHandler := handler.NewSteamHandler(steamUseCase)
 	userHandler := handler.NewUserHandler(userUseCase)
 	recordHandler := handler.NewRecordHandler(recordUseCase)
 	musicHandler := handler.NewMusicHandler(musicUseCase)
@@ -45,6 +48,7 @@ func SetupAppDependencies(dbClient *ent.Client, sessionStore session.SessionStor
 
 	return &AppDependencies{
 		StoveHandler:  stoveHandler,
+		SteamHandler:  steamHandler,
 		UserHandler:   userHandler,
 		RecordHandler: recordHandler,
 		MusicHandler:  musicHandler,

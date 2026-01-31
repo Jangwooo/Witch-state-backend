@@ -89,6 +89,7 @@ func main() {
 	v1.SetupRoutes(app, &v1.RouterConfig{
 		SessionStore:  deps.SessionStore,
 		StoveHandler:  deps.StoveHandler,
+		SteamHandler:  deps.SteamHandler,
 		UserHandler:   deps.UserHandler,
 		RecordHandler: deps.RecordHandler,
 		MusicHandler:  deps.MusicHandler,
