@@ -15,7 +15,6 @@ type Record struct {
 type CreateRecordRequest struct {
 	MusicID       string                 `json:"music_id" validate:"required"`
 	StageID       string                 `json:"stage_id" validate:"required"`
-	CharacterID   uuid.UUID              `json:"character_id" validate:"required"`
 	Score         int                    `json:"score" validate:"required,gte=0"`
 	PerfectCount  int                    `json:"perfect_count"`
 	GoodCount     int                    `json:"good_count"`
@@ -26,7 +25,6 @@ type CreateRecordRequest struct {
 	Rank          string                 `json:"rank"`
 	IsFullCombo   bool                   `json:"is_full_combo"`
 	IsPerfectPlay bool                   `json:"is_perfect_play"`
-	PlayDuration  *int                   `json:"play_duration,omitempty"`
 	Additional    map[string]interface{} `json:"additional_info,omitempty"`
 }
 
