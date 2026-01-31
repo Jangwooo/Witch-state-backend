@@ -3,6 +3,7 @@ package session
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -12,7 +13,6 @@ import (
 )
 
 type SessionStore interface {
-	
 	Create(ctx context.Context, user *entity.User) (string, error)
 	Get(ctx context.Context, sessionID string) (*entity.User, error)
 	Delete(ctx context.Context, sessionID string) error
@@ -71,10 +71,10 @@ func (s *RedisSessionStore) Create(ctx context.Context, user *entity.User) (stri
 func (s *RedisSessionStore) Get(ctx context.Context, sessionID string) (*entity.User, error) {
 	data, err := s.client.Get(ctx, "session:"+sessionID).Bytes()
 	if err != nil {
-		if err == redis.Nil {
+		if errors.Is(err, redis.Nil) {
 			return nil, nil // 세션 없음
 		}
-		return nil, fmt.Errorf("Redis에서 세션 조회 중 오류: %w", err)
+		return nil, fmt.Errorf("redis에서 세션 조회 중 오류: %w", err)
 	}
 
 	var user entity.User
@@ -89,7 +89,7 @@ func (s *RedisSessionStore) Get(ctx context.Context, sessionID string) (*entity.
 func (s *RedisSessionStore) Delete(ctx context.Context, sessionID string) error {
 	err := s.client.Del(ctx, "session:"+sessionID).Err()
 	if err != nil {
-		return fmt.Errorf("Redis에서 세션 삭제 중 오류: %w", err)
+		return fmt.Errorf("redis에서 세션 삭제 중 오류: %w", err)
 	}
 	return nil
 }

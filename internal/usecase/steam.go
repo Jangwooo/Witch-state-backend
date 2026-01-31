@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
+	"github.com/spf13/viper"
 	"github.com/witchs-lounge_backend/ent"
 	"github.com/witchs-lounge_backend/internal/domain/entity"
 	"github.com/witchs-lounge_backend/internal/domain/repository"
@@ -43,9 +43,9 @@ func NewSteamUseCase(userRepo repository.UserRepository, sessionStore session.Se
 			Timeout: 10 * time.Second,
 		},
 		apiBase:          strings.TrimRight(getEnv("STEAM_WEB_API_BASE", "https://api.steampowered.com"), "/"),
-		apiKey:           os.Getenv("STEAM_WEB_API_KEY"),
-		appID:            os.Getenv("STEAM_APP_ID"),
-		identity:         os.Getenv("STEAM_TICKET_IDENTITY"),
+		apiKey:           viper.GetString("STEAM_WEB_API_KEY"),
+		appID:            viper.GetString("STEAM_APP_ID"),
+		identity:         viper.GetString("STEAM_TICKET_IDENTITY"),
 		requireOwnership: strings.EqualFold(getEnv("STEAM_REQUIRE_OWNERSHIP", "true"), "true"),
 	}
 }
