@@ -87,27 +87,75 @@ func (u *steamUseCase) SignInWithSteam(ctx context.Context, steamID string, tick
 		}
 	}
 
+	profile, err := u.fetchPlayerSummary(ctx, params.SteamID)
+	if err != nil {
+		return nil, err
+	}
+
+	displayName := "steam_" + params.SteamID
+	avatarURL := ""
+	if profile != nil {
+		if profile.PersonaName != "" {
+			displayName = profile.PersonaName
+		}
+		if profile.AvatarFull != "" {
+			avatarURL = profile.AvatarFull
+		} else if profile.AvatarMedium != "" {
+			avatarURL = profile.AvatarMedium
+		} else if profile.Avatar != "" {
+			avatarURL = profile.Avatar
+		}
+	}
+
+	platformData := map[string]interface{}{
+		"steam_id":         params.SteamID,
+		"owner_steam_id":   params.OwnerSteamID,
+		"vac_banned":       params.VacBanned,
+		"publisher_banned": params.PublisherBanned,
+	}
+	if profile != nil {
+		platformData["persona_name"] = profile.PersonaName
+		platformData["profile_url"] = profile.ProfileURL
+		platformData["avatar"] = profile.Avatar
+		platformData["avatar_medium"] = profile.AvatarMedium
+		platformData["avatar_full"] = profile.AvatarFull
+		platformData["persona_state"] = profile.PersonaState
+		platformData["community_visibility_state"] = profile.CommunityVisibilityState
+		platformData["profile_state"] = profile.ProfileState
+		platformData["last_logoff"] = profile.LastLogoff
+		platformData["time_created"] = profile.TimeCreated
+		if profile.LocCountryCode != "" {
+			platformData["loc_country_code"] = profile.LocCountryCode
+		}
+		if profile.LocStateCode != "" {
+			platformData["loc_state_code"] = profile.LocStateCode
+		}
+		if profile.LocCityID != 0 {
+			platformData["loc_city_id"] = profile.LocCityID
+		}
+	}
+
 	user, err := u.userRepo.FindByPlatformUserID(ctx, "steam", params.SteamID)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			platformData := map[string]interface{}{
-				"steam_id":         params.SteamID,
-				"owner_steam_id":   params.OwnerSteamID,
-				"vac_banned":       params.VacBanned,
-				"publisher_banned": params.PublisherBanned,
-			}
 			user, err = u.userRepo.Create(ctx, &entity.CreateUserRequest{
 				PlatformType:        "steam",
 				PlatformUserID:      params.SteamID,
-				PlatformDisplayName: "steam_" + params.SteamID,
+				PlatformDisplayName: displayName,
+				PlatformAvatarURL:   avatarURL,
 				IsVerified:          true,
-				Nickname:            "steam_" + params.SteamID,
+				Nickname:            displayName,
 				PlatformData:        platformData,
 			})
 			if err != nil {
 				return nil, err
 			}
 		} else {
+			return nil, err
+		}
+	} else {
+		user, err = u.userRepo.UpdatePlatformProfile(ctx, user.ID, displayName, avatarURL, displayName, platformData)
+		if err != nil {
 			return nil, err
 		}
 	}
@@ -125,6 +173,29 @@ type steamAuthParams struct {
 	OwnerSteamID    string `json:"ownersteamid"`
 	VacBanned       bool   `json:"vacbanned"`
 	PublisherBanned bool   `json:"publisherbanned"`
+}
+
+type steamPlayerSummary struct {
+	SteamID                  string `json:"steamid"`
+	PersonaName              string `json:"personaname"`
+	ProfileURL               string `json:"profileurl"`
+	Avatar                   string `json:"avatar"`
+	AvatarMedium             string `json:"avatarmedium"`
+	AvatarFull               string `json:"avatarfull"`
+	PersonaState             int    `json:"personastate"`
+	CommunityVisibilityState int    `json:"communityvisibilitystate"`
+	ProfileState             int    `json:"profilestate"`
+	LastLogoff               int64  `json:"lastlogoff"`
+	TimeCreated              int64  `json:"timecreated"`
+	LocCountryCode           string `json:"loccountrycode"`
+	LocStateCode             string `json:"locstatecode"`
+	LocCityID                int    `json:"loccityid"`
+}
+
+type steamPlayerSummaryResponse struct {
+	Response struct {
+		Players []steamPlayerSummary `json:"players"`
+	} `json:"response"`
 }
 
 type steamAuthResponse struct {
@@ -182,6 +253,44 @@ func (u *steamUseCase) authenticateTicket(ctx context.Context, ticket string) (*
 	}
 
 	return &params, nil
+}
+
+func (u *steamUseCase) fetchPlayerSummary(ctx context.Context, steamID string) (*steamPlayerSummary, error) {
+	endpoint, err := url.Parse(u.apiBase + "/ISteamUser/GetPlayerSummaries/v2/")
+	if err != nil {
+		return nil, err
+	}
+
+	query := endpoint.Query()
+	query.Set("key", u.apiKey)
+	query.Set("steamids", steamID)
+	endpoint.RawQuery = query.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := u.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("steam player summary failed: status %d", resp.StatusCode)
+	}
+
+	var payload steamPlayerSummaryResponse
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		return nil, err
+	}
+
+	if len(payload.Response.Players) == 0 {
+		return nil, newAuthError("steam profile not found")
+	}
+
+	return &payload.Response.Players[0], nil
 }
 
 type steamOwnership struct {
