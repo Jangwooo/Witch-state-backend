@@ -77,6 +77,31 @@ func (r *userRepository) Create(ctx context.Context, req *entity.CreateUserReque
 	return entity.NewUser(entUser), nil
 }
 
+// UpdatePlatformProfile updates platform-specific profile fields for a user.
+func (r *userRepository) UpdatePlatformProfile(ctx context.Context, id uuid.UUID, displayName, avatarURL, nickname string, platformData map[string]interface{}) (*entity.User, error) {
+	update := r.client.User.UpdateOneID(id)
+
+	if displayName != "" {
+		update = update.SetPlatformDisplayName(displayName)
+	}
+	if avatarURL != "" {
+		update = update.SetPlatformAvatarURL(avatarURL)
+	}
+	if nickname != "" {
+		update = update.SetNickname(nickname)
+	}
+	if platformData != nil {
+		update = update.SetPlatformData(platformData)
+	}
+
+	entUser, err := update.Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return entity.NewUser(entUser), nil
+}
+
 // UpdateLastLogin은 사용자의 마지막 로그인 시간을 업데이트하는 메소드입니다.
 func (r *userRepository) UpdateLastLogin(ctx context.Context, id uuid.UUID, lastLoginTime time.Time) (*entity.User, error) {
 	entUser, err := r.client.User.UpdateOneID(id).
