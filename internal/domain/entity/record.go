@@ -25,6 +25,7 @@ type CreateRecordRequest struct {
 	Rank          string                 `json:"rank"`
 	IsFullCombo   bool                   `json:"is_full_combo"`
 	IsPerfectPlay bool                   `json:"is_perfect_play"`
+	GameStatus    string                 `json:"game_status" validate:"omitempty,oneof=completed gave_up retry failed"`
 	Additional    map[string]interface{} `json:"additional_info,omitempty"`
 }
 
@@ -44,6 +45,7 @@ type RecordResponse struct {
 	Rank          string                 `json:"rank"`
 	IsFullCombo   bool                   `json:"is_full_combo"`
 	IsPerfectPlay bool                   `json:"is_perfect_play"`
+	GameStatus    string                 `json:"game_status"`
 	PlayedAt      time.Time              `json:"played_at"`
 	PlayDuration  int                    `json:"play_duration"`
 	Additional    map[string]interface{} `json:"additional_info,omitempty"`
@@ -77,6 +79,7 @@ func (r *Record) ToResponse() RecordResponse {
 		Rank:          string(r.Rank),
 		IsFullCombo:   r.IsFullCombo,
 		IsPerfectPlay: r.IsPerfectPlay,
+		GameStatus:    string(r.GameStatus),
 		Additional:    r.AdditionalInfo,
 		CreatedAt:     r.CreatedAt,
 		UpdatedAt:     r.UpdatedAt,

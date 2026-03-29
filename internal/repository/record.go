@@ -34,6 +34,11 @@ func (r *recordRepository) Create(ctx context.Context, userID uuid.UUID, req *en
 		SetIsFullCombo(req.IsFullCombo).
 		SetIsPerfectPlay(req.IsPerfectPlay)
 
+	// GameStatus 처리 (기본값: completed)
+	if req.GameStatus != "" {
+		create.SetGameStatus(record.GameStatus(req.GameStatus))
+	}
+
 	if req.Additional != nil {
 		create.SetAdditionalInfo(req.Additional)
 	} else {

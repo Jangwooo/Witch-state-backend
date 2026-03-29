@@ -50,6 +50,10 @@ func (Record) Fields() []ent.Field {
 			Comment("풀콤보 여부"),
 		field.Bool("is_perfect_play").Default(false).
 			Comment("퍼펙트 플레이 여부"),
+		field.Enum("game_status").
+			Values("completed", "gave_up", "retry", "failed").
+			Default("completed").
+			Comment("게임 플레이 상태 (completed: 완료, gave_up: 포기, retry: 재도전, failed: 실패)"),
 		field.JSON("additional_info", map[string]interface{}{}).Optional().
 			Comment("추가 정보"),
 		field.Bool("is_valid").Default(true).
