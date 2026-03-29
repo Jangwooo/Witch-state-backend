@@ -275,6 +275,20 @@ func (ru *RecordUpdate) SetNillableIsPerfectPlay(b *bool) *RecordUpdate {
 	return ru
 }
 
+// SetGameStatus sets the "game_status" field.
+func (ru *RecordUpdate) SetGameStatus(rs record.GameStatus) *RecordUpdate {
+	ru.mutation.SetGameStatus(rs)
+	return ru
+}
+
+// SetNillableGameStatus sets the "game_status" field if the given value is not nil.
+func (ru *RecordUpdate) SetNillableGameStatus(rs *record.GameStatus) *RecordUpdate {
+	if rs != nil {
+		ru.SetGameStatus(*rs)
+	}
+	return ru
+}
+
 // SetAdditionalInfo sets the "additional_info" field.
 func (ru *RecordUpdate) SetAdditionalInfo(m map[string]interface{}) *RecordUpdate {
 	ru.mutation.SetAdditionalInfo(m)
@@ -382,6 +396,11 @@ func (ru *RecordUpdate) check() error {
 			return &ValidationError{Name: "rank", err: fmt.Errorf(`ent: validator failed for field "Record.rank": %w`, err)}
 		}
 	}
+	if v, ok := ru.mutation.GameStatus(); ok {
+		if err := record.GameStatusValidator(v); err != nil {
+			return &ValidationError{Name: "game_status", err: fmt.Errorf(`ent: validator failed for field "Record.game_status": %w`, err)}
+		}
+	}
 	if ru.mutation.UserCleared() && len(ru.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Record.user"`)
 	}
@@ -462,6 +481,9 @@ func (ru *RecordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := ru.mutation.IsPerfectPlay(); ok {
 		_spec.SetField(record.FieldIsPerfectPlay, field.TypeBool, value)
+	}
+	if value, ok := ru.mutation.GameStatus(); ok {
+		_spec.SetField(record.FieldGameStatus, field.TypeEnum, value)
 	}
 	if value, ok := ru.mutation.AdditionalInfo(); ok {
 		_spec.SetField(record.FieldAdditionalInfo, field.TypeJSON, value)
@@ -822,6 +844,20 @@ func (ruo *RecordUpdateOne) SetNillableIsPerfectPlay(b *bool) *RecordUpdateOne {
 	return ruo
 }
 
+// SetGameStatus sets the "game_status" field.
+func (ruo *RecordUpdateOne) SetGameStatus(rs record.GameStatus) *RecordUpdateOne {
+	ruo.mutation.SetGameStatus(rs)
+	return ruo
+}
+
+// SetNillableGameStatus sets the "game_status" field if the given value is not nil.
+func (ruo *RecordUpdateOne) SetNillableGameStatus(rs *record.GameStatus) *RecordUpdateOne {
+	if rs != nil {
+		ruo.SetGameStatus(*rs)
+	}
+	return ruo
+}
+
 // SetAdditionalInfo sets the "additional_info" field.
 func (ruo *RecordUpdateOne) SetAdditionalInfo(m map[string]interface{}) *RecordUpdateOne {
 	ruo.mutation.SetAdditionalInfo(m)
@@ -942,6 +978,11 @@ func (ruo *RecordUpdateOne) check() error {
 			return &ValidationError{Name: "rank", err: fmt.Errorf(`ent: validator failed for field "Record.rank": %w`, err)}
 		}
 	}
+	if v, ok := ruo.mutation.GameStatus(); ok {
+		if err := record.GameStatusValidator(v); err != nil {
+			return &ValidationError{Name: "game_status", err: fmt.Errorf(`ent: validator failed for field "Record.game_status": %w`, err)}
+		}
+	}
 	if ruo.mutation.UserCleared() && len(ruo.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Record.user"`)
 	}
@@ -1039,6 +1080,9 @@ func (ruo *RecordUpdateOne) sqlSave(ctx context.Context) (_node *Record, err err
 	}
 	if value, ok := ruo.mutation.IsPerfectPlay(); ok {
 		_spec.SetField(record.FieldIsPerfectPlay, field.TypeBool, value)
+	}
+	if value, ok := ruo.mutation.GameStatus(); ok {
+		_spec.SetField(record.FieldGameStatus, field.TypeEnum, value)
 	}
 	if value, ok := ruo.mutation.AdditionalInfo(); ok {
 		_spec.SetField(record.FieldAdditionalInfo, field.TypeJSON, value)

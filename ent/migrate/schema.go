@@ -148,6 +148,7 @@ var (
 		{Name: "rank", Type: field.TypeEnum, Nullable: true, Enums: []string{"F", "D", "C", "B", "A", "S", "SS", "SSS"}},
 		{Name: "is_full_combo", Type: field.TypeBool, Default: false},
 		{Name: "is_perfect_play", Type: field.TypeBool, Default: false},
+		{Name: "game_status", Type: field.TypeEnum, Enums: []string{"completed", "gave_up", "retry", "failed"}, Default: "completed"},
 		{Name: "additional_info", Type: field.TypeJSON, Nullable: true},
 		{Name: "is_valid", Type: field.TypeBool, Default: true},
 		{Name: "character_records", Type: field.TypeUUID, Nullable: true},
@@ -163,25 +164,25 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "records_characters_records",
-				Columns:    []*schema.Column{RecordsColumns[15]},
+				Columns:    []*schema.Column{RecordsColumns[16]},
 				RefColumns: []*schema.Column{CharactersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "records_musics_records",
-				Columns:    []*schema.Column{RecordsColumns[16]},
+				Columns:    []*schema.Column{RecordsColumns[17]},
 				RefColumns: []*schema.Column{MusicsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "records_stages_records",
-				Columns:    []*schema.Column{RecordsColumns[17]},
+				Columns:    []*schema.Column{RecordsColumns[18]},
 				RefColumns: []*schema.Column{StagesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "records_users_records",
-				Columns:    []*schema.Column{RecordsColumns[18]},
+				Columns:    []*schema.Column{RecordsColumns[19]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -190,22 +191,22 @@ var (
 			{
 				Name:    "record_user_id_music_id_stage_id",
 				Unique:  false,
-				Columns: []*schema.Column{RecordsColumns[18], RecordsColumns[16], RecordsColumns[17]},
+				Columns: []*schema.Column{RecordsColumns[19], RecordsColumns[17], RecordsColumns[18]},
 			},
 			{
 				Name:    "record_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{RecordsColumns[18]},
+				Columns: []*schema.Column{RecordsColumns[19]},
 			},
 			{
 				Name:    "record_music_id",
 				Unique:  false,
-				Columns: []*schema.Column{RecordsColumns[16]},
+				Columns: []*schema.Column{RecordsColumns[17]},
 			},
 			{
 				Name:    "record_stage_id",
 				Unique:  false,
-				Columns: []*schema.Column{RecordsColumns[17]},
+				Columns: []*schema.Column{RecordsColumns[18]},
 			},
 		},
 	}

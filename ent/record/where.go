@@ -691,6 +691,26 @@ func IsPerfectPlayNEQ(v bool) predicate.Record {
 	return predicate.Record(sql.FieldNEQ(FieldIsPerfectPlay, v))
 }
 
+// GameStatusEQ applies the EQ predicate on the "game_status" field.
+func GameStatusEQ(v GameStatus) predicate.Record {
+	return predicate.Record(sql.FieldEQ(FieldGameStatus, v))
+}
+
+// GameStatusNEQ applies the NEQ predicate on the "game_status" field.
+func GameStatusNEQ(v GameStatus) predicate.Record {
+	return predicate.Record(sql.FieldNEQ(FieldGameStatus, v))
+}
+
+// GameStatusIn applies the In predicate on the "game_status" field.
+func GameStatusIn(vs ...GameStatus) predicate.Record {
+	return predicate.Record(sql.FieldIn(FieldGameStatus, vs...))
+}
+
+// GameStatusNotIn applies the NotIn predicate on the "game_status" field.
+func GameStatusNotIn(vs ...GameStatus) predicate.Record {
+	return predicate.Record(sql.FieldNotIn(FieldGameStatus, vs...))
+}
+
 // AdditionalInfoIsNil applies the IsNil predicate on the "additional_info" field.
 func AdditionalInfoIsNil() predicate.Record {
 	return predicate.Record(sql.FieldIsNull(FieldAdditionalInfo))

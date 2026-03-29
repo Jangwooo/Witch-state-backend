@@ -202,6 +202,20 @@ func (rc *RecordCreate) SetNillableIsPerfectPlay(b *bool) *RecordCreate {
 	return rc
 }
 
+// SetGameStatus sets the "game_status" field.
+func (rc *RecordCreate) SetGameStatus(rs record.GameStatus) *RecordCreate {
+	rc.mutation.SetGameStatus(rs)
+	return rc
+}
+
+// SetNillableGameStatus sets the "game_status" field if the given value is not nil.
+func (rc *RecordCreate) SetNillableGameStatus(rs *record.GameStatus) *RecordCreate {
+	if rs != nil {
+		rc.SetGameStatus(*rs)
+	}
+	return rc
+}
+
 // SetAdditionalInfo sets the "additional_info" field.
 func (rc *RecordCreate) SetAdditionalInfo(m map[string]interface{}) *RecordCreate {
 	rc.mutation.SetAdditionalInfo(m)
@@ -326,6 +340,10 @@ func (rc *RecordCreate) defaults() {
 		v := record.DefaultIsPerfectPlay
 		rc.mutation.SetIsPerfectPlay(v)
 	}
+	if _, ok := rc.mutation.GameStatus(); !ok {
+		v := record.DefaultGameStatus
+		rc.mutation.SetGameStatus(v)
+	}
 	if _, ok := rc.mutation.IsValid(); !ok {
 		v := record.DefaultIsValid
 		rc.mutation.SetIsValid(v)
@@ -384,6 +402,14 @@ func (rc *RecordCreate) check() error {
 	}
 	if _, ok := rc.mutation.IsPerfectPlay(); !ok {
 		return &ValidationError{Name: "is_perfect_play", err: errors.New(`ent: missing required field "Record.is_perfect_play"`)}
+	}
+	if _, ok := rc.mutation.GameStatus(); !ok {
+		return &ValidationError{Name: "game_status", err: errors.New(`ent: missing required field "Record.game_status"`)}
+	}
+	if v, ok := rc.mutation.GameStatus(); ok {
+		if err := record.GameStatusValidator(v); err != nil {
+			return &ValidationError{Name: "game_status", err: fmt.Errorf(`ent: validator failed for field "Record.game_status": %w`, err)}
+		}
 	}
 	if _, ok := rc.mutation.IsValid(); !ok {
 		return &ValidationError{Name: "is_valid", err: errors.New(`ent: missing required field "Record.is_valid"`)}
@@ -479,6 +505,10 @@ func (rc *RecordCreate) createSpec() (*Record, *sqlgraph.CreateSpec) {
 	if value, ok := rc.mutation.IsPerfectPlay(); ok {
 		_spec.SetField(record.FieldIsPerfectPlay, field.TypeBool, value)
 		_node.IsPerfectPlay = value
+	}
+	if value, ok := rc.mutation.GameStatus(); ok {
+		_spec.SetField(record.FieldGameStatus, field.TypeEnum, value)
+		_node.GameStatus = value
 	}
 	if value, ok := rc.mutation.AdditionalInfo(); ok {
 		_spec.SetField(record.FieldAdditionalInfo, field.TypeJSON, value)

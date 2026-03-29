@@ -4888,6 +4888,7 @@ type RecordMutation struct {
 	rank             *record.Rank
 	is_full_combo    *bool
 	is_perfect_play  *bool
+	game_status      *record.GameStatus
 	additional_info  *map[string]interface{}
 	is_valid         *bool
 	clearedFields    map[string]struct{}
@@ -5699,6 +5700,42 @@ func (m *RecordMutation) ResetIsPerfectPlay() {
 	m.is_perfect_play = nil
 }
 
+// SetGameStatus sets the "game_status" field.
+func (m *RecordMutation) SetGameStatus(rs record.GameStatus) {
+	m.game_status = &rs
+}
+
+// GameStatus returns the value of the "game_status" field in the mutation.
+func (m *RecordMutation) GameStatus() (r record.GameStatus, exists bool) {
+	v := m.game_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGameStatus returns the old "game_status" field's value of the Record entity.
+// If the Record object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RecordMutation) OldGameStatus(ctx context.Context) (v record.GameStatus, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGameStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGameStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGameStatus: %w", err)
+	}
+	return oldValue.GameStatus, nil
+}
+
+// ResetGameStatus resets all changes to the "game_status" field.
+func (m *RecordMutation) ResetGameStatus() {
+	m.game_status = nil
+}
+
 // SetAdditionalInfo sets the "additional_info" field.
 func (m *RecordMutation) SetAdditionalInfo(value map[string]interface{}) {
 	m.additional_info = &value
@@ -5899,7 +5936,7 @@ func (m *RecordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RecordMutation) Fields() []string {
-	fields := make([]string, 0, 17)
+	fields := make([]string, 0, 18)
 	if m.created_at != nil {
 		fields = append(fields, record.FieldCreatedAt)
 	}
@@ -5945,6 +5982,9 @@ func (m *RecordMutation) Fields() []string {
 	if m.is_perfect_play != nil {
 		fields = append(fields, record.FieldIsPerfectPlay)
 	}
+	if m.game_status != nil {
+		fields = append(fields, record.FieldGameStatus)
+	}
 	if m.additional_info != nil {
 		fields = append(fields, record.FieldAdditionalInfo)
 	}
@@ -5989,6 +6029,8 @@ func (m *RecordMutation) Field(name string) (ent.Value, bool) {
 		return m.IsFullCombo()
 	case record.FieldIsPerfectPlay:
 		return m.IsPerfectPlay()
+	case record.FieldGameStatus:
+		return m.GameStatus()
 	case record.FieldAdditionalInfo:
 		return m.AdditionalInfo()
 	case record.FieldIsValid:
@@ -6032,6 +6074,8 @@ func (m *RecordMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldIsFullCombo(ctx)
 	case record.FieldIsPerfectPlay:
 		return m.OldIsPerfectPlay(ctx)
+	case record.FieldGameStatus:
+		return m.OldGameStatus(ctx)
 	case record.FieldAdditionalInfo:
 		return m.OldAdditionalInfo(ctx)
 	case record.FieldIsValid:
@@ -6149,6 +6193,13 @@ func (m *RecordMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsPerfectPlay(v)
+		return nil
+	case record.FieldGameStatus:
+		v, ok := value.(record.GameStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGameStatus(v)
 		return nil
 	case record.FieldAdditionalInfo:
 		v, ok := value.(map[string]interface{})
@@ -6359,6 +6410,9 @@ func (m *RecordMutation) ResetField(name string) error {
 		return nil
 	case record.FieldIsPerfectPlay:
 		m.ResetIsPerfectPlay()
+		return nil
+	case record.FieldGameStatus:
+		m.ResetGameStatus()
 		return nil
 	case record.FieldAdditionalInfo:
 		m.ResetAdditionalInfo()

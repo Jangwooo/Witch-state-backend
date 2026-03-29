@@ -203,7 +203,7 @@ func init() {
 	// record.DefaultIsPerfectPlay holds the default value on creation for the is_perfect_play field.
 	record.DefaultIsPerfectPlay = recordDescIsPerfectPlay.Default.(bool)
 	// recordDescIsValid is the schema descriptor for is_valid field.
-	recordDescIsValid := recordFields[14].Descriptor()
+	recordDescIsValid := recordFields[15].Descriptor()
 	// record.DefaultIsValid holds the default value on creation for the is_valid field.
 	record.DefaultIsValid = recordDescIsValid.Default.(bool)
 	// recordDescID is the schema descriptor for id field.

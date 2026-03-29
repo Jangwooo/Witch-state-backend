@@ -46,6 +46,8 @@ const (
 	FieldIsFullCombo = "is_full_combo"
 	// FieldIsPerfectPlay holds the string denoting the is_perfect_play field in the database.
 	FieldIsPerfectPlay = "is_perfect_play"
+	// FieldGameStatus holds the string denoting the game_status field in the database.
+	FieldGameStatus = "game_status"
 	// FieldAdditionalInfo holds the string denoting the additional_info field in the database.
 	FieldAdditionalInfo = "additional_info"
 	// FieldIsValid holds the string denoting the is_valid field in the database.
@@ -99,6 +101,7 @@ var Columns = []string{
 	FieldRank,
 	FieldIsFullCombo,
 	FieldIsPerfectPlay,
+	FieldGameStatus,
 	FieldAdditionalInfo,
 	FieldIsValid,
 }
@@ -179,6 +182,34 @@ func RankValidator(r Rank) error {
 		return nil
 	default:
 		return fmt.Errorf("record: invalid enum value for rank field: %q", r)
+	}
+}
+
+// GameStatus defines the type for the "game_status" enum field.
+type GameStatus string
+
+// GameStatusCompleted is the default value of the GameStatus enum.
+const DefaultGameStatus = GameStatusCompleted
+
+// GameStatus values.
+const (
+	GameStatusCompleted GameStatus = "completed"
+	GameStatusGaveUp    GameStatus = "gave_up"
+	GameStatusRetry     GameStatus = "retry"
+	GameStatusFailed    GameStatus = "failed"
+)
+
+func (gs GameStatus) String() string {
+	return string(gs)
+}
+
+// GameStatusValidator is a validator for the "game_status" field enum values. It is called by the builders before save.
+func GameStatusValidator(gs GameStatus) error {
+	switch gs {
+	case GameStatusCompleted, GameStatusGaveUp, GameStatusRetry, GameStatusFailed:
+		return nil
+	default:
+		return fmt.Errorf("record: invalid enum value for game_status field: %q", gs)
 	}
 }
 
@@ -263,6 +294,11 @@ func ByIsFullCombo(opts ...sql.OrderTermOption) OrderOption {
 // ByIsPerfectPlay orders the results by the is_perfect_play field.
 func ByIsPerfectPlay(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsPerfectPlay, opts...).ToFunc()
+}
+
+// ByGameStatus orders the results by the game_status field.
+func ByGameStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGameStatus, opts...).ToFunc()
 }
 
 // ByIsValid orders the results by the is_valid field.

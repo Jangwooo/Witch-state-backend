@@ -53,6 +53,8 @@ type Record struct {
 	IsFullCombo bool `json:"is_full_combo,omitempty"`
 	// 퍼펙트 플레이 여부
 	IsPerfectPlay bool `json:"is_perfect_play,omitempty"`
+	// 게임 플레이 상태 (completed: 완료, gave_up: 포기, retry: 재도전, failed: 실패)
+	GameStatus record.GameStatus `json:"game_status,omitempty"`
 	// 추가 정보
 	AdditionalInfo map[string]interface{} `json:"additional_info,omitempty"`
 	// 유효한 기록 여부
@@ -123,7 +125,7 @@ func (*Record) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case record.FieldScore, record.FieldPerfectCount, record.FieldGoodCount, record.FieldBadCount, record.FieldMissCount, record.FieldMaxCombo:
 			values[i] = new(sql.NullInt64)
-		case record.FieldMusicID, record.FieldStageID, record.FieldRank:
+		case record.FieldMusicID, record.FieldStageID, record.FieldRank, record.FieldGameStatus:
 			values[i] = new(sql.NullString)
 		case record.FieldCreatedAt, record.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -242,6 +244,12 @@ func (r *Record) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				r.IsPerfectPlay = value.Bool
 			}
+		case record.FieldGameStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field game_status", values[i])
+			} else if value.Valid {
+				r.GameStatus = record.GameStatus(value.String)
+			}
 		case record.FieldAdditionalInfo:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field additional_info", values[i])
@@ -358,6 +366,9 @@ func (r *Record) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_perfect_play=")
 	builder.WriteString(fmt.Sprintf("%v", r.IsPerfectPlay))
+	builder.WriteString(", ")
+	builder.WriteString("game_status=")
+	builder.WriteString(fmt.Sprintf("%v", r.GameStatus))
 	builder.WriteString(", ")
 	builder.WriteString("additional_info=")
 	builder.WriteString(fmt.Sprintf("%v", r.AdditionalInfo))
