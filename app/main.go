@@ -1,19 +1,21 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/swagger"
 	"github.com/redis/go-redis/v9"
 	_ "github.com/witchs-lounge_backend/docs"
 	"github.com/witchs-lounge_backend/ent"
+	"github.com/witchs-lounge_backend/internal/delivery/http/middleware"
 	v1 "github.com/witchs-lounge_backend/internal/delivery/http/router/v1"
 	"github.com/witchs-lounge_backend/internal/domain/entity"
 	"github.com/witchs-lounge_backend/internal/infrastructure/bootstrap"
+	appLogging "github.com/witchs-lounge_backend/internal/infrastructure/logging"
 )
 
 // @title           Witch's Lounge API
@@ -59,12 +61,36 @@ func main() {
 	deps := bootstrap.SetupAppDependencies(dbClient, sessionStore)
 
 	// 4. Fiber 앱 생성
+	errorLogger, err := appLogging.NewErrorLogger("logs/error.log")
+	if err != nil {
+		log.Fatalf("에러 로그 파일 초기화 실패: %v", err)
+	}
+	defer func() {
+		_ = errorLogger.Close()
+	}()
+
 	app := fiber.New(fiber.Config{
 		AppName: "Witch's Lounge API",
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			status := fiber.StatusInternalServerError
+			var fiberErr *fiber.Error
+			if errors.As(err, &fiberErr) {
+				status = fiberErr.Code
+			}
+
+			if status >= fiber.StatusInternalServerError {
+				errorLogger.LogHTTPError(c, status, err)
+			}
+
+			return c.Status(status).JSON(entity.ErrorResponse{
+				Message: "요청 처리 중 오류가 발생했습니다",
+				Error:   err.Error(),
+			})
+		},
 	})
 
 	// 5. 미들웨어 설정
-	app.Use(recover.New())
+	app.Use(middleware.ErrorLoggingMiddleware(errorLogger))
 
 	app.Use(logger.New(logger.Config{
 		Format: "[${time}] ${status} - ${method} ${path} (${latency})\n",
