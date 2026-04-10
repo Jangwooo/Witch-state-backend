@@ -68,6 +68,14 @@ func (u *stoveUseCase) SignInWithStove(ctx context.Context, accessToken string) 
 	}
 
 	memberNo := strconv.FormatInt(verifyResp.Value.MemberNo, 10)
+
+	// STOVE API에서 사용자 닉네임 조회
+	memberInfo, err := u.getMemberInfo(ctx, verifyResp.Value.MemberNo)
+	displayName := "stove_" + memberNo
+	if err == nil && memberInfo.Value.Nickname != "" {
+		displayName = memberInfo.Value.Nickname
+	}
+
 	user, err := u.userRepo.FindByPlatformUserID(ctx, "stove", memberNo)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -81,9 +89,9 @@ func (u *stoveUseCase) SignInWithStove(ctx context.Context, accessToken string) 
 			user, err = u.userRepo.Create(ctx, &entity.CreateUserRequest{
 				PlatformType:        "stove",
 				PlatformUserID:      memberNo,
-				PlatformDisplayName: "stove_" + memberNo,
+				PlatformDisplayName: displayName,
 				IsVerified:          true,
-				Nickname:            "stove_" + memberNo,
+				Nickname:            displayName,
 				PlatformData:        platformData,
 			})
 
@@ -118,6 +126,15 @@ type stoveTokenVerifyResponse struct {
 	Value   struct {
 		MemberNo int64 `json:"member_no"`
 		Guid     int64 `json:"guid"`
+	} `json:"value"`
+}
+
+type stoveMemberInfoResponse struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Value   struct {
+		MemberNo int64  `json:"member_no"`
+		Nickname string `json:"nickname"`
 	} `json:"value"`
 }
 
@@ -170,6 +187,41 @@ func (u *stoveUseCase) verifyAccessToken(ctx context.Context, accessToken string
 	}
 
 	return &verifyResp, nil
+}
+
+func (u *stoveUseCase) getMemberInfo(ctx context.Context, memberNo int64) (*stoveMemberInfoResponse, error) {
+	serverToken, err := u.getServerAccessToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("%s/member/v3.0/%s?member_no=%d", u.apiBase, u.serviceID, memberNo)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+serverToken)
+
+	resp, err := u.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("stove member info failed: status %d", resp.StatusCode)
+	}
+
+	var memberResp stoveMemberInfoResponse
+	if err := json.NewDecoder(resp.Body).Decode(&memberResp); err != nil {
+		return nil, err
+	}
+
+	if memberResp.Code != 0 {
+		return nil, fmt.Errorf("stove member info failed: %s", memberResp.Message)
+	}
+
+	return &memberResp, nil
 }
 
 type stoveServerTokenResponse struct {
