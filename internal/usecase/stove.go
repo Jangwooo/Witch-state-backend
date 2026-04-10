@@ -76,16 +76,17 @@ func (u *stoveUseCase) SignInWithStove(ctx context.Context, accessToken string) 
 		displayName = memberInfo.Value.Nickname
 	}
 
+	platformData := map[string]interface{}{
+		"stove_member_no": verifyResp.Value.MemberNo,
+	}
+	if verifyResp.Value.Guid != 0 {
+		platformData["stove_guid"] = verifyResp.Value.Guid
+	}
+
 	user, err := u.userRepo.FindByPlatformUserID(ctx, "stove", memberNo)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			platformData := map[string]interface{}{
-				"stove_member_no": verifyResp.Value.MemberNo,
-			}
-			if verifyResp.Value.Guid != 0 {
-				platformData["stove_guid"] = verifyResp.Value.Guid
-			}
-
+			// 신규 사용자 생성
 			user, err = u.userRepo.Create(ctx, &entity.CreateUserRequest{
 				PlatformType:        "stove",
 				PlatformUserID:      memberNo,
@@ -94,11 +95,16 @@ func (u *stoveUseCase) SignInWithStove(ctx context.Context, accessToken string) 
 				Nickname:            displayName,
 				PlatformData:        platformData,
 			})
-
 			if err != nil {
 				return nil, err
 			}
 		} else {
+			return nil, err
+		}
+	} else {
+		// 기존 사용자: STOVE 닉네임으로 프로필 업데이트
+		user, err = u.userRepo.UpdatePlatformProfile(ctx, user.ID, displayName, "", displayName, platformData)
+		if err != nil {
 			return nil, err
 		}
 	}
