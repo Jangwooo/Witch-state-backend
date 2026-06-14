@@ -114,6 +114,9 @@ func main() {
 	// 8. 라우터 설정
 	v1.SetupRoutes(app, &v1.RouterConfig{
 		SessionStore:  deps.SessionStore,
+		RedisClient:   client,
+		ErrorLogger:   errorLogger,
+		HMACConfig:    deps.HMACConfig,
 		StoveHandler:  deps.StoveHandler,
 		SteamHandler:  deps.SteamHandler,
 		UserHandler:   deps.UserHandler,

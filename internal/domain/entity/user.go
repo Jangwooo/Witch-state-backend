@@ -57,10 +57,12 @@ type UserResponse struct {
 	UpdatedAt           time.Time `json:"updated_at"`
 }
 
-// SessionResponse 세션 정보와 유저 정보를 담는 응답 구조체
+// SessionResponse 세션 정보와 유저 정보를 담는 응답 구조체.
+// HmacSecret 은 HMAC_MODE 가 shadow/enforce 일 때만 채워지며, off 모드에서는 omit 됩니다.
 type SessionResponse struct {
-	SessionID string       `json:"session_id"`
-	User      UserResponse `json:"user"`
+	SessionID  string       `json:"session_id"`
+	HmacSecret string       `json:"hmac_secret,omitempty"`
+	User       UserResponse `json:"user"`
 }
 
 // StoveSignInRequest Stove 로그인 요청 구조체

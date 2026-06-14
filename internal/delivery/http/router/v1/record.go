@@ -7,11 +7,13 @@ import (
 	"github.com/witchs-lounge_backend/internal/infrastructure/session"
 )
 
-func NewRecordRouter(router fiber.Router, recordHandler *handler.RecordHandler, sessionStore session.SessionStore) {
+func NewRecordRouter(router fiber.Router, recordHandler *handler.RecordHandler, sessionStore session.SessionStore, hmacMW fiber.Handler) {
 	rec := router.Group("/records")
 
-	// 인증 필요
-	rec.Post("/", middleware.AuthMiddleware(sessionStore), recordHandler.CreateRecord)
-	rec.Get("/", middleware.AuthMiddleware(sessionStore), recordHandler.ListRecords)
-	rec.Get("/best", middleware.AuthMiddleware(sessionStore), recordHandler.BestRecord)
+	auth := middleware.AuthMiddleware(sessionStore)
+
+	// 인증 + HMAC 검증 (HMAC_MODE=off 면 no-op)
+	rec.Post("/", auth, hmacMW, recordHandler.CreateRecord)
+	rec.Get("/", auth, hmacMW, recordHandler.ListRecords)
+	rec.Get("/best", auth, hmacMW, recordHandler.BestRecord)
 }

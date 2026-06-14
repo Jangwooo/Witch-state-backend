@@ -30,8 +30,8 @@ func AuthMiddleware(sessionStore session.SessionStore) fiber.Handler {
 		}
 		sessionID := strings.TrimPrefix(authHeader, bearerPrefix)
 
-		// 2. 세션 ID로 사용자 정보 조회
-		user, err := sessionStore.Get(c.Context(), sessionID)
+		// 2. 세션 ID로 사용자 정보 + hmac_secret 조회 (HMAC 미들웨어가 재사용)
+		user, hmacSecret, err := sessionStore.GetWithSecret(c.Context(), sessionID)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(entity.ErrorResponse{
 				Message: "세션 정보 조회 중 오류가 발생했습니다",
@@ -49,6 +49,7 @@ func AuthMiddleware(sessionStore session.SessionStore) fiber.Handler {
 		// 3. 사용자 정보를 컨텍스트에 저장
 		c.Locals("user", user)
 		c.Locals("sessionID", sessionID)
+		c.Locals("hmacSecret", hmacSecret)
 
 		// 다음 핸들러로 진행
 		return c.Next()

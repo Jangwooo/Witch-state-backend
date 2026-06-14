@@ -51,6 +51,40 @@ func (l *ErrorLogger) LogPanic(c *fiber.Ctx, recovered interface{}, stack []byte
 	l.write("panic", c, fiber.StatusInternalServerError, recovered, stack)
 }
 
+// LogHMACVerification 는 HMAC 검증 실패/관찰 이벤트를 구조화 JSON 으로 남깁니다.
+// 호출자는 시크릿 원문을 절대 fields 에 넣지 않아야 합니다.
+func (l *ErrorLogger) LogHMACVerification(c *fiber.Ctx, reason string, fields map[string]interface{}) {
+	if l == nil || l.logger == nil || c == nil {
+		return
+	}
+
+	payload := map[string]interface{}{
+		"timestamp":   time.Now().Format(time.RFC3339Nano),
+		"type":        "hmac_verification_failed",
+		"reason":      reason,
+		"method":      c.Method(),
+		"path":        c.Path(),
+		"originalURL": c.OriginalURL(),
+		"ip":          c.IP(),
+		"userAgent":   c.Get(fiber.HeaderUserAgent),
+	}
+	for k, v := range fields {
+		// 시크릿류 키가 실수로 들어오더라도 마스킹.
+		if isSensitiveKey(strings.ToLower(k)) {
+			payload[k] = "***"
+			continue
+		}
+		payload[k] = v
+	}
+
+	encoded, marshalErr := json.Marshal(payload)
+	if marshalErr != nil {
+		l.logger.Printf(`{"timestamp":"%s","type":"logger_error","error":"%s"}`, time.Now().Format(time.RFC3339Nano), truncate(marshalErr.Error(), 512))
+		return
+	}
+	l.logger.Println(string(encoded))
+}
+
 func (l *ErrorLogger) write(kind string, c *fiber.Ctx, status int, err interface{}, stack []byte) {
 	if l == nil || l.logger == nil || c == nil {
 		return

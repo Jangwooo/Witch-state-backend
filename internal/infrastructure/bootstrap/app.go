@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"github.com/witchs-lounge_backend/ent"
 	"github.com/witchs-lounge_backend/internal/delivery/http/handler"
+	"github.com/witchs-lounge_backend/internal/infrastructure/hmacauth"
 	"github.com/witchs-lounge_backend/internal/infrastructure/session"
 	"github.com/witchs-lounge_backend/internal/repository"
 	"github.com/witchs-lounge_backend/internal/usecase"
@@ -20,6 +21,9 @@ type AppDependencies struct {
 
 	// Session
 	SessionStore session.SessionStore
+
+	// HMAC 검증 설정 (HMAC_MODE, 화이트리스트)
+	HMACConfig *hmacauth.Config
 }
 
 // SetupAppDependencies 애플리케이션 의존성 초기화
@@ -30,9 +34,12 @@ func SetupAppDependencies(dbClient *ent.Client, sessionStore session.SessionStor
 	musicRepo := repository.NewMusicRepository(dbClient)
 	stageRepo := repository.NewStageRepository(dbClient)
 
+	// HMAC 검증 설정 로드. 미설정 시 ModeOff = 현재 운영 동작과 동일.
+	hmacCfg := hmacauth.LoadConfig()
+
 	// Initialize use cases
-	stoveUseCase := usecase.NewStoveUseCase(userRepo, sessionStore)
-	steamUseCase := usecase.NewSteamUseCase(userRepo, sessionStore)
+	stoveUseCase := usecase.NewStoveUseCase(userRepo, sessionStore, hmacCfg)
+	steamUseCase := usecase.NewSteamUseCase(userRepo, sessionStore, hmacCfg)
 	userUseCase := usecase.NewUserUseCase(userRepo)
 	recordUseCase := usecase.NewRecordUseCase(recordRepo)
 	musicUseCase := usecase.NewMusicUseCase(musicRepo)
@@ -55,5 +62,6 @@ func SetupAppDependencies(dbClient *ent.Client, sessionStore session.SessionStor
 		StageHandler:  stageHandler,
 
 		SessionStore: sessionStore,
+		HMACConfig:   hmacCfg,
 	}
 }

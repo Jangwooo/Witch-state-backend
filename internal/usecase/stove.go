@@ -16,6 +16,7 @@ import (
 	"github.com/witchs-lounge_backend/ent"
 	"github.com/witchs-lounge_backend/internal/domain/entity"
 	"github.com/witchs-lounge_backend/internal/domain/repository"
+	"github.com/witchs-lounge_backend/internal/infrastructure/hmacauth"
 	"github.com/witchs-lounge_backend/internal/infrastructure/session"
 )
 
@@ -28,6 +29,7 @@ type StoveUseCase interface {
 type stoveUseCase struct {
 	userRepo     repository.UserRepository
 	sessionStore session.SessionStore
+	hmacCfg      *hmacauth.Config
 	httpClient   *http.Client
 	apiBase      string
 	serviceID    string
@@ -39,10 +41,11 @@ type stoveUseCase struct {
 }
 
 // NewStoveUseCase Stove UseCase 생성자
-func NewStoveUseCase(userRepo repository.UserRepository, sessionStore session.SessionStore) StoveUseCase {
+func NewStoveUseCase(userRepo repository.UserRepository, sessionStore session.SessionStore, hmacCfg *hmacauth.Config) StoveUseCase {
 	return &stoveUseCase{
 		userRepo:     userRepo,
 		sessionStore: sessionStore,
+		hmacCfg:      hmacCfg,
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
 		},
@@ -109,11 +112,22 @@ func (u *stoveUseCase) SignInWithStove(ctx context.Context, accessToken string) 
 		}
 	}
 
-	sid, err := u.sessionStore.Create(ctx, user)
+	var hmacSecret string
+	if u.hmacCfg != nil && u.hmacCfg.IsIssuingSecret() {
+		s, err := hmacauth.GenerateSecret()
+		if err != nil {
+			return nil, fmt.Errorf("hmac secret 발급 실패: %w", err)
+		}
+		hmacSecret = s
+	}
+
+	sid, err := u.sessionStore.CreateWithSecret(ctx, user, hmacSecret)
 	if err != nil {
 		return nil, err
 	}
-	return user.ToSessionResponse(sid), nil
+	resp := user.ToSessionResponse(sid)
+	resp.HmacSecret = hmacSecret
+	return resp, nil
 }
 
 // FindByID ID로 사용자 조회

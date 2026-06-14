@@ -14,8 +14,18 @@ import (
 
 type SessionStore interface {
 	Create(ctx context.Context, user *entity.User) (string, error)
+	CreateWithSecret(ctx context.Context, user *entity.User, hmacSecret string) (string, error)
 	Get(ctx context.Context, sessionID string) (*entity.User, error)
+	GetWithSecret(ctx context.Context, sessionID string) (*entity.User, string, error)
 	Delete(ctx context.Context, sessionID string) error
+}
+
+// sessionPayload 는 신규 세션 페이로드 포맷입니다.
+// 구버전(= entity.User 단독 직렬화) 호환을 위해 Get/GetWithSecret 에서
+// 두 가지 포맷 모두 디코딩을 시도합니다.
+type sessionPayload struct {
+	User       *entity.User `json:"user"`
+	HmacSecret string       `json:"hmac_secret,omitempty"`
 }
 
 type RedisCommand interface {
@@ -53,14 +63,23 @@ func NewRedisClusterSessionStore(clusterClient *redis.ClusterClient, sessionTime
 }
 
 func (s *RedisSessionStore) Create(ctx context.Context, user *entity.User) (string, error) {
+	return s.CreateWithSecret(ctx, user, "")
+}
+
+func (s *RedisSessionStore) CreateWithSecret(ctx context.Context, user *entity.User, hmacSecret string) (string, error) {
 	sessionID := uuid.New().String()
 
-	userData, err := json.Marshal(user)
-	if err != nil {
-		return "", fmt.Errorf("사용자 데이터 직렬화 중 오류: %w", err)
+	payload := sessionPayload{
+		User:       user,
+		HmacSecret: hmacSecret,
 	}
 
-	err = s.client.Set(ctx, "session:"+sessionID, userData, s.sessionTime).Err()
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return "", fmt.Errorf("세션 페이로드 직렬화 중 오류: %w", err)
+	}
+
+	err = s.client.Set(ctx, "session:"+sessionID, data, s.sessionTime).Err()
 	if err != nil {
 		return "", fmt.Errorf("Redis에 세션 저장 중 오류: %w", err)
 	}
@@ -69,21 +88,34 @@ func (s *RedisSessionStore) Create(ctx context.Context, user *entity.User) (stri
 }
 
 func (s *RedisSessionStore) Get(ctx context.Context, sessionID string) (*entity.User, error) {
+	user, _, err := s.GetWithSecret(ctx, sessionID)
+	return user, err
+}
+
+// GetWithSecret 은 신규 페이로드 포맷({user, hmac_secret})을 우선 디코딩하고,
+// 실패 시 구버전(entity.User 단독) 포맷으로 폴백합니다.
+// 구버전 세션은 hmacSecret 이 빈 문자열로 반환됩니다 — 검증 미들웨어가 grace period 로 스킵합니다.
+func (s *RedisSessionStore) GetWithSecret(ctx context.Context, sessionID string) (*entity.User, string, error) {
 	data, err := s.client.Get(ctx, "session:"+sessionID).Bytes()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return nil, nil // 세션 없음
+			return nil, "", nil // 세션 없음
 		}
-		return nil, fmt.Errorf("redis에서 세션 조회 중 오류: %w", err)
+		return nil, "", fmt.Errorf("redis에서 세션 조회 중 오류: %w", err)
 	}
 
-	var user entity.User
-	err = json.Unmarshal(data, &user)
-	if err != nil {
-		return nil, fmt.Errorf("사용자 데이터 역직렬화 중 오류: %w", err)
+	// 신규 포맷 우선 시도. User 필드가 존재해야 신규 포맷으로 인정.
+	var payload sessionPayload
+	if err := json.Unmarshal(data, &payload); err == nil && payload.User != nil {
+		return payload.User, payload.HmacSecret, nil
 	}
 
-	return &user, nil
+	// 구버전 폴백: entity.User 단독 직렬화
+	var legacy entity.User
+	if err := json.Unmarshal(data, &legacy); err != nil {
+		return nil, "", fmt.Errorf("사용자 데이터 역직렬화 중 오류: %w", err)
+	}
+	return &legacy, "", nil
 }
 
 func (s *RedisSessionStore) Delete(ctx context.Context, sessionID string) error {
