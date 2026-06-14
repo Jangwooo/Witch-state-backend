@@ -7,9 +7,9 @@ import (
 	"github.com/witchs-lounge_backend/internal/infrastructure/session"
 )
 
-func NewUserRouter(group fiber.Router, userHandler *handler.UserHandler, sessionStore session.SessionStore) {
+func NewUserRouter(group fiber.Router, userHandler *handler.UserHandler, sessionStore session.SessionStore, banMW fiber.Handler) {
 	user := group.Group("/api/v1/user")
 
-	// 인증이 필요한 엔드포인트
-	user.Get("/me", middleware.AuthMiddleware(sessionStore), userHandler.GetMe)
+	// 인증 → ban 체크
+	user.Get("/me", middleware.AuthMiddleware(sessionStore), banMW, userHandler.GetMe)
 }

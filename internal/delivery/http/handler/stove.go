@@ -36,6 +36,13 @@ func (h *StoveHandler) SignIn(c *fiber.Ctx) error {
 	// Stove 로그인 처리
 	sessionResp, err := h.stoveUseCase.SignInWithStove(c.Context(), req.AccessToken)
 	if err != nil {
+		if usecase.IsBannedError(err) {
+			return c.Status(fiber.StatusForbidden).JSON(entity.ErrorResponse{
+				Message: "차단된 계정입니다.",
+				Error:   "account_banned",
+				Details: fiber.Map{"reason": "is_banned"},
+			})
+		}
 		if usecase.IsAuthError(err) {
 			return c.Status(fiber.StatusUnauthorized).JSON(entity.ErrorResponse{
 				Message: "Stove 인증 실패",

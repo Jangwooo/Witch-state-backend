@@ -3,6 +3,8 @@ package bootstrap
 import (
 	"github.com/witchs-lounge_backend/ent"
 	"github.com/witchs-lounge_backend/internal/delivery/http/handler"
+	"github.com/witchs-lounge_backend/internal/delivery/http/middleware"
+	domainrepo "github.com/witchs-lounge_backend/internal/domain/repository"
 	"github.com/witchs-lounge_backend/internal/infrastructure/hmacauth"
 	"github.com/witchs-lounge_backend/internal/infrastructure/session"
 	"github.com/witchs-lounge_backend/internal/repository"
@@ -22,8 +24,12 @@ type AppDependencies struct {
 	// Session
 	SessionStore session.SessionStore
 
-	// HMAC 검증 설정 (HMAC_MODE, 화이트리스트)
+	// HMAC 검증 설정 (HMAC_MODE, 화이트리스트, PCT)
 	HMACConfig *hmacauth.Config
+
+	// users.is_banned 확인용
+	UserRepo domainrepo.UserRepository
+	BanCache *middleware.BanCache
 }
 
 // SetupAppDependencies 애플리케이션 의존성 초기화
@@ -63,5 +69,7 @@ func SetupAppDependencies(dbClient *ent.Client, sessionStore session.SessionStor
 
 		SessionStore: sessionStore,
 		HMACConfig:   hmacCfg,
+		UserRepo:     userRepo,
+		BanCache:     middleware.NewBanCache(0), // 기본 TTL = 60s
 	}
 }

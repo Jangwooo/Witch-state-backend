@@ -117,6 +117,8 @@ func main() {
 		RedisClient:   client,
 		ErrorLogger:   errorLogger,
 		HMACConfig:    deps.HMACConfig,
+		UserRepo:      deps.UserRepo,
+		BanCache:      deps.BanCache,
 		StoveHandler:  deps.StoveHandler,
 		SteamHandler:  deps.SteamHandler,
 		UserHandler:   deps.UserHandler,

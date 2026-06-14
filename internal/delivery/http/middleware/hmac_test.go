@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/witchs-lounge_backend/ent"
 	"github.com/witchs-lounge_backend/ent/user"
 	"github.com/witchs-lounge_backend/internal/domain/entity"
@@ -53,8 +54,11 @@ func setupApp(t *testing.T, hcfg *hmacauth.Config, secret string, platformType, 
 	})
 
 	// 사용자/세션 주입 미들웨어 (AuthMiddleware 시뮬레이션).
+	// ID 는 결정적 — 테스트 안에서 should_enforce bucket 판정이 재현 가능하도록.
+	fixedUserID := uuid.NewSHA1(uuid.NameSpaceDNS, []byte("test-"+platformType+":"+platformUserID))
 	app.Use(func(c *fiber.Ctx) error {
 		u := &entity.User{User: &ent.User{
+			ID:             fixedUserID,
 			PlatformType:   user.PlatformType(platformType),
 			PlatformUserID: platformUserID,
 		}}
@@ -239,6 +243,23 @@ func TestHMAC_EnforceRejectsBodyTamper(t *testing.T) {
 	}
 }
 
+// PCT=100 + 화이트리스트 빈 상태에서, 비-화이트리스트 유저도 검증 실패 시 401 이어야 함.
+func TestHMAC_EnforcePctAppliesToAllAt100(t *testing.T) {
+	cfg := &hmacauth.Config{
+		Mode:       hmacauth.ModeEnforce,
+		EnforcePct: 100,
+	}
+	app, _ := setupApp(t, cfg, "test-secret-key", "steam", "regular-user", nil)
+
+	// 헤더 누락 → PCT=100 이라 비-화이트리스트도 401
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/records?music_id=test", nil)
+	resp, body := doReq(t, app, req)
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("PCT=100 should enforce all users, got %d body=%s", resp.StatusCode, body)
+	}
+}
+
+// PCT=0 + 화이트리스트만 → 일반 유저는 통과해야 함 (직전 기존 동작 보존).
 func TestHMAC_EnforcePassesNonWhitelistedUser(t *testing.T) {
 	// enforce 모드여도 화이트리스트 밖 유저는 검증 실패해도 통과 (= 일반 유저 무영향)
 	cfg := &hmacauth.Config{

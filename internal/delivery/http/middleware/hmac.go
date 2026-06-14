@@ -54,8 +54,9 @@ type HMACVerifierConfig struct {
 // 동작:
 //   - HMAC_MODE=off: 어떤 검증도 하지 않고 즉시 통과 (no-op).
 //   - HMAC_MODE=shadow: 검증해 실패 사유를 구조화 로그로 남김. 200 통과.
-//   - HMAC_MODE=enforce: 화이트리스트(platform_type:platform_user_id) 매칭 시 실패하면 401.
-//     화이트리스트 밖이거나 헤더가 아예 없으면 shadow 처럼 통과(= 일반 사용자 무영향).
+//     PCT/PLATFORM_IDS 는 shadow 에 영향을 주지 않음.
+//   - HMAC_MODE=enforce: 화이트리스트 또는 결정적 PCT bucket 에 들어가는 유저는 검증 실패 시 401.
+//     그 외 유저는 shadow 처럼 통과(= 일반 사용자 무영향).
 //
 // 전제: AuthMiddleware 가 먼저 실행되어 c.Locals("user"), c.Locals("sessionID") 가 세팅돼 있어야 함.
 func HMACMiddleware(cfg HMACVerifierConfig) fiber.Handler {
@@ -83,11 +84,13 @@ func HMACMiddleware(cfg HMACVerifierConfig) fiber.Handler {
 			return c.Next()
 		}
 
-		// 실패 사유 로그 (시크릿 절대 노출 금지)
-		logHMACFailure(cfg.ErrorLogger, c, sessionID, usr, hmacSecret, failReason)
+		enforced, enforceReason := shouldEnforce(hcfg, usr)
 
-		// enforce + 화이트리스트 매칭 시에만 401.
-		if shouldEnforce(hcfg, usr) {
+		// 실패 사유 + enforce 판정 로그 (시크릿 절대 노출 금지)
+		logHMACFailure(cfg.ErrorLogger, c, sessionID, usr, hmacSecret, failReason, enforced, enforceReason)
+
+		// enforce + 대상 매칭 시에만 401.
+		if enforced {
 			return c.Status(fiber.StatusUnauthorized).JSON(entity.ErrorResponse{
 				Message: "요청 서명 검증 실패",
 				Error:   "hmac_verification_failed",
@@ -100,12 +103,13 @@ func HMACMiddleware(cfg HMACVerifierConfig) fiber.Handler {
 	}
 }
 
-// shouldEnforce 는 사용자가 enforce 화이트리스트에 속하는지 판정합니다.
-func shouldEnforce(hcfg *hmacauth.Config, usr *entity.User) bool {
+// shouldEnforce 는 사용자가 enforce 대상인지 판정합니다.
+// 첫 반환값은 401 처리 여부, 두 번째는 판정 사유(로그용).
+func shouldEnforce(hcfg *hmacauth.Config, usr *entity.User) (bool, hmacauth.EnforceReason) {
 	if usr == nil || usr.User == nil {
-		return false
+		return false, hmacauth.EnforceReasonNoUserID
 	}
-	return hcfg.ShouldEnforce(string(usr.PlatformType), usr.PlatformUserID)
+	return hcfg.ShouldEnforce(usr.ID.String(), string(usr.PlatformType), usr.PlatformUserID)
 }
 
 // verifyRequest 는 명세 4절 1~5 단계를 순서대로 검사합니다.
@@ -170,15 +174,16 @@ func verifyRequest(c *fiber.Ctx, hmacSecret string, nonces NonceStore, nowFn fun
 
 // logHMACFailure 는 보안 로그를 남깁니다.
 // hmac_secret 은 절대 노출하지 않고 앞 4자만 마스킹된 형태로만 노출합니다.
-func logHMACFailure(l *logging.ErrorLogger, c *fiber.Ctx, sessionID string, usr *entity.User, secret string, reason error) {
+func logHMACFailure(l *logging.ErrorLogger, c *fiber.Ctx, sessionID string, usr *entity.User, secret string, reason error, enforced bool, enforceReason hmacauth.EnforceReason) {
 	if l == nil {
 		return
 	}
 	// 도메인 entity 에 의존하지 않는 보조 식별자.
-	platform, platformUser := "", ""
+	platform, platformUser, userIDShort := "", "", ""
 	if usr != nil && usr.User != nil {
 		platform = string(usr.PlatformType)
 		platformUser = usr.PlatformUserID
+		userIDShort = shortID(usr.ID.String())
 	}
 
 	// ErrorLogger 의 sanitize 로직이 헤더의 sensitive 키를 자동으로 마스킹합니다.
@@ -186,16 +191,19 @@ func logHMACFailure(l *logging.ErrorLogger, c *fiber.Ctx, sessionID string, usr 
 	// 우리는 추가로 마스킹된 hint 만 응답 details 에 남깁니다.
 	hint := hmacauth.MaskSecret(secret)
 	l.LogHMACVerification(c, reason.Error(), map[string]interface{}{
-		"session_id_short":   shortID(sessionID),
-		"platform":           platform,
-		"platform_user_id":   platformUser,
-		"secret_hint":        hint,
-		"x_nonce":            c.Get("X-Nonce"),
-		"x_timestamp":        c.Get("X-Timestamp"),
-		"x_signature_short":  shortSig(c.Get("X-Signature")),
-		"method":             c.Method(),
-		"path_and_query":     c.OriginalURL(),
-		"server_unix_ts":     time.Now().Unix(),
+		"session_id_short":  shortID(sessionID),
+		"user_id_short":     userIDShort,
+		"platform":          platform,
+		"platform_user_id":  platformUser,
+		"secret_hint":       hint,
+		"x_nonce":           c.Get("X-Nonce"),
+		"x_timestamp":       c.Get("X-Timestamp"),
+		"x_signature_short": shortSig(c.Get("X-Signature")),
+		"method":            c.Method(),
+		"path_and_query":    c.OriginalURL(),
+		"server_unix_ts":    time.Now().Unix(),
+		"would_enforce":     enforced,
+		"enforce_reason":    string(enforceReason),
 	})
 }
 

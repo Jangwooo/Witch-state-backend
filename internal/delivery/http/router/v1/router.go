@@ -5,6 +5,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/witchs-lounge_backend/internal/delivery/http/handler"
 	"github.com/witchs-lounge_backend/internal/delivery/http/middleware"
+	"github.com/witchs-lounge_backend/internal/domain/repository"
 	"github.com/witchs-lounge_backend/internal/infrastructure/hmacauth"
 	"github.com/witchs-lounge_backend/internal/infrastructure/logging"
 	"github.com/witchs-lounge_backend/internal/infrastructure/session"
@@ -16,6 +17,8 @@ type RouterConfig struct {
 	RedisClient  *redis.Client
 	ErrorLogger  *logging.ErrorLogger
 	HMACConfig   *hmacauth.Config
+	UserRepo     repository.UserRepository
+	BanCache     *middleware.BanCache
 
 	StoveHandler  *handler.StoveHandler
 	SteamHandler  *handler.SteamHandler
@@ -38,10 +41,13 @@ func SetupRoutes(app *fiber.App, config *RouterConfig) {
 		ErrorLogger: config.ErrorLogger,
 	})
 
+	// Ban 체크 미들웨어. AuthMiddleware 직후, HMAC 미들웨어 직전에 둔다.
+	banMW := middleware.BanCheckMiddleware(config.UserRepo, config.BanCache)
+
 	NewStoveRouter(v1, config.StoveHandler)
 	NewSteamRouter(v1, config.SteamHandler)
-	NewUserRouter(v1, config.UserHandler, config.SessionStore)
-	NewRecordRouter(v1, config.RecordHandler, config.SessionStore, hmacMW)
+	NewUserRouter(v1, config.UserHandler, config.SessionStore, banMW)
+	NewRecordRouter(v1, config.RecordHandler, config.SessionStore, banMW, hmacMW)
 	MusicRouter(v1, config.MusicHandler)
 	StageRouter(v1, config.StageHandler)
 

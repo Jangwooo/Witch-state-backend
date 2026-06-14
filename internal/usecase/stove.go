@@ -112,6 +112,11 @@ func (u *stoveUseCase) SignInWithStove(ctx context.Context, accessToken string) 
 		}
 	}
 
+	// 차단 계정 거절. 세션/시크릿 발급 없이 즉시 종료.
+	if user != nil && user.User != nil && user.IsBanned {
+		return nil, ErrAccountBanned
+	}
+
 	var hmacSecret string
 	if u.hmacCfg != nil && u.hmacCfg.IsIssuingSecret() {
 		s, err := hmacauth.GenerateSecret()
