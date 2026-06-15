@@ -26,6 +26,10 @@ type Tx struct {
 	Record *RecordClient
 	// Stage is the client for interacting with the Stage builders.
 	Stage *StageClient
+	// TLevel is the client for interacting with the TLevel builders.
+	TLevel *TLevelClient
+	// TRank is the client for interacting with the TRank builders.
+	TRank *TRankClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UserAchievement is the client for interacting with the UserAchievement builders.
@@ -170,6 +174,8 @@ func (tx *Tx) init() {
 	tx.Product = NewProductClient(tx.config)
 	tx.Record = NewRecordClient(tx.config)
 	tx.Stage = NewStageClient(tx.config)
+	tx.TLevel = NewTLevelClient(tx.config)
+	tx.TRank = NewTRankClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserAchievement = NewUserAchievementClient(tx.config)
 	tx.UserPurchase = NewUserPurchaseClient(tx.config)

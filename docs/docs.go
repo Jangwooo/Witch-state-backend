@@ -268,6 +268,75 @@ const docTemplate = `{
                 }
             }
         },
+        "/records/batch": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "오프라인 누적된 플레이 기록을 일괄 저장합니다 (멱등성: client_record_id)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Record"
+                ],
+                "summary": "플레이 기록 일괄 저장",
+                "parameters": [
+                    {
+                        "description": "batch 요청",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.BatchRecordsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "처리 결과",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/entity.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/repository.BatchRecordsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "잘못된 요청 형식 / 100건 초과",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "인증 필요",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "서버 내부 오류",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/records/best": {
             "get": {
                 "security": [
@@ -579,10 +648,10 @@ const docTemplate = `{
                 }
             }
         },
-        "entity.CreateRecordRequest": {
+        "entity.BatchRecordItem": {
             "type": "object",
             "required": [
-                "character_id",
+                "client_record_id",
                 "music_id",
                 "score",
                 "stage_id"
@@ -598,8 +667,17 @@ const docTemplate = `{
                 "bad_count": {
                     "type": "integer"
                 },
-                "character_id": {
+                "client_record_id": {
                     "type": "string"
+                },
+                "game_status": {
+                    "type": "string",
+                    "enum": [
+                        "completed",
+                        "gave_up",
+                        "retry",
+                        "failed"
+                    ]
                 },
                 "good_count": {
                     "type": "integer"
@@ -623,7 +701,86 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "play_duration": {
+                    "type": "number"
+                },
+                "rank": {
+                    "type": "string"
+                },
+                "score": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "stage_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.BatchRecordsRequest": {
+            "type": "object",
+            "required": [
+                "records"
+            ],
+            "properties": {
+                "records": {
+                    "type": "array",
+                    "maxItems": 100,
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/entity.BatchRecordItem"
+                    }
+                }
+            }
+        },
+        "entity.CreateRecordRequest": {
+            "type": "object",
+            "required": [
+                "music_id",
+                "score",
+                "stage_id"
+            ],
+            "properties": {
+                "accuracy": {
+                    "type": "number"
+                },
+                "additional_info": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "bad_count": {
                     "type": "integer"
+                },
+                "game_status": {
+                    "type": "string",
+                    "enum": [
+                        "completed",
+                        "gave_up",
+                        "retry",
+                        "failed"
+                    ]
+                },
+                "good_count": {
+                    "type": "integer"
+                },
+                "is_full_combo": {
+                    "type": "boolean"
+                },
+                "is_perfect_play": {
+                    "type": "boolean"
+                },
+                "max_combo": {
+                    "type": "integer"
+                },
+                "miss_count": {
+                    "type": "integer"
+                },
+                "music_id": {
+                    "type": "string"
+                },
+                "perfect_count": {
+                    "type": "integer"
+                },
+                "play_duration": {
+                    "type": "number"
                 },
                 "rank": {
                     "type": "string"
@@ -661,6 +818,9 @@ const docTemplate = `{
         "entity.SessionResponse": {
             "type": "object",
             "properties": {
+                "hmac_secret": {
+                    "type": "string"
+                },
                 "session_id": {
                     "type": "string"
                 },
@@ -672,11 +832,11 @@ const docTemplate = `{
         "entity.SteamSignInRequest": {
             "type": "object",
             "required": [
-                "steam_id",
+                "id",
                 "ticket"
             ],
             "properties": {
-                "steam_id": {
+                "id": {
                     "type": "string"
                 },
                 "ticket": {
@@ -748,11 +908,108 @@ const docTemplate = `{
                 }
             }
         },
+        "repository.BatchItemStatus": {
+            "type": "string",
+            "enum": [
+                "accepted",
+                "duplicate",
+                "rejected"
+            ],
+            "x-enum-varnames": [
+                "BatchStatusAccepted",
+                "BatchStatusDuplicate",
+                "BatchStatusRejected"
+            ]
+        },
+        "repository.BatchRecordsResponse": {
+            "type": "object",
+            "properties": {
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/repository.BatchResultItem"
+                    }
+                },
+                "user_after": {
+                    "$ref": "#/definitions/repository.BatchUserAfter"
+                }
+            }
+        },
+        "repository.BatchRejectReason": {
+            "type": "string",
+            "enum": [
+                "invalid_payload",
+                "unknown_music",
+                "unknown_stage",
+                "score_out_of_range",
+                "payload_inconsistent",
+                "duration_out_of_range"
+            ],
+            "x-enum-varnames": [
+                "ReasonInvalidPayload",
+                "ReasonUnknownMusic",
+                "ReasonUnknownStage",
+                "ReasonScoreOutOfRange",
+                "ReasonPayloadInconsistent",
+                "ReasonDurationOutOfRange"
+            ]
+        },
+        "repository.BatchResultItem": {
+            "type": "object",
+            "properties": {
+                "client_record_id": {
+                    "type": "string"
+                },
+                "exp_gain": {
+                    "$ref": "#/definitions/repository.ExpGain"
+                },
+                "reason": {
+                    "$ref": "#/definitions/repository.BatchRejectReason"
+                },
+                "record_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/repository.BatchItemStatus"
+                }
+            }
+        },
+        "repository.BatchUserAfter": {
+            "type": "object",
+            "properties": {
+                "exp": {
+                    "type": "integer"
+                },
+                "level": {
+                    "type": "integer"
+                }
+            }
+        },
         "repository.BestRecordResponse": {
             "type": "object",
             "properties": {
                 "record": {
                     "$ref": "#/definitions/repository.RecordResponse"
+                }
+            }
+        },
+        "repository.ExpGain": {
+            "type": "object",
+            "properties": {
+                "exp_from": {
+                    "type": "integer"
+                },
+                "exp_gained": {
+                    "type": "integer"
+                },
+                "exp_to": {
+                    "type": "integer"
+                },
+                "level_from": {
+                    "type": "integer"
+                },
+                "level_to": {
+                    "type": "integer"
                 }
             }
         },
@@ -779,9 +1036,6 @@ const docTemplate = `{
                 },
                 "bad_count": {
                     "type": "integer"
-                },
-                "character_id": {
-                    "type": "string"
                 },
                 "created_at": {
                     "type": "string"
@@ -810,12 +1064,6 @@ const docTemplate = `{
                 "perfect_count": {
                     "type": "integer"
                 },
-                "play_duration": {
-                    "type": "integer"
-                },
-                "played_at": {
-                    "type": "string"
-                },
                 "rank": {
                     "type": "string"
                 },
@@ -836,6 +1084,9 @@ const docTemplate = `{
         "repository.SingleRecordResponse": {
             "type": "object",
             "properties": {
+                "exp_gain": {
+                    "$ref": "#/definitions/repository.ExpGain"
+                },
                 "record": {
                     "$ref": "#/definitions/repository.RecordResponse"
                 }

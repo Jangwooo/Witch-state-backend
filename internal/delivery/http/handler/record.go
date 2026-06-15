@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"errors"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/witchs-lounge_backend/internal/domain/entity"
 	"github.com/witchs-lounge_backend/internal/usecase"
@@ -50,6 +52,15 @@ func (h *RecordHandler) CreateRecord(c *fiber.Ctx) error {
 
 	resp, err := h.recordUseCase.Create(c.Context(), userEntity.ID, &req)
 	if err != nil {
+		// Q12 옵션 A: sanity validator reject 는 400 + ErrorResponse(details.reason).
+		var sErr *usecase.SanityRejectError
+		if errors.As(err, &sErr) {
+			return c.Status(fiber.StatusBadRequest).JSON(entity.ErrorResponse{
+				Message: "기록 검증 실패",
+				Error:   "validation_rejected",
+				Details: fiber.Map{"reason": string(sErr.Reason)},
+			})
+		}
 		return c.Status(fiber.StatusInternalServerError).JSON(entity.ErrorResponse{Message: "기록 처리 실패", Error: err.Error()})
 	}
 	return c.Status(fiber.StatusOK).JSON(entity.Response{
@@ -141,6 +152,56 @@ func (h *RecordHandler) BestRecord(c *fiber.Ctx) error {
 	}
 	return c.Status(fiber.StatusOK).JSON(entity.Response{
 		Message: "최고 기록 조회 성공",
+		Data:    resp,
+	})
+}
+
+// CreateRecordsBatch 플레이 기록 일괄 저장
+// @Summary 플레이 기록 일괄 저장
+// @Description 오프라인 누적된 플레이 기록을 일괄 저장합니다 (멱등성: client_record_id)
+// @Tags Record
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body entity.BatchRecordsRequest true "batch 요청"
+// @Success 200 {object} entity.Response{data=repository.BatchRecordsResponse} "처리 결과"
+// @Failure 400 {object} entity.ErrorResponse "잘못된 요청 형식 / 100건 초과"
+// @Failure 401 {object} entity.ErrorResponse "인증 필요"
+// @Failure 500 {object} entity.ErrorResponse "서버 내부 오류"
+// @Router /records/batch [post]
+func (h *RecordHandler) CreateRecordsBatch(c *fiber.Ctx) error {
+	usr := c.Locals("user")
+	if usr == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(entity.ErrorResponse{
+			Message: "인증 필요",
+			Error:   "unauthorized",
+		})
+	}
+	userEntity, ok := usr.(*entity.User)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(entity.ErrorResponse{
+			Message: "사용자 정보 형식 오류",
+			Error:   "invalid_user_context",
+		})
+	}
+
+	var req entity.BatchRecordsRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(entity.ErrorResponse{Message: "요청 파싱 실패", Error: err.Error()})
+	}
+	if len(req.Records) == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(entity.ErrorResponse{Message: "records 배열이 비어 있습니다", Error: "empty_records"})
+	}
+	if len(req.Records) > 100 {
+		return c.Status(fiber.StatusBadRequest).JSON(entity.ErrorResponse{Message: "records 항목 수가 상한(100)을 초과했습니다", Error: "too_many_records"})
+	}
+
+	resp, err := h.recordUseCase.CreateBatch(c.Context(), userEntity.ID, &req)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(entity.ErrorResponse{Message: "batch 처리 실패", Error: err.Error()})
+	}
+	return c.Status(fiber.StatusOK).JSON(entity.Response{
+		Message: "기록 일괄 저장 성공",
 		Data:    resp,
 	})
 }

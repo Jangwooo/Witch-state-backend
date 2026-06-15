@@ -93,6 +93,30 @@ func (f StageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.StageMutation", m)
 }
 
+// The TLevelFunc type is an adapter to allow the use of ordinary
+// function as TLevel mutator.
+type TLevelFunc func(context.Context, *ent.TLevelMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TLevelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.TLevelMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TLevelMutation", m)
+}
+
+// The TRankFunc type is an adapter to allow the use of ordinary
+// function as TRank mutator.
+type TRankFunc func(context.Context, *ent.TRankMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TRankFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.TRankMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TRankMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)

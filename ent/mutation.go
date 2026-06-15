@@ -20,6 +20,8 @@ import (
 	"github.com/witchs-lounge_backend/ent/product"
 	"github.com/witchs-lounge_backend/ent/record"
 	"github.com/witchs-lounge_backend/ent/stage"
+	"github.com/witchs-lounge_backend/ent/tlevel"
+	"github.com/witchs-lounge_backend/ent/trank"
 	"github.com/witchs-lounge_backend/ent/user"
 	"github.com/witchs-lounge_backend/ent/userachievement"
 	"github.com/witchs-lounge_backend/ent/userpurchase"
@@ -41,6 +43,8 @@ const (
 	TypeProduct         = "Product"
 	TypeRecord          = "Record"
 	TypeStage           = "Stage"
+	TypeTLevel          = "TLevel"
+	TypeTRank           = "TRank"
 	TypeUser            = "User"
 	TypeUserAchievement = "UserAchievement"
 	TypeUserPurchase    = "UserPurchase"
@@ -2608,34 +2612,36 @@ func (m *ItemMutation) ResetEdge(name string) error {
 // MusicMutation represents an operation that mutates the Music nodes in the graph.
 type MusicMutation struct {
 	config
-	op              Op
-	typ             string
-	id              *string
-	created_at      *time.Time
-	updated_at      *time.Time
-	name            *string
-	artist          *string
-	composer        *string
-	bpm             *float64
-	addbpm          *float64
-	genre           *string
-	description     *string
-	is_recommended  *bool
-	is_free         *bool
-	unlock_level    *int
-	addunlock_level *int
-	release_date    *time.Time
-	is_active       *bool
-	clearedFields   map[string]struct{}
-	stages          map[string]struct{}
-	removedstages   map[string]struct{}
-	clearedstages   bool
-	records         map[uuid.UUID]struct{}
-	removedrecords  map[uuid.UUID]struct{}
-	clearedrecords  bool
-	done            bool
-	oldValue        func(context.Context) (*Music, error)
-	predicates      []predicate.Music
+	op                  Op
+	typ                 string
+	id                  *string
+	created_at          *time.Time
+	updated_at          *time.Time
+	name                *string
+	artist              *string
+	composer            *string
+	bpm                 *float64
+	addbpm              *float64
+	duration_seconds    *float64
+	addduration_seconds *float64
+	genre               *string
+	description         *string
+	is_recommended      *bool
+	is_free             *bool
+	unlock_level        *int
+	addunlock_level     *int
+	release_date        *time.Time
+	is_active           *bool
+	clearedFields       map[string]struct{}
+	stages              map[string]struct{}
+	removedstages       map[string]struct{}
+	clearedstages       bool
+	records             map[uuid.UUID]struct{}
+	removedrecords      map[uuid.UUID]struct{}
+	clearedrecords      bool
+	done                bool
+	oldValue            func(context.Context) (*Music, error)
+	predicates          []predicate.Music
 }
 
 var _ ent.Mutation = (*MusicMutation)(nil)
@@ -2989,6 +2995,62 @@ func (m *MusicMutation) AddedBpm() (r float64, exists bool) {
 func (m *MusicMutation) ResetBpm() {
 	m.bpm = nil
 	m.addbpm = nil
+}
+
+// SetDurationSeconds sets the "duration_seconds" field.
+func (m *MusicMutation) SetDurationSeconds(f float64) {
+	m.duration_seconds = &f
+	m.addduration_seconds = nil
+}
+
+// DurationSeconds returns the value of the "duration_seconds" field in the mutation.
+func (m *MusicMutation) DurationSeconds() (r float64, exists bool) {
+	v := m.duration_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDurationSeconds returns the old "duration_seconds" field's value of the Music entity.
+// If the Music object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MusicMutation) OldDurationSeconds(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDurationSeconds is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDurationSeconds requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDurationSeconds: %w", err)
+	}
+	return oldValue.DurationSeconds, nil
+}
+
+// AddDurationSeconds adds f to the "duration_seconds" field.
+func (m *MusicMutation) AddDurationSeconds(f float64) {
+	if m.addduration_seconds != nil {
+		*m.addduration_seconds += f
+	} else {
+		m.addduration_seconds = &f
+	}
+}
+
+// AddedDurationSeconds returns the value that was added to the "duration_seconds" field in this mutation.
+func (m *MusicMutation) AddedDurationSeconds() (r float64, exists bool) {
+	v := m.addduration_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDurationSeconds resets all changes to the "duration_seconds" field.
+func (m *MusicMutation) ResetDurationSeconds() {
+	m.duration_seconds = nil
+	m.addduration_seconds = nil
 }
 
 // SetGenre sets the "genre" field.
@@ -3444,7 +3506,7 @@ func (m *MusicMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MusicMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.created_at != nil {
 		fields = append(fields, music.FieldCreatedAt)
 	}
@@ -3462,6 +3524,9 @@ func (m *MusicMutation) Fields() []string {
 	}
 	if m.bpm != nil {
 		fields = append(fields, music.FieldBpm)
+	}
+	if m.duration_seconds != nil {
+		fields = append(fields, music.FieldDurationSeconds)
 	}
 	if m.genre != nil {
 		fields = append(fields, music.FieldGenre)
@@ -3504,6 +3569,8 @@ func (m *MusicMutation) Field(name string) (ent.Value, bool) {
 		return m.Composer()
 	case music.FieldBpm:
 		return m.Bpm()
+	case music.FieldDurationSeconds:
+		return m.DurationSeconds()
 	case music.FieldGenre:
 		return m.Genre()
 	case music.FieldDescription:
@@ -3539,6 +3606,8 @@ func (m *MusicMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldComposer(ctx)
 	case music.FieldBpm:
 		return m.OldBpm(ctx)
+	case music.FieldDurationSeconds:
+		return m.OldDurationSeconds(ctx)
 	case music.FieldGenre:
 		return m.OldGenre(ctx)
 	case music.FieldDescription:
@@ -3604,6 +3673,13 @@ func (m *MusicMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetBpm(v)
 		return nil
+	case music.FieldDurationSeconds:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDurationSeconds(v)
+		return nil
 	case music.FieldGenre:
 		v, ok := value.(string)
 		if !ok {
@@ -3664,6 +3740,9 @@ func (m *MusicMutation) AddedFields() []string {
 	if m.addbpm != nil {
 		fields = append(fields, music.FieldBpm)
 	}
+	if m.addduration_seconds != nil {
+		fields = append(fields, music.FieldDurationSeconds)
+	}
 	if m.addunlock_level != nil {
 		fields = append(fields, music.FieldUnlockLevel)
 	}
@@ -3677,6 +3756,8 @@ func (m *MusicMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case music.FieldBpm:
 		return m.AddedBpm()
+	case music.FieldDurationSeconds:
+		return m.AddedDurationSeconds()
 	case music.FieldUnlockLevel:
 		return m.AddedUnlockLevel()
 	}
@@ -3694,6 +3775,13 @@ func (m *MusicMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddBpm(v)
+		return nil
+	case music.FieldDurationSeconds:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDurationSeconds(v)
 		return nil
 	case music.FieldUnlockLevel:
 		v, ok := value.(int)
@@ -3773,6 +3861,9 @@ func (m *MusicMutation) ResetField(name string) error {
 		return nil
 	case music.FieldBpm:
 		m.ResetBpm()
+		return nil
+	case music.FieldDurationSeconds:
+		m.ResetDurationSeconds()
 		return nil
 	case music.FieldGenre:
 		m.ResetGenre()
@@ -4891,6 +4982,7 @@ type RecordMutation struct {
 	game_status      *record.GameStatus
 	additional_info  *map[string]interface{}
 	is_valid         *bool
+	client_record_id *string
 	clearedFields    map[string]struct{}
 	user             *uuid.UUID
 	cleareduser      bool
@@ -5821,6 +5913,55 @@ func (m *RecordMutation) ResetIsValid() {
 	m.is_valid = nil
 }
 
+// SetClientRecordID sets the "client_record_id" field.
+func (m *RecordMutation) SetClientRecordID(s string) {
+	m.client_record_id = &s
+}
+
+// ClientRecordID returns the value of the "client_record_id" field in the mutation.
+func (m *RecordMutation) ClientRecordID() (r string, exists bool) {
+	v := m.client_record_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClientRecordID returns the old "client_record_id" field's value of the Record entity.
+// If the Record object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RecordMutation) OldClientRecordID(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClientRecordID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClientRecordID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClientRecordID: %w", err)
+	}
+	return oldValue.ClientRecordID, nil
+}
+
+// ClearClientRecordID clears the value of the "client_record_id" field.
+func (m *RecordMutation) ClearClientRecordID() {
+	m.client_record_id = nil
+	m.clearedFields[record.FieldClientRecordID] = struct{}{}
+}
+
+// ClientRecordIDCleared returns if the "client_record_id" field was cleared in this mutation.
+func (m *RecordMutation) ClientRecordIDCleared() bool {
+	_, ok := m.clearedFields[record.FieldClientRecordID]
+	return ok
+}
+
+// ResetClientRecordID resets all changes to the "client_record_id" field.
+func (m *RecordMutation) ResetClientRecordID() {
+	m.client_record_id = nil
+	delete(m.clearedFields, record.FieldClientRecordID)
+}
+
 // ClearUser clears the "user" edge to the User entity.
 func (m *RecordMutation) ClearUser() {
 	m.cleareduser = true
@@ -5936,7 +6077,7 @@ func (m *RecordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RecordMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 19)
 	if m.created_at != nil {
 		fields = append(fields, record.FieldCreatedAt)
 	}
@@ -5991,6 +6132,9 @@ func (m *RecordMutation) Fields() []string {
 	if m.is_valid != nil {
 		fields = append(fields, record.FieldIsValid)
 	}
+	if m.client_record_id != nil {
+		fields = append(fields, record.FieldClientRecordID)
+	}
 	return fields
 }
 
@@ -6035,6 +6179,8 @@ func (m *RecordMutation) Field(name string) (ent.Value, bool) {
 		return m.AdditionalInfo()
 	case record.FieldIsValid:
 		return m.IsValid()
+	case record.FieldClientRecordID:
+		return m.ClientRecordID()
 	}
 	return nil, false
 }
@@ -6080,6 +6226,8 @@ func (m *RecordMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldAdditionalInfo(ctx)
 	case record.FieldIsValid:
 		return m.OldIsValid(ctx)
+	case record.FieldClientRecordID:
+		return m.OldClientRecordID(ctx)
 	}
 	return nil, fmt.Errorf("unknown Record field %s", name)
 }
@@ -6215,6 +6363,13 @@ func (m *RecordMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIsValid(v)
 		return nil
+	case record.FieldClientRecordID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClientRecordID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Record field %s", name)
 }
@@ -6338,6 +6493,9 @@ func (m *RecordMutation) ClearedFields() []string {
 	if m.FieldCleared(record.FieldAdditionalInfo) {
 		fields = append(fields, record.FieldAdditionalInfo)
 	}
+	if m.FieldCleared(record.FieldClientRecordID) {
+		fields = append(fields, record.FieldClientRecordID)
+	}
 	return fields
 }
 
@@ -6357,6 +6515,9 @@ func (m *RecordMutation) ClearField(name string) error {
 		return nil
 	case record.FieldAdditionalInfo:
 		m.ClearAdditionalInfo()
+		return nil
+	case record.FieldClientRecordID:
+		m.ClearClientRecordID()
 		return nil
 	}
 	return fmt.Errorf("unknown Record nullable field %s", name)
@@ -6419,6 +6580,9 @@ func (m *RecordMutation) ResetField(name string) error {
 		return nil
 	case record.FieldIsValid:
 		m.ResetIsValid()
+		return nil
+	case record.FieldClientRecordID:
+		m.ResetClientRecordID()
 		return nil
 	}
 	return fmt.Errorf("unknown Record field %s", name)
@@ -7483,6 +7647,742 @@ func (m *StageMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Stage edge %s", name)
+}
+
+// TLevelMutation represents an operation that mutates the TLevel nodes in the graph.
+type TLevelMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	require_exp    *int
+	addrequire_exp *int
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*TLevel, error)
+	predicates     []predicate.TLevel
+}
+
+var _ ent.Mutation = (*TLevelMutation)(nil)
+
+// tlevelOption allows management of the mutation configuration using functional options.
+type tlevelOption func(*TLevelMutation)
+
+// newTLevelMutation creates new mutation for the TLevel entity.
+func newTLevelMutation(c config, op Op, opts ...tlevelOption) *TLevelMutation {
+	m := &TLevelMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeTLevel,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withTLevelID sets the ID field of the mutation.
+func withTLevelID(id int) tlevelOption {
+	return func(m *TLevelMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *TLevel
+		)
+		m.oldValue = func(ctx context.Context) (*TLevel, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().TLevel.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withTLevel sets the old TLevel of the mutation.
+func withTLevel(node *TLevel) tlevelOption {
+	return func(m *TLevelMutation) {
+		m.oldValue = func(context.Context) (*TLevel, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m TLevelMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m TLevelMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of TLevel entities.
+func (m *TLevelMutation) SetID(id int) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *TLevelMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *TLevelMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().TLevel.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetRequireExp sets the "require_exp" field.
+func (m *TLevelMutation) SetRequireExp(i int) {
+	m.require_exp = &i
+	m.addrequire_exp = nil
+}
+
+// RequireExp returns the value of the "require_exp" field in the mutation.
+func (m *TLevelMutation) RequireExp() (r int, exists bool) {
+	v := m.require_exp
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequireExp returns the old "require_exp" field's value of the TLevel entity.
+// If the TLevel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TLevelMutation) OldRequireExp(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequireExp is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequireExp requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequireExp: %w", err)
+	}
+	return oldValue.RequireExp, nil
+}
+
+// AddRequireExp adds i to the "require_exp" field.
+func (m *TLevelMutation) AddRequireExp(i int) {
+	if m.addrequire_exp != nil {
+		*m.addrequire_exp += i
+	} else {
+		m.addrequire_exp = &i
+	}
+}
+
+// AddedRequireExp returns the value that was added to the "require_exp" field in this mutation.
+func (m *TLevelMutation) AddedRequireExp() (r int, exists bool) {
+	v := m.addrequire_exp
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRequireExp resets all changes to the "require_exp" field.
+func (m *TLevelMutation) ResetRequireExp() {
+	m.require_exp = nil
+	m.addrequire_exp = nil
+}
+
+// Where appends a list predicates to the TLevelMutation builder.
+func (m *TLevelMutation) Where(ps ...predicate.TLevel) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the TLevelMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *TLevelMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.TLevel, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *TLevelMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *TLevelMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (TLevel).
+func (m *TLevelMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *TLevelMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m.require_exp != nil {
+		fields = append(fields, tlevel.FieldRequireExp)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *TLevelMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case tlevel.FieldRequireExp:
+		return m.RequireExp()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *TLevelMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case tlevel.FieldRequireExp:
+		return m.OldRequireExp(ctx)
+	}
+	return nil, fmt.Errorf("unknown TLevel field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TLevelMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case tlevel.FieldRequireExp:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequireExp(v)
+		return nil
+	}
+	return fmt.Errorf("unknown TLevel field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *TLevelMutation) AddedFields() []string {
+	var fields []string
+	if m.addrequire_exp != nil {
+		fields = append(fields, tlevel.FieldRequireExp)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *TLevelMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case tlevel.FieldRequireExp:
+		return m.AddedRequireExp()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TLevelMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case tlevel.FieldRequireExp:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRequireExp(v)
+		return nil
+	}
+	return fmt.Errorf("unknown TLevel numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *TLevelMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *TLevelMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *TLevelMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown TLevel nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *TLevelMutation) ResetField(name string) error {
+	switch name {
+	case tlevel.FieldRequireExp:
+		m.ResetRequireExp()
+		return nil
+	}
+	return fmt.Errorf("unknown TLevel field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *TLevelMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *TLevelMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *TLevelMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *TLevelMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *TLevelMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *TLevelMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *TLevelMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown TLevel unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *TLevelMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown TLevel edge %s", name)
+}
+
+// TRankMutation represents an operation that mutates the TRank nodes in the graph.
+type TRankMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *string
+	coefficient    *float32
+	addcoefficient *float32
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*TRank, error)
+	predicates     []predicate.TRank
+}
+
+var _ ent.Mutation = (*TRankMutation)(nil)
+
+// trankOption allows management of the mutation configuration using functional options.
+type trankOption func(*TRankMutation)
+
+// newTRankMutation creates new mutation for the TRank entity.
+func newTRankMutation(c config, op Op, opts ...trankOption) *TRankMutation {
+	m := &TRankMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeTRank,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withTRankID sets the ID field of the mutation.
+func withTRankID(id string) trankOption {
+	return func(m *TRankMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *TRank
+		)
+		m.oldValue = func(ctx context.Context) (*TRank, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().TRank.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withTRank sets the old TRank of the mutation.
+func withTRank(node *TRank) trankOption {
+	return func(m *TRankMutation) {
+		m.oldValue = func(context.Context) (*TRank, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m TRankMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m TRankMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of TRank entities.
+func (m *TRankMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *TRankMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *TRankMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().TRank.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCoefficient sets the "coefficient" field.
+func (m *TRankMutation) SetCoefficient(f float32) {
+	m.coefficient = &f
+	m.addcoefficient = nil
+}
+
+// Coefficient returns the value of the "coefficient" field in the mutation.
+func (m *TRankMutation) Coefficient() (r float32, exists bool) {
+	v := m.coefficient
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCoefficient returns the old "coefficient" field's value of the TRank entity.
+// If the TRank object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TRankMutation) OldCoefficient(ctx context.Context) (v float32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCoefficient is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCoefficient requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCoefficient: %w", err)
+	}
+	return oldValue.Coefficient, nil
+}
+
+// AddCoefficient adds f to the "coefficient" field.
+func (m *TRankMutation) AddCoefficient(f float32) {
+	if m.addcoefficient != nil {
+		*m.addcoefficient += f
+	} else {
+		m.addcoefficient = &f
+	}
+}
+
+// AddedCoefficient returns the value that was added to the "coefficient" field in this mutation.
+func (m *TRankMutation) AddedCoefficient() (r float32, exists bool) {
+	v := m.addcoefficient
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCoefficient resets all changes to the "coefficient" field.
+func (m *TRankMutation) ResetCoefficient() {
+	m.coefficient = nil
+	m.addcoefficient = nil
+}
+
+// Where appends a list predicates to the TRankMutation builder.
+func (m *TRankMutation) Where(ps ...predicate.TRank) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the TRankMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *TRankMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.TRank, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *TRankMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *TRankMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (TRank).
+func (m *TRankMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *TRankMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m.coefficient != nil {
+		fields = append(fields, trank.FieldCoefficient)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *TRankMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case trank.FieldCoefficient:
+		return m.Coefficient()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *TRankMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case trank.FieldCoefficient:
+		return m.OldCoefficient(ctx)
+	}
+	return nil, fmt.Errorf("unknown TRank field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TRankMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case trank.FieldCoefficient:
+		v, ok := value.(float32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCoefficient(v)
+		return nil
+	}
+	return fmt.Errorf("unknown TRank field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *TRankMutation) AddedFields() []string {
+	var fields []string
+	if m.addcoefficient != nil {
+		fields = append(fields, trank.FieldCoefficient)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *TRankMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case trank.FieldCoefficient:
+		return m.AddedCoefficient()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TRankMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case trank.FieldCoefficient:
+		v, ok := value.(float32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCoefficient(v)
+		return nil
+	}
+	return fmt.Errorf("unknown TRank numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *TRankMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *TRankMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *TRankMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown TRank nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *TRankMutation) ResetField(name string) error {
+	switch name {
+	case trank.FieldCoefficient:
+		m.ResetCoefficient()
+		return nil
+	}
+	return fmt.Errorf("unknown TRank field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *TRankMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *TRankMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *TRankMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *TRankMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *TRankMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *TRankMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *TRankMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown TRank unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *TRankMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown TRank edge %s", name)
 }
 
 // UserMutation represents an operation that mutates the User nodes in the graph.

@@ -30,6 +30,8 @@ type Music struct {
 	Composer string `json:"composer,omitempty"`
 	// BPM
 	Bpm float64 `json:"bpm,omitempty"`
+	// 곡 길이(초). sanity check (play_duration 하한/상한) 용도.
+	DurationSeconds float64 `json:"duration_seconds,omitempty"`
 	// 장르
 	Genre string `json:"genre,omitempty"`
 	// 곡 설명
@@ -86,7 +88,7 @@ func (*Music) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case music.FieldIsRecommended, music.FieldIsFree, music.FieldIsActive:
 			values[i] = new(sql.NullBool)
-		case music.FieldBpm:
+		case music.FieldBpm, music.FieldDurationSeconds:
 			values[i] = new(sql.NullFloat64)
 		case music.FieldUnlockLevel:
 			values[i] = new(sql.NullInt64)
@@ -150,6 +152,12 @@ func (m *Music) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field bpm", values[i])
 			} else if value.Valid {
 				m.Bpm = value.Float64
+			}
+		case music.FieldDurationSeconds:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field duration_seconds", values[i])
+			} else if value.Valid {
+				m.DurationSeconds = value.Float64
 			}
 		case music.FieldGenre:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -257,6 +265,9 @@ func (m *Music) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("bpm=")
 	builder.WriteString(fmt.Sprintf("%v", m.Bpm))
+	builder.WriteString(", ")
+	builder.WriteString("duration_seconds=")
+	builder.WriteString(fmt.Sprintf("%v", m.DurationSeconds))
 	builder.WriteString(", ")
 	builder.WriteString("genre=")
 	builder.WriteString(m.Genre)

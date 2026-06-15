@@ -85,6 +85,33 @@ func (l *ErrorLogger) LogHMACVerification(c *fiber.Ctx, reason string, fields ma
 	l.logger.Println(string(encoded))
 }
 
+// LogStructured 는 fiber.Ctx 없는 호출처 (usecase 등) 에서 구조화 JSON 로그를 남깁니다.
+// 예: batch duplicate payload mismatch.
+func (l *ErrorLogger) LogStructured(eventType string, fields map[string]interface{}) {
+	if l == nil || l.logger == nil {
+		return
+	}
+
+	payload := map[string]interface{}{
+		"timestamp": time.Now().Format(time.RFC3339Nano),
+		"type":      eventType,
+	}
+	for k, v := range fields {
+		if isSensitiveKey(strings.ToLower(k)) {
+			payload[k] = "***"
+			continue
+		}
+		payload[k] = v
+	}
+
+	encoded, marshalErr := json.Marshal(payload)
+	if marshalErr != nil {
+		l.logger.Printf(`{"timestamp":"%s","type":"logger_error","error":"%s"}`, time.Now().Format(time.RFC3339Nano), truncate(marshalErr.Error(), 512))
+		return
+	}
+	l.logger.Println(string(encoded))
+}
+
 func (l *ErrorLogger) write(kind string, c *fiber.Ctx, status int, err interface{}, stack []byte) {
 	if l == nil || l.logger == nil || c == nil {
 		return

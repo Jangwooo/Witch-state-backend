@@ -37,6 +37,8 @@ func (Music) Fields() []ent.Field {
 			Comment("작곡가"),
 		field.Float("bpm").
 			Comment("BPM"),
+		field.Float("duration_seconds").Default(0).
+			Comment("곡 길이(초). sanity check (play_duration 하한/상한) 용도."),
 		field.Text("genre").Optional().
 			Comment("장르"),
 		field.Text("description").Optional().

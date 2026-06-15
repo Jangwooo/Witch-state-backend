@@ -57,10 +57,7 @@ func main() {
 		_ = client.Close()
 	}(client)
 
-	// 3. 애플리케이션 의존성 초기화
-	deps := bootstrap.SetupAppDependencies(dbClient, sessionStore)
-
-	// 4. Fiber 앱 생성
+	// 3. 에러 로거 초기화 (의존성 주입에서 usecase 측 구조화 로그용)
 	errorLogger, err := appLogging.NewErrorLogger("logs/error.log")
 	if err != nil {
 		log.Fatalf("에러 로그 파일 초기화 실패: %v", err)
@@ -68,6 +65,9 @@ func main() {
 	defer func() {
 		_ = errorLogger.Close()
 	}()
+
+	// 4. 애플리케이션 의존성 초기화
+	deps := bootstrap.SetupAppDependencies(dbClient, sessionStore, errorLogger)
 
 	app := fiber.New(fiber.Config{
 		AppName: "Witch's Lounge API",

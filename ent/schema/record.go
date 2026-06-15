@@ -58,6 +58,8 @@ func (Record) Fields() []ent.Field {
 			Comment("추가 정보"),
 		field.Bool("is_valid").Default(true).
 			Comment("유효한 기록 여부"),
+		field.String("client_record_id").Optional().Nillable().Unique().MaxLen(36).
+			Comment("클라이언트 발급 멱등성 키 (batch 송신 시. 단건 POST 에선 null)"),
 	}
 }
 

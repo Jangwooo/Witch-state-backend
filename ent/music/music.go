@@ -26,6 +26,8 @@ const (
 	FieldComposer = "composer"
 	// FieldBpm holds the string denoting the bpm field in the database.
 	FieldBpm = "bpm"
+	// FieldDurationSeconds holds the string denoting the duration_seconds field in the database.
+	FieldDurationSeconds = "duration_seconds"
 	// FieldGenre holds the string denoting the genre field in the database.
 	FieldGenre = "genre"
 	// FieldDescription holds the string denoting the description field in the database.
@@ -71,6 +73,7 @@ var Columns = []string{
 	FieldArtist,
 	FieldComposer,
 	FieldBpm,
+	FieldDurationSeconds,
 	FieldGenre,
 	FieldDescription,
 	FieldIsRecommended,
@@ -97,6 +100,8 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// DefaultDurationSeconds holds the default value on creation for the "duration_seconds" field.
+	DefaultDurationSeconds float64
 	// DefaultIsRecommended holds the default value on creation for the "is_recommended" field.
 	DefaultIsRecommended bool
 	// DefaultIsFree holds the default value on creation for the "is_free" field.
@@ -143,6 +148,11 @@ func ByComposer(opts ...sql.OrderTermOption) OrderOption {
 // ByBpm orders the results by the bpm field.
 func ByBpm(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBpm, opts...).ToFunc()
+}
+
+// ByDurationSeconds orders the results by the duration_seconds field.
+func ByDurationSeconds(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDurationSeconds, opts...).ToFunc()
 }
 
 // ByGenre orders the results by the genre field.

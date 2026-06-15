@@ -52,6 +52,8 @@ const (
 	FieldAdditionalInfo = "additional_info"
 	// FieldIsValid holds the string denoting the is_valid field in the database.
 	FieldIsValid = "is_valid"
+	// FieldClientRecordID holds the string denoting the client_record_id field in the database.
+	FieldClientRecordID = "client_record_id"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// EdgeMusic holds the string denoting the music edge name in mutations.
@@ -104,6 +106,7 @@ var Columns = []string{
 	FieldGameStatus,
 	FieldAdditionalInfo,
 	FieldIsValid,
+	FieldClientRecordID,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "records"
@@ -152,6 +155,8 @@ var (
 	DefaultIsPerfectPlay bool
 	// DefaultIsValid holds the default value on creation for the "is_valid" field.
 	DefaultIsValid bool
+	// ClientRecordIDValidator is a validator for the "client_record_id" field. It is called by the builders before save.
+	ClientRecordIDValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -304,6 +309,11 @@ func ByGameStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByIsValid orders the results by the is_valid field.
 func ByIsValid(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsValid, opts...).ToFunc()
+}
+
+// ByClientRecordID orders the results by the client_record_id field.
+func ByClientRecordID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClientRecordID, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

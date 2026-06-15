@@ -6,6 +6,7 @@ import (
 	"github.com/witchs-lounge_backend/internal/delivery/http/middleware"
 	domainrepo "github.com/witchs-lounge_backend/internal/domain/repository"
 	"github.com/witchs-lounge_backend/internal/infrastructure/hmacauth"
+	"github.com/witchs-lounge_backend/internal/infrastructure/logging"
 	"github.com/witchs-lounge_backend/internal/infrastructure/session"
 	"github.com/witchs-lounge_backend/internal/repository"
 	"github.com/witchs-lounge_backend/internal/usecase"
@@ -33,21 +34,26 @@ type AppDependencies struct {
 }
 
 // SetupAppDependencies 애플리케이션 의존성 초기화
-func SetupAppDependencies(dbClient *ent.Client, sessionStore session.SessionStore) *AppDependencies {
+func SetupAppDependencies(dbClient *ent.Client, sessionStore session.SessionStore, errorLogger *logging.ErrorLogger) *AppDependencies {
 	// Initialize repositories
 	userRepo := repository.NewUserRepository(dbClient)
 	recordRepo := repository.NewRecordRepository(dbClient)
 	musicRepo := repository.NewMusicRepository(dbClient)
 	stageRepo := repository.NewStageRepository(dbClient)
+	progressionRepo := repository.NewProgressionRepository(dbClient)
 
 	// HMAC 검증 설정 로드. 미설정 시 ModeOff = 현재 운영 동작과 동일.
 	hmacCfg := hmacauth.LoadConfig()
+
+	// Sanity validator 운영 모드 로드. 미설정 시 ModeOff = 100% 기존 운영 동작.
+	sanityMode := usecase.LoadSanityMode()
+	sanityValidator := usecase.NewSanityValidator(sanityMode, errorLogger)
 
 	// Initialize use cases
 	stoveUseCase := usecase.NewStoveUseCase(userRepo, sessionStore, hmacCfg)
 	steamUseCase := usecase.NewSteamUseCase(userRepo, sessionStore, hmacCfg)
 	userUseCase := usecase.NewUserUseCase(userRepo)
-	recordUseCase := usecase.NewRecordUseCase(recordRepo)
+	recordUseCase := usecase.NewRecordUseCase(recordRepo, userRepo, musicRepo, stageRepo, progressionRepo, sanityValidator, sanityMode, errorLogger)
 	musicUseCase := usecase.NewMusicUseCase(musicRepo)
 	stageUseCase := usecase.NewStageUseCase(stageRepo, musicRepo)
 

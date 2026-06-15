@@ -27,6 +27,12 @@ type Record func(*sql.Selector)
 // Stage is the predicate function for stage builders.
 type Stage func(*sql.Selector)
 
+// TLevel is the predicate function for tlevel builders.
+type TLevel func(*sql.Selector)
+
+// TRank is the predicate function for trank builders.
+type TRank func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
 

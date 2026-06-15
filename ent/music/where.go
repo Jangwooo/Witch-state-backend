@@ -95,6 +95,11 @@ func Bpm(v float64) predicate.Music {
 	return predicate.Music(sql.FieldEQ(FieldBpm, v))
 }
 
+// DurationSeconds applies equality check predicate on the "duration_seconds" field. It's identical to DurationSecondsEQ.
+func DurationSeconds(v float64) predicate.Music {
+	return predicate.Music(sql.FieldEQ(FieldDurationSeconds, v))
+}
+
 // Genre applies equality check predicate on the "genre" field. It's identical to GenreEQ.
 func Genre(v string) predicate.Music {
 	return predicate.Music(sql.FieldEQ(FieldGenre, v))
@@ -453,6 +458,46 @@ func BpmLT(v float64) predicate.Music {
 // BpmLTE applies the LTE predicate on the "bpm" field.
 func BpmLTE(v float64) predicate.Music {
 	return predicate.Music(sql.FieldLTE(FieldBpm, v))
+}
+
+// DurationSecondsEQ applies the EQ predicate on the "duration_seconds" field.
+func DurationSecondsEQ(v float64) predicate.Music {
+	return predicate.Music(sql.FieldEQ(FieldDurationSeconds, v))
+}
+
+// DurationSecondsNEQ applies the NEQ predicate on the "duration_seconds" field.
+func DurationSecondsNEQ(v float64) predicate.Music {
+	return predicate.Music(sql.FieldNEQ(FieldDurationSeconds, v))
+}
+
+// DurationSecondsIn applies the In predicate on the "duration_seconds" field.
+func DurationSecondsIn(vs ...float64) predicate.Music {
+	return predicate.Music(sql.FieldIn(FieldDurationSeconds, vs...))
+}
+
+// DurationSecondsNotIn applies the NotIn predicate on the "duration_seconds" field.
+func DurationSecondsNotIn(vs ...float64) predicate.Music {
+	return predicate.Music(sql.FieldNotIn(FieldDurationSeconds, vs...))
+}
+
+// DurationSecondsGT applies the GT predicate on the "duration_seconds" field.
+func DurationSecondsGT(v float64) predicate.Music {
+	return predicate.Music(sql.FieldGT(FieldDurationSeconds, v))
+}
+
+// DurationSecondsGTE applies the GTE predicate on the "duration_seconds" field.
+func DurationSecondsGTE(v float64) predicate.Music {
+	return predicate.Music(sql.FieldGTE(FieldDurationSeconds, v))
+}
+
+// DurationSecondsLT applies the LT predicate on the "duration_seconds" field.
+func DurationSecondsLT(v float64) predicate.Music {
+	return predicate.Music(sql.FieldLT(FieldDurationSeconds, v))
+}
+
+// DurationSecondsLTE applies the LTE predicate on the "duration_seconds" field.
+func DurationSecondsLTE(v float64) predicate.Music {
+	return predicate.Music(sql.FieldLTE(FieldDurationSeconds, v))
 }
 
 // GenreEQ applies the EQ predicate on the "genre" field.

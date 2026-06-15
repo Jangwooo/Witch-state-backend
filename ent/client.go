@@ -23,6 +23,8 @@ import (
 	"github.com/witchs-lounge_backend/ent/product"
 	"github.com/witchs-lounge_backend/ent/record"
 	"github.com/witchs-lounge_backend/ent/stage"
+	"github.com/witchs-lounge_backend/ent/tlevel"
+	"github.com/witchs-lounge_backend/ent/trank"
 	"github.com/witchs-lounge_backend/ent/user"
 	"github.com/witchs-lounge_backend/ent/userachievement"
 	"github.com/witchs-lounge_backend/ent/userpurchase"
@@ -47,6 +49,10 @@ type Client struct {
 	Record *RecordClient
 	// Stage is the client for interacting with the Stage builders.
 	Stage *StageClient
+	// TLevel is the client for interacting with the TLevel builders.
+	TLevel *TLevelClient
+	// TRank is the client for interacting with the TRank builders.
+	TRank *TRankClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UserAchievement is the client for interacting with the UserAchievement builders.
@@ -71,6 +77,8 @@ func (c *Client) init() {
 	c.Product = NewProductClient(c.config)
 	c.Record = NewRecordClient(c.config)
 	c.Stage = NewStageClient(c.config)
+	c.TLevel = NewTLevelClient(c.config)
+	c.TRank = NewTRankClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.UserAchievement = NewUserAchievementClient(c.config)
 	c.UserPurchase = NewUserPurchaseClient(c.config)
@@ -173,6 +181,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Product:         NewProductClient(cfg),
 		Record:          NewRecordClient(cfg),
 		Stage:           NewStageClient(cfg),
+		TLevel:          NewTLevelClient(cfg),
+		TRank:           NewTRankClient(cfg),
 		User:            NewUserClient(cfg),
 		UserAchievement: NewUserAchievementClient(cfg),
 		UserPurchase:    NewUserPurchaseClient(cfg),
@@ -202,6 +212,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Product:         NewProductClient(cfg),
 		Record:          NewRecordClient(cfg),
 		Stage:           NewStageClient(cfg),
+		TLevel:          NewTLevelClient(cfg),
+		TRank:           NewTRankClient(cfg),
 		User:            NewUserClient(cfg),
 		UserAchievement: NewUserAchievementClient(cfg),
 		UserPurchase:    NewUserPurchaseClient(cfg),
@@ -235,7 +247,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Achievement, c.Character, c.Item, c.Music, c.Product, c.Record, c.Stage,
-		c.User, c.UserAchievement, c.UserPurchase,
+		c.TLevel, c.TRank, c.User, c.UserAchievement, c.UserPurchase,
 	} {
 		n.Use(hooks...)
 	}
@@ -246,7 +258,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Achievement, c.Character, c.Item, c.Music, c.Product, c.Record, c.Stage,
-		c.User, c.UserAchievement, c.UserPurchase,
+		c.TLevel, c.TRank, c.User, c.UserAchievement, c.UserPurchase,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -269,6 +281,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Record.mutate(ctx, m)
 	case *StageMutation:
 		return c.Stage.mutate(ctx, m)
+	case *TLevelMutation:
+		return c.TLevel.mutate(ctx, m)
+	case *TRankMutation:
+		return c.TRank.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	case *UserAchievementMutation:
@@ -1451,6 +1467,272 @@ func (c *StageClient) mutate(ctx context.Context, m *StageMutation) (Value, erro
 	}
 }
 
+// TLevelClient is a client for the TLevel schema.
+type TLevelClient struct {
+	config
+}
+
+// NewTLevelClient returns a client for the TLevel from the given config.
+func NewTLevelClient(c config) *TLevelClient {
+	return &TLevelClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `tlevel.Hooks(f(g(h())))`.
+func (c *TLevelClient) Use(hooks ...Hook) {
+	c.hooks.TLevel = append(c.hooks.TLevel, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `tlevel.Intercept(f(g(h())))`.
+func (c *TLevelClient) Intercept(interceptors ...Interceptor) {
+	c.inters.TLevel = append(c.inters.TLevel, interceptors...)
+}
+
+// Create returns a builder for creating a TLevel entity.
+func (c *TLevelClient) Create() *TLevelCreate {
+	mutation := newTLevelMutation(c.config, OpCreate)
+	return &TLevelCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TLevel entities.
+func (c *TLevelClient) CreateBulk(builders ...*TLevelCreate) *TLevelCreateBulk {
+	return &TLevelCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *TLevelClient) MapCreateBulk(slice any, setFunc func(*TLevelCreate, int)) *TLevelCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &TLevelCreateBulk{err: fmt.Errorf("calling to TLevelClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*TLevelCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &TLevelCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TLevel.
+func (c *TLevelClient) Update() *TLevelUpdate {
+	mutation := newTLevelMutation(c.config, OpUpdate)
+	return &TLevelUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TLevelClient) UpdateOne(t *TLevel) *TLevelUpdateOne {
+	mutation := newTLevelMutation(c.config, OpUpdateOne, withTLevel(t))
+	return &TLevelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TLevelClient) UpdateOneID(id int) *TLevelUpdateOne {
+	mutation := newTLevelMutation(c.config, OpUpdateOne, withTLevelID(id))
+	return &TLevelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TLevel.
+func (c *TLevelClient) Delete() *TLevelDelete {
+	mutation := newTLevelMutation(c.config, OpDelete)
+	return &TLevelDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TLevelClient) DeleteOne(t *TLevel) *TLevelDeleteOne {
+	return c.DeleteOneID(t.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TLevelClient) DeleteOneID(id int) *TLevelDeleteOne {
+	builder := c.Delete().Where(tlevel.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TLevelDeleteOne{builder}
+}
+
+// Query returns a query builder for TLevel.
+func (c *TLevelClient) Query() *TLevelQuery {
+	return &TLevelQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTLevel},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a TLevel entity by its id.
+func (c *TLevelClient) Get(ctx context.Context, id int) (*TLevel, error) {
+	return c.Query().Where(tlevel.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TLevelClient) GetX(ctx context.Context, id int) *TLevel {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *TLevelClient) Hooks() []Hook {
+	return c.hooks.TLevel
+}
+
+// Interceptors returns the client interceptors.
+func (c *TLevelClient) Interceptors() []Interceptor {
+	return c.inters.TLevel
+}
+
+func (c *TLevelClient) mutate(ctx context.Context, m *TLevelMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TLevelCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TLevelUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TLevelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TLevelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown TLevel mutation op: %q", m.Op())
+	}
+}
+
+// TRankClient is a client for the TRank schema.
+type TRankClient struct {
+	config
+}
+
+// NewTRankClient returns a client for the TRank from the given config.
+func NewTRankClient(c config) *TRankClient {
+	return &TRankClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `trank.Hooks(f(g(h())))`.
+func (c *TRankClient) Use(hooks ...Hook) {
+	c.hooks.TRank = append(c.hooks.TRank, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `trank.Intercept(f(g(h())))`.
+func (c *TRankClient) Intercept(interceptors ...Interceptor) {
+	c.inters.TRank = append(c.inters.TRank, interceptors...)
+}
+
+// Create returns a builder for creating a TRank entity.
+func (c *TRankClient) Create() *TRankCreate {
+	mutation := newTRankMutation(c.config, OpCreate)
+	return &TRankCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TRank entities.
+func (c *TRankClient) CreateBulk(builders ...*TRankCreate) *TRankCreateBulk {
+	return &TRankCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *TRankClient) MapCreateBulk(slice any, setFunc func(*TRankCreate, int)) *TRankCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &TRankCreateBulk{err: fmt.Errorf("calling to TRankClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*TRankCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &TRankCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TRank.
+func (c *TRankClient) Update() *TRankUpdate {
+	mutation := newTRankMutation(c.config, OpUpdate)
+	return &TRankUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TRankClient) UpdateOne(t *TRank) *TRankUpdateOne {
+	mutation := newTRankMutation(c.config, OpUpdateOne, withTRank(t))
+	return &TRankUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TRankClient) UpdateOneID(id string) *TRankUpdateOne {
+	mutation := newTRankMutation(c.config, OpUpdateOne, withTRankID(id))
+	return &TRankUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TRank.
+func (c *TRankClient) Delete() *TRankDelete {
+	mutation := newTRankMutation(c.config, OpDelete)
+	return &TRankDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TRankClient) DeleteOne(t *TRank) *TRankDeleteOne {
+	return c.DeleteOneID(t.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TRankClient) DeleteOneID(id string) *TRankDeleteOne {
+	builder := c.Delete().Where(trank.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TRankDeleteOne{builder}
+}
+
+// Query returns a query builder for TRank.
+func (c *TRankClient) Query() *TRankQuery {
+	return &TRankQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTRank},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a TRank entity by its id.
+func (c *TRankClient) Get(ctx context.Context, id string) (*TRank, error) {
+	return c.Query().Where(trank.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TRankClient) GetX(ctx context.Context, id string) *TRank {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *TRankClient) Hooks() []Hook {
+	return c.hooks.TRank
+}
+
+// Interceptors returns the client interceptors.
+func (c *TRankClient) Interceptors() []Interceptor {
+	return c.inters.TRank
+}
+
+func (c *TRankClient) mutate(ctx context.Context, m *TRankMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TRankCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TRankUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TRankUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TRankDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown TRank mutation op: %q", m.Op())
+	}
+}
+
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -1981,11 +2263,11 @@ func (c *UserPurchaseClient) mutate(ctx context.Context, m *UserPurchaseMutation
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Achievement, Character, Item, Music, Product, Record, Stage, User,
-		UserAchievement, UserPurchase []ent.Hook
+		Achievement, Character, Item, Music, Product, Record, Stage, TLevel, TRank,
+		User, UserAchievement, UserPurchase []ent.Hook
 	}
 	inters struct {
-		Achievement, Character, Item, Music, Product, Record, Stage, User,
-		UserAchievement, UserPurchase []ent.Interceptor
+		Achievement, Character, Item, Music, Product, Record, Stage, TLevel, TRank,
+		User, UserAchievement, UserPurchase []ent.Interceptor
 	}
 )

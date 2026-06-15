@@ -113,3 +113,15 @@ func (r *userRepository) UpdateLastLogin(ctx context.Context, id uuid.UUID, last
 
 	return entity.NewUser(entUser), nil
 }
+
+// UpdateExpAndLevel 유저의 누적 경험치와 레벨을 갱신합니다.
+func (r *userRepository) UpdateExpAndLevel(ctx context.Context, id uuid.UUID, exp, level int) (*entity.User, error) {
+	entUser, err := r.client.User.UpdateOneID(id).
+		SetExp(exp).
+		SetLevel(level).
+		Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return entity.NewUser(entUser), nil
+}

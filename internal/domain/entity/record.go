@@ -26,7 +26,19 @@ type CreateRecordRequest struct {
 	IsFullCombo   bool                   `json:"is_full_combo"`
 	IsPerfectPlay bool                   `json:"is_perfect_play"`
 	GameStatus    string                 `json:"game_status" validate:"omitempty,oneof=completed gave_up retry failed"`
+	PlayDuration  float64                `json:"play_duration"`
 	Additional    map[string]interface{} `json:"additional_info,omitempty"`
+}
+
+// BatchRecordItem batch 요청의 항목. CreateRecordRequest + client_record_id.
+type BatchRecordItem struct {
+	ClientRecordID string `json:"client_record_id" validate:"required,uuid4"`
+	CreateRecordRequest
+}
+
+// BatchRecordsRequest /api/v1/records/batch 요청 본문.
+type BatchRecordsRequest struct {
+	Records []BatchRecordItem `json:"records" validate:"required,min=1,max=100,dive"`
 }
 
 type RecordResponse struct {

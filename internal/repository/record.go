@@ -19,6 +19,14 @@ func NewRecordRepository(client *ent.Client) repository.RecordRepository {
 }
 
 func (r *recordRepository) Create(ctx context.Context, userID uuid.UUID, req *entity.CreateRecordRequest) (*entity.Record, error) {
+	return r.create(ctx, userID, "", req)
+}
+
+func (r *recordRepository) CreateWithClientRecordID(ctx context.Context, userID uuid.UUID, clientRecordID string, req *entity.CreateRecordRequest) (*entity.Record, error) {
+	return r.create(ctx, userID, clientRecordID, req)
+}
+
+func (r *recordRepository) create(ctx context.Context, userID uuid.UUID, clientRecordID string, req *entity.CreateRecordRequest) (*entity.Record, error) {
 	create := r.client.Record.Create().
 		SetUserID(userID).
 		SetMusicID(req.MusicID).
@@ -33,6 +41,10 @@ func (r *recordRepository) Create(ctx context.Context, userID uuid.UUID, req *en
 		SetRank(record.Rank(req.Rank)).
 		SetIsFullCombo(req.IsFullCombo).
 		SetIsPerfectPlay(req.IsPerfectPlay)
+
+	if clientRecordID != "" {
+		create.SetClientRecordID(clientRecordID)
+	}
 
 	// GameStatus 처리 (기본값: completed)
 	if req.GameStatus != "" {
@@ -50,6 +62,16 @@ func (r *recordRepository) Create(ctx context.Context, userID uuid.UUID, req *en
 		return nil, err
 	}
 
+	return entity.NewRecord(rec), nil
+}
+
+func (r *recordRepository) FindByClientRecordID(ctx context.Context, clientRecordID string) (*entity.Record, error) {
+	rec, err := r.client.Record.Query().
+		Where(record.ClientRecordIDEQ(clientRecordID)).
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
 	return entity.NewRecord(rec), nil
 }
 

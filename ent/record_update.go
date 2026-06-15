@@ -315,6 +315,26 @@ func (ru *RecordUpdate) SetNillableIsValid(b *bool) *RecordUpdate {
 	return ru
 }
 
+// SetClientRecordID sets the "client_record_id" field.
+func (ru *RecordUpdate) SetClientRecordID(s string) *RecordUpdate {
+	ru.mutation.SetClientRecordID(s)
+	return ru
+}
+
+// SetNillableClientRecordID sets the "client_record_id" field if the given value is not nil.
+func (ru *RecordUpdate) SetNillableClientRecordID(s *string) *RecordUpdate {
+	if s != nil {
+		ru.SetClientRecordID(*s)
+	}
+	return ru
+}
+
+// ClearClientRecordID clears the value of the "client_record_id" field.
+func (ru *RecordUpdate) ClearClientRecordID() *RecordUpdate {
+	ru.mutation.ClearClientRecordID()
+	return ru
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (ru *RecordUpdate) SetUser(u *User) *RecordUpdate {
 	return ru.SetUserID(u.ID)
@@ -399,6 +419,11 @@ func (ru *RecordUpdate) check() error {
 	if v, ok := ru.mutation.GameStatus(); ok {
 		if err := record.GameStatusValidator(v); err != nil {
 			return &ValidationError{Name: "game_status", err: fmt.Errorf(`ent: validator failed for field "Record.game_status": %w`, err)}
+		}
+	}
+	if v, ok := ru.mutation.ClientRecordID(); ok {
+		if err := record.ClientRecordIDValidator(v); err != nil {
+			return &ValidationError{Name: "client_record_id", err: fmt.Errorf(`ent: validator failed for field "Record.client_record_id": %w`, err)}
 		}
 	}
 	if ru.mutation.UserCleared() && len(ru.mutation.UserIDs()) > 0 {
@@ -493,6 +518,12 @@ func (ru *RecordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := ru.mutation.IsValid(); ok {
 		_spec.SetField(record.FieldIsValid, field.TypeBool, value)
+	}
+	if value, ok := ru.mutation.ClientRecordID(); ok {
+		_spec.SetField(record.FieldClientRecordID, field.TypeString, value)
+	}
+	if ru.mutation.ClientRecordIDCleared() {
+		_spec.ClearField(record.FieldClientRecordID, field.TypeString)
 	}
 	if ru.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -884,6 +915,26 @@ func (ruo *RecordUpdateOne) SetNillableIsValid(b *bool) *RecordUpdateOne {
 	return ruo
 }
 
+// SetClientRecordID sets the "client_record_id" field.
+func (ruo *RecordUpdateOne) SetClientRecordID(s string) *RecordUpdateOne {
+	ruo.mutation.SetClientRecordID(s)
+	return ruo
+}
+
+// SetNillableClientRecordID sets the "client_record_id" field if the given value is not nil.
+func (ruo *RecordUpdateOne) SetNillableClientRecordID(s *string) *RecordUpdateOne {
+	if s != nil {
+		ruo.SetClientRecordID(*s)
+	}
+	return ruo
+}
+
+// ClearClientRecordID clears the value of the "client_record_id" field.
+func (ruo *RecordUpdateOne) ClearClientRecordID() *RecordUpdateOne {
+	ruo.mutation.ClearClientRecordID()
+	return ruo
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (ruo *RecordUpdateOne) SetUser(u *User) *RecordUpdateOne {
 	return ruo.SetUserID(u.ID)
@@ -981,6 +1032,11 @@ func (ruo *RecordUpdateOne) check() error {
 	if v, ok := ruo.mutation.GameStatus(); ok {
 		if err := record.GameStatusValidator(v); err != nil {
 			return &ValidationError{Name: "game_status", err: fmt.Errorf(`ent: validator failed for field "Record.game_status": %w`, err)}
+		}
+	}
+	if v, ok := ruo.mutation.ClientRecordID(); ok {
+		if err := record.ClientRecordIDValidator(v); err != nil {
+			return &ValidationError{Name: "client_record_id", err: fmt.Errorf(`ent: validator failed for field "Record.client_record_id": %w`, err)}
 		}
 	}
 	if ruo.mutation.UserCleared() && len(ruo.mutation.UserIDs()) > 0 {
@@ -1092,6 +1148,12 @@ func (ruo *RecordUpdateOne) sqlSave(ctx context.Context) (_node *Record, err err
 	}
 	if value, ok := ruo.mutation.IsValid(); ok {
 		_spec.SetField(record.FieldIsValid, field.TypeBool, value)
+	}
+	if value, ok := ruo.mutation.ClientRecordID(); ok {
+		_spec.SetField(record.FieldClientRecordID, field.TypeString, value)
+	}
+	if ruo.mutation.ClientRecordIDCleared() {
+		_spec.ClearField(record.FieldClientRecordID, field.TypeString)
 	}
 	if ruo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

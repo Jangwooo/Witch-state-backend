@@ -3,6 +3,7 @@
 package migrate
 
 import (
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/dialect/sql/schema"
 	"entgo.io/ent/schema/field"
 )
@@ -87,6 +88,7 @@ var (
 		{Name: "artist", Type: field.TypeString, Size: 2147483647},
 		{Name: "composer", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "bpm", Type: field.TypeFloat64},
+		{Name: "duration_seconds", Type: field.TypeFloat64, Default: 0},
 		{Name: "genre", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "is_recommended", Type: field.TypeBool, Default: false},
@@ -151,6 +153,7 @@ var (
 		{Name: "game_status", Type: field.TypeEnum, Enums: []string{"completed", "gave_up", "retry", "failed"}, Default: "completed"},
 		{Name: "additional_info", Type: field.TypeJSON, Nullable: true},
 		{Name: "is_valid", Type: field.TypeBool, Default: true},
+		{Name: "client_record_id", Type: field.TypeString, Unique: true, Nullable: true, Size: 36},
 		{Name: "character_records", Type: field.TypeUUID, Nullable: true},
 		{Name: "music_id", Type: field.TypeString, Size: 2147483647},
 		{Name: "stage_id", Type: field.TypeString, Size: 2147483647},
@@ -164,25 +167,25 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "records_characters_records",
-				Columns:    []*schema.Column{RecordsColumns[16]},
+				Columns:    []*schema.Column{RecordsColumns[17]},
 				RefColumns: []*schema.Column{CharactersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "records_musics_records",
-				Columns:    []*schema.Column{RecordsColumns[17]},
+				Columns:    []*schema.Column{RecordsColumns[18]},
 				RefColumns: []*schema.Column{MusicsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "records_stages_records",
-				Columns:    []*schema.Column{RecordsColumns[18]},
+				Columns:    []*schema.Column{RecordsColumns[19]},
 				RefColumns: []*schema.Column{StagesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "records_users_records",
-				Columns:    []*schema.Column{RecordsColumns[19]},
+				Columns:    []*schema.Column{RecordsColumns[20]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -191,22 +194,22 @@ var (
 			{
 				Name:    "record_user_id_music_id_stage_id",
 				Unique:  false,
-				Columns: []*schema.Column{RecordsColumns[19], RecordsColumns[17], RecordsColumns[18]},
+				Columns: []*schema.Column{RecordsColumns[20], RecordsColumns[18], RecordsColumns[19]},
 			},
 			{
 				Name:    "record_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{RecordsColumns[19]},
+				Columns: []*schema.Column{RecordsColumns[20]},
 			},
 			{
 				Name:    "record_music_id",
 				Unique:  false,
-				Columns: []*schema.Column{RecordsColumns[17]},
+				Columns: []*schema.Column{RecordsColumns[18]},
 			},
 			{
 				Name:    "record_stage_id",
 				Unique:  false,
-				Columns: []*schema.Column{RecordsColumns[18]},
+				Columns: []*schema.Column{RecordsColumns[19]},
 			},
 		},
 	}
@@ -235,6 +238,28 @@ var (
 				OnDelete:   schema.NoAction,
 			},
 		},
+	}
+	// TLevelColumns holds the columns for the "t_level" table.
+	TLevelColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "require_exp", Type: field.TypeInt},
+	}
+	// TLevelTable holds the schema information for the "t_level" table.
+	TLevelTable = &schema.Table{
+		Name:       "t_level",
+		Columns:    TLevelColumns,
+		PrimaryKey: []*schema.Column{TLevelColumns[0]},
+	}
+	// TRankColumns holds the columns for the "t_rank" table.
+	TRankColumns = []*schema.Column{
+		{Name: "Rank", Type: field.TypeString},
+		{Name: "coefficient", Type: field.TypeFloat32},
+	}
+	// TRankTable holds the schema information for the "t_rank" table.
+	TRankTable = &schema.Table{
+		Name:       "t_rank",
+		Columns:    TRankColumns,
+		PrimaryKey: []*schema.Column{TRankColumns[0]},
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
@@ -368,6 +393,8 @@ var (
 		ProductsTable,
 		RecordsTable,
 		StagesTable,
+		TLevelTable,
+		TRankTable,
 		UsersTable,
 		UserAchievementsTable,
 		UserPurchasesTable,
@@ -382,6 +409,12 @@ func init() {
 	RecordsTable.ForeignKeys[2].RefTable = StagesTable
 	RecordsTable.ForeignKeys[3].RefTable = UsersTable
 	StagesTable.ForeignKeys[0].RefTable = MusicsTable
+	TLevelTable.Annotation = &entsql.Annotation{
+		Table: "t_level",
+	}
+	TRankTable.Annotation = &entsql.Annotation{
+		Table: "t_rank",
+	}
 	UserAchievementsTable.ForeignKeys[0].RefTable = AchievementsTable
 	UserAchievementsTable.ForeignKeys[1].RefTable = UsersTable
 	UserPurchasesTable.ForeignKeys[0].RefTable = UsersTable

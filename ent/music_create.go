@@ -83,6 +83,20 @@ func (mc *MusicCreate) SetBpm(f float64) *MusicCreate {
 	return mc
 }
 
+// SetDurationSeconds sets the "duration_seconds" field.
+func (mc *MusicCreate) SetDurationSeconds(f float64) *MusicCreate {
+	mc.mutation.SetDurationSeconds(f)
+	return mc
+}
+
+// SetNillableDurationSeconds sets the "duration_seconds" field if the given value is not nil.
+func (mc *MusicCreate) SetNillableDurationSeconds(f *float64) *MusicCreate {
+	if f != nil {
+		mc.SetDurationSeconds(*f)
+	}
+	return mc
+}
+
 // SetGenre sets the "genre" field.
 func (mc *MusicCreate) SetGenre(s string) *MusicCreate {
 	mc.mutation.SetGenre(s)
@@ -260,6 +274,10 @@ func (mc *MusicCreate) defaults() {
 		v := music.DefaultUpdatedAt()
 		mc.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := mc.mutation.DurationSeconds(); !ok {
+		v := music.DefaultDurationSeconds
+		mc.mutation.SetDurationSeconds(v)
+	}
 	if _, ok := mc.mutation.IsRecommended(); !ok {
 		v := music.DefaultIsRecommended
 		mc.mutation.SetIsRecommended(v)
@@ -294,6 +312,9 @@ func (mc *MusicCreate) check() error {
 	}
 	if _, ok := mc.mutation.Bpm(); !ok {
 		return &ValidationError{Name: "bpm", err: errors.New(`ent: missing required field "Music.bpm"`)}
+	}
+	if _, ok := mc.mutation.DurationSeconds(); !ok {
+		return &ValidationError{Name: "duration_seconds", err: errors.New(`ent: missing required field "Music.duration_seconds"`)}
 	}
 	if _, ok := mc.mutation.IsRecommended(); !ok {
 		return &ValidationError{Name: "is_recommended", err: errors.New(`ent: missing required field "Music.is_recommended"`)}
@@ -365,6 +386,10 @@ func (mc *MusicCreate) createSpec() (*Music, *sqlgraph.CreateSpec) {
 	if value, ok := mc.mutation.Bpm(); ok {
 		_spec.SetField(music.FieldBpm, field.TypeFloat64, value)
 		_node.Bpm = value
+	}
+	if value, ok := mc.mutation.DurationSeconds(); ok {
+		_spec.SetField(music.FieldDurationSeconds, field.TypeFloat64, value)
+		_node.DurationSeconds = value
 	}
 	if value, ok := mc.mutation.Genre(); ok {
 		_spec.SetField(music.FieldGenre, field.TypeString, value)

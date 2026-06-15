@@ -131,6 +131,11 @@ func IsValid(v bool) predicate.Record {
 	return predicate.Record(sql.FieldEQ(FieldIsValid, v))
 }
 
+// ClientRecordID applies equality check predicate on the "client_record_id" field. It's identical to ClientRecordIDEQ.
+func ClientRecordID(v string) predicate.Record {
+	return predicate.Record(sql.FieldEQ(FieldClientRecordID, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Record {
 	return predicate.Record(sql.FieldEQ(FieldCreatedAt, v))
@@ -729,6 +734,81 @@ func IsValidEQ(v bool) predicate.Record {
 // IsValidNEQ applies the NEQ predicate on the "is_valid" field.
 func IsValidNEQ(v bool) predicate.Record {
 	return predicate.Record(sql.FieldNEQ(FieldIsValid, v))
+}
+
+// ClientRecordIDEQ applies the EQ predicate on the "client_record_id" field.
+func ClientRecordIDEQ(v string) predicate.Record {
+	return predicate.Record(sql.FieldEQ(FieldClientRecordID, v))
+}
+
+// ClientRecordIDNEQ applies the NEQ predicate on the "client_record_id" field.
+func ClientRecordIDNEQ(v string) predicate.Record {
+	return predicate.Record(sql.FieldNEQ(FieldClientRecordID, v))
+}
+
+// ClientRecordIDIn applies the In predicate on the "client_record_id" field.
+func ClientRecordIDIn(vs ...string) predicate.Record {
+	return predicate.Record(sql.FieldIn(FieldClientRecordID, vs...))
+}
+
+// ClientRecordIDNotIn applies the NotIn predicate on the "client_record_id" field.
+func ClientRecordIDNotIn(vs ...string) predicate.Record {
+	return predicate.Record(sql.FieldNotIn(FieldClientRecordID, vs...))
+}
+
+// ClientRecordIDGT applies the GT predicate on the "client_record_id" field.
+func ClientRecordIDGT(v string) predicate.Record {
+	return predicate.Record(sql.FieldGT(FieldClientRecordID, v))
+}
+
+// ClientRecordIDGTE applies the GTE predicate on the "client_record_id" field.
+func ClientRecordIDGTE(v string) predicate.Record {
+	return predicate.Record(sql.FieldGTE(FieldClientRecordID, v))
+}
+
+// ClientRecordIDLT applies the LT predicate on the "client_record_id" field.
+func ClientRecordIDLT(v string) predicate.Record {
+	return predicate.Record(sql.FieldLT(FieldClientRecordID, v))
+}
+
+// ClientRecordIDLTE applies the LTE predicate on the "client_record_id" field.
+func ClientRecordIDLTE(v string) predicate.Record {
+	return predicate.Record(sql.FieldLTE(FieldClientRecordID, v))
+}
+
+// ClientRecordIDContains applies the Contains predicate on the "client_record_id" field.
+func ClientRecordIDContains(v string) predicate.Record {
+	return predicate.Record(sql.FieldContains(FieldClientRecordID, v))
+}
+
+// ClientRecordIDHasPrefix applies the HasPrefix predicate on the "client_record_id" field.
+func ClientRecordIDHasPrefix(v string) predicate.Record {
+	return predicate.Record(sql.FieldHasPrefix(FieldClientRecordID, v))
+}
+
+// ClientRecordIDHasSuffix applies the HasSuffix predicate on the "client_record_id" field.
+func ClientRecordIDHasSuffix(v string) predicate.Record {
+	return predicate.Record(sql.FieldHasSuffix(FieldClientRecordID, v))
+}
+
+// ClientRecordIDIsNil applies the IsNil predicate on the "client_record_id" field.
+func ClientRecordIDIsNil() predicate.Record {
+	return predicate.Record(sql.FieldIsNull(FieldClientRecordID))
+}
+
+// ClientRecordIDNotNil applies the NotNil predicate on the "client_record_id" field.
+func ClientRecordIDNotNil() predicate.Record {
+	return predicate.Record(sql.FieldNotNull(FieldClientRecordID))
+}
+
+// ClientRecordIDEqualFold applies the EqualFold predicate on the "client_record_id" field.
+func ClientRecordIDEqualFold(v string) predicate.Record {
+	return predicate.Record(sql.FieldEqualFold(FieldClientRecordID, v))
+}
+
+// ClientRecordIDContainsFold applies the ContainsFold predicate on the "client_record_id" field.
+func ClientRecordIDContainsFold(v string) predicate.Record {
+	return predicate.Record(sql.FieldContainsFold(FieldClientRecordID, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

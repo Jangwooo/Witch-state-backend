@@ -112,20 +112,24 @@ func init() {
 	music.DefaultUpdatedAt = musicDescUpdatedAt.Default.(func() time.Time)
 	// music.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	music.UpdateDefaultUpdatedAt = musicDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// musicDescDurationSeconds is the schema descriptor for duration_seconds field.
+	musicDescDurationSeconds := musicFields[7].Descriptor()
+	// music.DefaultDurationSeconds holds the default value on creation for the duration_seconds field.
+	music.DefaultDurationSeconds = musicDescDurationSeconds.Default.(float64)
 	// musicDescIsRecommended is the schema descriptor for is_recommended field.
-	musicDescIsRecommended := musicFields[9].Descriptor()
+	musicDescIsRecommended := musicFields[10].Descriptor()
 	// music.DefaultIsRecommended holds the default value on creation for the is_recommended field.
 	music.DefaultIsRecommended = musicDescIsRecommended.Default.(bool)
 	// musicDescIsFree is the schema descriptor for is_free field.
-	musicDescIsFree := musicFields[10].Descriptor()
+	musicDescIsFree := musicFields[11].Descriptor()
 	// music.DefaultIsFree holds the default value on creation for the is_free field.
 	music.DefaultIsFree = musicDescIsFree.Default.(bool)
 	// musicDescUnlockLevel is the schema descriptor for unlock_level field.
-	musicDescUnlockLevel := musicFields[11].Descriptor()
+	musicDescUnlockLevel := musicFields[12].Descriptor()
 	// music.DefaultUnlockLevel holds the default value on creation for the unlock_level field.
 	music.DefaultUnlockLevel = musicDescUnlockLevel.Default.(int)
 	// musicDescIsActive is the schema descriptor for is_active field.
-	musicDescIsActive := musicFields[13].Descriptor()
+	musicDescIsActive := musicFields[14].Descriptor()
 	// music.DefaultIsActive holds the default value on creation for the is_active field.
 	music.DefaultIsActive = musicDescIsActive.Default.(bool)
 	productMixin := schema.Product{}.Mixin()
@@ -206,6 +210,10 @@ func init() {
 	recordDescIsValid := recordFields[15].Descriptor()
 	// record.DefaultIsValid holds the default value on creation for the is_valid field.
 	record.DefaultIsValid = recordDescIsValid.Default.(bool)
+	// recordDescClientRecordID is the schema descriptor for client_record_id field.
+	recordDescClientRecordID := recordFields[16].Descriptor()
+	// record.ClientRecordIDValidator is a validator for the "client_record_id" field. It is called by the builders before save.
+	record.ClientRecordIDValidator = recordDescClientRecordID.Validators[0].(func(string) error)
 	// recordDescID is the schema descriptor for id field.
 	recordDescID := recordMixinFields0[0].Descriptor()
 	// record.DefaultID holds the default value on creation for the id field.

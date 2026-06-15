@@ -59,6 +59,8 @@ type Record struct {
 	AdditionalInfo map[string]interface{} `json:"additional_info,omitempty"`
 	// 유효한 기록 여부
 	IsValid bool `json:"is_valid,omitempty"`
+	// 클라이언트 발급 멱등성 키 (batch 송신 시. 단건 POST 에선 null)
+	ClientRecordID *string `json:"client_record_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the RecordQuery when eager-loading is set.
 	Edges             RecordEdges `json:"edges"`
@@ -125,7 +127,7 @@ func (*Record) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case record.FieldScore, record.FieldPerfectCount, record.FieldGoodCount, record.FieldBadCount, record.FieldMissCount, record.FieldMaxCombo:
 			values[i] = new(sql.NullInt64)
-		case record.FieldMusicID, record.FieldStageID, record.FieldRank, record.FieldGameStatus:
+		case record.FieldMusicID, record.FieldStageID, record.FieldRank, record.FieldGameStatus, record.FieldClientRecordID:
 			values[i] = new(sql.NullString)
 		case record.FieldCreatedAt, record.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -264,6 +266,13 @@ func (r *Record) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				r.IsValid = value.Bool
 			}
+		case record.FieldClientRecordID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field client_record_id", values[i])
+			} else if value.Valid {
+				r.ClientRecordID = new(string)
+				*r.ClientRecordID = value.String
+			}
 		case record.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field character_records", values[i])
@@ -375,6 +384,11 @@ func (r *Record) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_valid=")
 	builder.WriteString(fmt.Sprintf("%v", r.IsValid))
+	builder.WriteString(", ")
+	if v := r.ClientRecordID; v != nil {
+		builder.WriteString("client_record_id=")
+		builder.WriteString(*v)
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

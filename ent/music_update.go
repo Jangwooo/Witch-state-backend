@@ -106,6 +106,27 @@ func (mu *MusicUpdate) AddBpm(f float64) *MusicUpdate {
 	return mu
 }
 
+// SetDurationSeconds sets the "duration_seconds" field.
+func (mu *MusicUpdate) SetDurationSeconds(f float64) *MusicUpdate {
+	mu.mutation.ResetDurationSeconds()
+	mu.mutation.SetDurationSeconds(f)
+	return mu
+}
+
+// SetNillableDurationSeconds sets the "duration_seconds" field if the given value is not nil.
+func (mu *MusicUpdate) SetNillableDurationSeconds(f *float64) *MusicUpdate {
+	if f != nil {
+		mu.SetDurationSeconds(*f)
+	}
+	return mu
+}
+
+// AddDurationSeconds adds f to the "duration_seconds" field.
+func (mu *MusicUpdate) AddDurationSeconds(f float64) *MusicUpdate {
+	mu.mutation.AddDurationSeconds(f)
+	return mu
+}
+
 // SetGenre sets the "genre" field.
 func (mu *MusicUpdate) SetGenre(s string) *MusicUpdate {
 	mu.mutation.SetGenre(s)
@@ -372,6 +393,12 @@ func (mu *MusicUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := mu.mutation.AddedBpm(); ok {
 		_spec.AddField(music.FieldBpm, field.TypeFloat64, value)
 	}
+	if value, ok := mu.mutation.DurationSeconds(); ok {
+		_spec.SetField(music.FieldDurationSeconds, field.TypeFloat64, value)
+	}
+	if value, ok := mu.mutation.AddedDurationSeconds(); ok {
+		_spec.AddField(music.FieldDurationSeconds, field.TypeFloat64, value)
+	}
 	if value, ok := mu.mutation.Genre(); ok {
 		_spec.SetField(music.FieldGenre, field.TypeString, value)
 	}
@@ -587,6 +614,27 @@ func (muo *MusicUpdateOne) SetNillableBpm(f *float64) *MusicUpdateOne {
 // AddBpm adds f to the "bpm" field.
 func (muo *MusicUpdateOne) AddBpm(f float64) *MusicUpdateOne {
 	muo.mutation.AddBpm(f)
+	return muo
+}
+
+// SetDurationSeconds sets the "duration_seconds" field.
+func (muo *MusicUpdateOne) SetDurationSeconds(f float64) *MusicUpdateOne {
+	muo.mutation.ResetDurationSeconds()
+	muo.mutation.SetDurationSeconds(f)
+	return muo
+}
+
+// SetNillableDurationSeconds sets the "duration_seconds" field if the given value is not nil.
+func (muo *MusicUpdateOne) SetNillableDurationSeconds(f *float64) *MusicUpdateOne {
+	if f != nil {
+		muo.SetDurationSeconds(*f)
+	}
+	return muo
+}
+
+// AddDurationSeconds adds f to the "duration_seconds" field.
+func (muo *MusicUpdateOne) AddDurationSeconds(f float64) *MusicUpdateOne {
+	muo.mutation.AddDurationSeconds(f)
 	return muo
 }
 
@@ -885,6 +933,12 @@ func (muo *MusicUpdateOne) sqlSave(ctx context.Context) (_node *Music, err error
 	}
 	if value, ok := muo.mutation.AddedBpm(); ok {
 		_spec.AddField(music.FieldBpm, field.TypeFloat64, value)
+	}
+	if value, ok := muo.mutation.DurationSeconds(); ok {
+		_spec.SetField(music.FieldDurationSeconds, field.TypeFloat64, value)
+	}
+	if value, ok := muo.mutation.AddedDurationSeconds(); ok {
+		_spec.AddField(music.FieldDurationSeconds, field.TypeFloat64, value)
 	}
 	if value, ok := muo.mutation.Genre(); ok {
 		_spec.SetField(music.FieldGenre, field.TypeString, value)

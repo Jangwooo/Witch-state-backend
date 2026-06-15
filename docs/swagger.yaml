@@ -40,7 +40,7 @@ definitions:
       total_notes:
         type: integer
     type: object
-  entity.CreateRecordRequest:
+  entity.BatchRecordItem:
     properties:
       accuracy:
         type: number
@@ -49,7 +49,14 @@ definitions:
         type: object
       bad_count:
         type: integer
-      character_id:
+      client_record_id:
+        type: string
+      game_status:
+        enum:
+        - completed
+        - gave_up
+        - retry
+        - failed
         type: string
       good_count:
         type: integer
@@ -66,7 +73,7 @@ definitions:
       perfect_count:
         type: integer
       play_duration:
-        type: integer
+        type: number
       rank:
         type: string
       score:
@@ -75,7 +82,62 @@ definitions:
       stage_id:
         type: string
     required:
-    - character_id
+    - client_record_id
+    - music_id
+    - score
+    - stage_id
+    type: object
+  entity.BatchRecordsRequest:
+    properties:
+      records:
+        items:
+          $ref: '#/definitions/entity.BatchRecordItem'
+        maxItems: 100
+        minItems: 1
+        type: array
+    required:
+    - records
+    type: object
+  entity.CreateRecordRequest:
+    properties:
+      accuracy:
+        type: number
+      additional_info:
+        additionalProperties: true
+        type: object
+      bad_count:
+        type: integer
+      game_status:
+        enum:
+        - completed
+        - gave_up
+        - retry
+        - failed
+        type: string
+      good_count:
+        type: integer
+      is_full_combo:
+        type: boolean
+      is_perfect_play:
+        type: boolean
+      max_combo:
+        type: integer
+      miss_count:
+        type: integer
+      music_id:
+        type: string
+      perfect_count:
+        type: integer
+      play_duration:
+        type: number
+      rank:
+        type: string
+      score:
+        minimum: 0
+        type: integer
+      stage_id:
+        type: string
+    required:
     - music_id
     - score
     - stage_id
@@ -96,6 +158,8 @@ definitions:
     type: object
   entity.SessionResponse:
     properties:
+      hmac_secret:
+        type: string
       session_id:
         type: string
       user:
@@ -103,12 +167,12 @@ definitions:
     type: object
   entity.SteamSignInRequest:
     properties:
-      steam_id:
+      id:
         type: string
       ticket:
         type: string
     required:
-    - steam_id
+    - id
     - ticket
     type: object
   entity.StoveSignInRequest:
@@ -153,10 +217,78 @@ definitions:
       updated_at:
         type: string
     type: object
+  repository.BatchItemStatus:
+    enum:
+    - accepted
+    - duplicate
+    - rejected
+    type: string
+    x-enum-varnames:
+    - BatchStatusAccepted
+    - BatchStatusDuplicate
+    - BatchStatusRejected
+  repository.BatchRecordsResponse:
+    properties:
+      results:
+        items:
+          $ref: '#/definitions/repository.BatchResultItem'
+        type: array
+      user_after:
+        $ref: '#/definitions/repository.BatchUserAfter'
+    type: object
+  repository.BatchRejectReason:
+    enum:
+    - invalid_payload
+    - unknown_music
+    - unknown_stage
+    - score_out_of_range
+    - payload_inconsistent
+    - duration_out_of_range
+    type: string
+    x-enum-varnames:
+    - ReasonInvalidPayload
+    - ReasonUnknownMusic
+    - ReasonUnknownStage
+    - ReasonScoreOutOfRange
+    - ReasonPayloadInconsistent
+    - ReasonDurationOutOfRange
+  repository.BatchResultItem:
+    properties:
+      client_record_id:
+        type: string
+      exp_gain:
+        $ref: '#/definitions/repository.ExpGain'
+      reason:
+        $ref: '#/definitions/repository.BatchRejectReason'
+      record_id:
+        type: string
+      status:
+        $ref: '#/definitions/repository.BatchItemStatus'
+    type: object
+  repository.BatchUserAfter:
+    properties:
+      exp:
+        type: integer
+      level:
+        type: integer
+    type: object
   repository.BestRecordResponse:
     properties:
       record:
         $ref: '#/definitions/repository.RecordResponse'
+    type: object
+  repository.ExpGain:
+    properties:
+      exp_from:
+        type: integer
+      exp_gained:
+        type: integer
+      exp_to:
+        type: integer
+      level_from:
+        type: integer
+      level_to:
+        type: integer
     type: object
   repository.ListRecordResponse:
     properties:
@@ -174,8 +306,6 @@ definitions:
         type: object
       bad_count:
         type: integer
-      character_id:
-        type: string
       created_at:
         type: string
       good_count:
@@ -194,10 +324,6 @@ definitions:
         type: string
       perfect_count:
         type: integer
-      play_duration:
-        type: integer
-      played_at:
-        type: string
       rank:
         type: string
       score:
@@ -211,6 +337,8 @@ definitions:
     type: object
   repository.SingleRecordResponse:
     properties:
+      exp_gain:
+        $ref: '#/definitions/repository.ExpGain'
       record:
         $ref: '#/definitions/repository.RecordResponse'
     type: object
@@ -372,6 +500,47 @@ paths:
       security:
       - BearerAuth: []
       summary: 플레이 기록 저장
+      tags:
+      - Record
+  /records/batch:
+    post:
+      consumes:
+      - application/json
+      description: '오프라인 누적된 플레이 기록을 일괄 저장합니다 (멱등성: client_record_id)'
+      parameters:
+      - description: batch 요청
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.BatchRecordsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 처리 결과
+          schema:
+            allOf:
+            - $ref: '#/definitions/entity.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/repository.BatchRecordsResponse'
+              type: object
+        "400":
+          description: 잘못된 요청 형식 / 100건 초과
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+        "401":
+          description: 인증 필요
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+        "500":
+          description: 서버 내부 오류
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 플레이 기록 일괄 저장
       tags:
       - Record
   /records/best:

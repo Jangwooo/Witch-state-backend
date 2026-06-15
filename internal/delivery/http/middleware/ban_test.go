@@ -50,6 +50,9 @@ func (f *fakeUserRepo) UpdatePlatformProfile(context.Context, uuid.UUID, string,
 func (f *fakeUserRepo) UpdateLastLogin(context.Context, uuid.UUID, time.Time) (*entity.User, error) {
 	panic("not used")
 }
+func (f *fakeUserRepo) UpdateExpAndLevel(context.Context, uuid.UUID, int, int) (*entity.User, error) {
+	panic("not used")
+}
 
 // compile-time check
 var _ domainrepo.UserRepository = (*fakeUserRepo)(nil)

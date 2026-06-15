@@ -236,6 +236,20 @@ func (rc *RecordCreate) SetNillableIsValid(b *bool) *RecordCreate {
 	return rc
 }
 
+// SetClientRecordID sets the "client_record_id" field.
+func (rc *RecordCreate) SetClientRecordID(s string) *RecordCreate {
+	rc.mutation.SetClientRecordID(s)
+	return rc
+}
+
+// SetNillableClientRecordID sets the "client_record_id" field if the given value is not nil.
+func (rc *RecordCreate) SetNillableClientRecordID(s *string) *RecordCreate {
+	if s != nil {
+		rc.SetClientRecordID(*s)
+	}
+	return rc
+}
+
 // SetID sets the "id" field.
 func (rc *RecordCreate) SetID(u uuid.UUID) *RecordCreate {
 	rc.mutation.SetID(u)
@@ -414,6 +428,11 @@ func (rc *RecordCreate) check() error {
 	if _, ok := rc.mutation.IsValid(); !ok {
 		return &ValidationError{Name: "is_valid", err: errors.New(`ent: missing required field "Record.is_valid"`)}
 	}
+	if v, ok := rc.mutation.ClientRecordID(); ok {
+		if err := record.ClientRecordIDValidator(v); err != nil {
+			return &ValidationError{Name: "client_record_id", err: fmt.Errorf(`ent: validator failed for field "Record.client_record_id": %w`, err)}
+		}
+	}
 	if len(rc.mutation.UserIDs()) == 0 {
 		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "Record.user"`)}
 	}
@@ -517,6 +536,10 @@ func (rc *RecordCreate) createSpec() (*Record, *sqlgraph.CreateSpec) {
 	if value, ok := rc.mutation.IsValid(); ok {
 		_spec.SetField(record.FieldIsValid, field.TypeBool, value)
 		_node.IsValid = value
+	}
+	if value, ok := rc.mutation.ClientRecordID(); ok {
+		_spec.SetField(record.FieldClientRecordID, field.TypeString, value)
+		_node.ClientRecordID = &value
 	}
 	if nodes := rc.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
