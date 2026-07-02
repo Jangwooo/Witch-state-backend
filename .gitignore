@@ -5,3 +5,8 @@ logs/
 
 .idea
 *.sql
+.claude/settings.local.json
+.claude/settings.json
+
+# 운영 가이드 md (서버 기동에 불필요, 로컬/협업 참고용)
+*_OPS.md

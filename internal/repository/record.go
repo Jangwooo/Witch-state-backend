@@ -57,12 +57,34 @@ func (r *recordRepository) create(ctx context.Context, userID uuid.UUID, clientR
 		create.SetAdditionalInfo(map[string]interface{}{})
 	}
 
+	// 전시(EXHIBITION) 기록은 is_valid=false 로 저장해 모든 집계(List/Best 등)에서 자동 제외한다
+	// (exhibition-logging Q2). 마커는 additional_info.is_exhibition==true.
+	// 비전시 기록은 세팅하지 않아 스키마 기본값(true)을 그대로 사용 — 기존 동작 불변.
+	if isExhibitionAdditional(req.Additional) {
+		create.SetIsValid(false)
+	}
+
 	rec, err := create.Save(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	return entity.NewRecord(rec), nil
+}
+
+// isExhibitionAdditional 은 additional_info.is_exhibition==true 여부를 판정한다
+// (exhibition-logging Q1/Q2). usecase.isExhibitionRequest 와 동일 규칙 — repo 가 usecase 를
+// import 하면 순환이 되므로 map 기준 로직만 로컬 복제.
+func isExhibitionAdditional(additional map[string]interface{}) bool {
+	if additional == nil {
+		return false
+	}
+	v, ok := additional["is_exhibition"]
+	if !ok {
+		return false
+	}
+	b, ok := v.(bool)
+	return ok && b
 }
 
 func (r *recordRepository) FindByClientRecordID(ctx context.Context, clientRecordID string) (*entity.Record, error) {

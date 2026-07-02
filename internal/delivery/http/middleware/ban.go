@@ -74,6 +74,11 @@ func (c *BanCache) Invalidate(id uuid.UUID) {
 // cache 는 nil 도 허용 — 매 요청 DB 조회로 동작합니다.
 func BanCheckMiddleware(userRepo repository.UserRepository, cache *BanCache) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		// 전시(EXHIBITION) 요청은 밴 체크 대상이 아니다 (고정 계정, exhibition-logging Q4).
+		if IsExhibition(c) {
+			return c.Next()
+		}
+
 		usr, _ := c.Locals("user").(*entity.User)
 		if usr == nil || usr.User == nil {
 			// AuthMiddleware 가 이미 차단했어야 하지만, 방어적으로 통과.

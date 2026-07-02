@@ -11,6 +11,12 @@ import (
 // AuthMiddleware는 사용자 인증을 처리하는 미들웨어입니다.
 func AuthMiddleware(sessionStore session.SessionStore) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		// 전시(EXHIBITION) 요청은 ExhibitionGate 가 이미 고정 계정을 c.Locals("user") 에 주입했으므로
+		// 세션 인증을 건너뛴다 (exhibition-logging Q4 — 전시 빌드는 세션 없음).
+		if IsExhibition(c) {
+			return c.Next()
+		}
+
 		// 1. Authorization 헤더에서 토큰 가져오기
 		authHeader := c.Get("Authorization")
 		if authHeader == "" {

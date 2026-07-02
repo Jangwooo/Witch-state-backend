@@ -1,6 +1,8 @@
 package bootstrap
 
 import (
+	"context"
+
 	"github.com/witchs-lounge_backend/ent"
 	"github.com/witchs-lounge_backend/internal/delivery/http/handler"
 	"github.com/witchs-lounge_backend/internal/delivery/http/middleware"
@@ -31,6 +33,9 @@ type AppDependencies struct {
 	// users.is_banned 확인용
 	UserRepo domainrepo.UserRepository
 	BanCache *middleware.BanCache
+
+	// 전시(EXHIBITION) 게이트 설정 (EXHIBITION_KEY + 고정 계정). 미설정 시 게이트 비활성.
+	ExhibitionGate middleware.ExhibitionGateConfig
 }
 
 // SetupAppDependencies 애플리케이션 의존성 초기화
@@ -44,6 +49,9 @@ func SetupAppDependencies(dbClient *ent.Client, sessionStore session.SessionStor
 
 	// HMAC 검증 설정 로드. 미설정 시 ModeOff = 현재 운영 동작과 동일.
 	hmacCfg := hmacauth.LoadConfig()
+
+	// 전시(EXHIBITION) 게이트 설정 로드. EXHIBITION_KEY/EXHIBITION_USER_ID 미설정 시 비활성 (기존 동작 불변).
+	exhibitionGate := middleware.LoadExhibitionGate(context.Background(), userRepo)
 
 	// Sanity validator 운영 모드 로드. 미설정 시 ModeOff = 100% 기존 운영 동작.
 	sanityMode := usecase.LoadSanityMode()
@@ -73,9 +81,10 @@ func SetupAppDependencies(dbClient *ent.Client, sessionStore session.SessionStor
 		MusicHandler:  musicHandler,
 		StageHandler:  stageHandler,
 
-		SessionStore: sessionStore,
-		HMACConfig:   hmacCfg,
-		UserRepo:     userRepo,
-		BanCache:     middleware.NewBanCache(0), // 기본 TTL = 60s
+		SessionStore:   sessionStore,
+		HMACConfig:     hmacCfg,
+		UserRepo:       userRepo,
+		BanCache:       middleware.NewBanCache(0), // 기본 TTL = 60s
+		ExhibitionGate: exhibitionGate,
 	}
 }

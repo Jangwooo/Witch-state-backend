@@ -66,6 +66,12 @@ func HMACMiddleware(cfg HMACVerifierConfig) fiber.Handler {
 	}
 
 	return func(c *fiber.Ctx) error {
+		// 전시(EXHIBITION) 요청은 세션이 없어 HMAC 시크릿도 없다 (exhibition-logging Q4).
+		// 클라도 X-Signature 를 부착하지 않으므로 검증을 건너뛴다.
+		if IsExhibition(c) {
+			return c.Next()
+		}
+
 		hcfg := cfg.Config
 		if hcfg == nil || hcfg.Mode == hmacauth.ModeOff {
 			return c.Next()

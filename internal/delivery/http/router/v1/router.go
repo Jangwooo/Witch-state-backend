@@ -20,6 +20,9 @@ type RouterConfig struct {
 	UserRepo     repository.UserRepository
 	BanCache     *middleware.BanCache
 
+	// 전시(EXHIBITION) 게이트 설정. 미설정 시 게이트 비활성 (기존 동작 불변).
+	ExhibitionGate middleware.ExhibitionGateConfig
+
 	StoveHandler  *handler.StoveHandler
 	SteamHandler  *handler.SteamHandler
 	UserHandler   *handler.UserHandler
@@ -47,7 +50,11 @@ func SetupRoutes(app *fiber.App, config *RouterConfig) {
 	NewStoveRouter(v1, config.StoveHandler)
 	NewSteamRouter(v1, config.SteamHandler)
 	NewUserRouter(v1, config.UserHandler, config.SessionStore, banMW)
-	NewRecordRouter(v1, config.RecordHandler, config.SessionStore, banMW, hmacMW)
+	// 전시 게이트: record 라우트 최전단. 유효한 X-Exhibition-Key 면 세션/밴/HMAC 우회.
+	// 미설정 시 no-op (모든 요청이 기존 auth 체인을 그대로 탐).
+	exhibitionGate := middleware.ExhibitionGate(config.ExhibitionGate)
+
+	NewRecordRouter(v1, config.RecordHandler, config.SessionStore, exhibitionGate, banMW, hmacMW)
 	MusicRouter(v1, config.MusicHandler)
 	StageRouter(v1, config.StageHandler)
 

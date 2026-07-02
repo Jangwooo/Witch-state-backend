@@ -104,6 +104,13 @@ func (u *recordUseCase) Create(ctx context.Context, userID uuid.UUID, req *entit
 	rr := toRecordResponse(created)
 	resp := &repository.SingleRecordResponse{Record: rr}
 
+	// 전시(EXHIBITION) 기록은 EXP 미부여 (exhibition-logging Q3).
+	// 전시 record 는 저장은 하되 is_valid=false (repo 에서 처리) + exp_gain 미포함.
+	// completed 여도 전시면 applyExpGain 을 건너뛴다.
+	if isExhibitionRequest(req) {
+		return resp, nil
+	}
+
 	// Complete 상태인 기록만 경험치로 인정
 	if req.GameStatus == "" || req.GameStatus == "completed" {
 		gain, err := u.applyExpGain(ctx, userID, req)
@@ -113,6 +120,21 @@ func (u *recordUseCase) Create(ctx context.Context, userID uuid.UUID, req *entit
 	}
 
 	return resp, nil
+}
+
+// isExhibitionRequest 는 요청의 additional_info.is_exhibition 마커로 전시 기록 여부를 판정한다
+// (exhibition-logging Q1). 클라(전시 빌드)가 additional_info 에 실어 보낸다.
+// 마커가 없거나 true 가 아니면 일반 기록 — 기존 동작과 100% 동일.
+func isExhibitionRequest(req *entity.CreateRecordRequest) bool {
+	if req == nil || req.Additional == nil {
+		return false
+	}
+	v, ok := req.Additional["is_exhibition"]
+	if !ok {
+		return false
+	}
+	b, ok := v.(bool)
+	return ok && b
 }
 
 // logSanityShadowEntityMiss: shadow 모드에서 music/stage 미존재를 발견했을 때 로그.
