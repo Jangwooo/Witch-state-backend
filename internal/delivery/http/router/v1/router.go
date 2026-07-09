@@ -23,12 +23,13 @@ type RouterConfig struct {
 	// 전시(EXHIBITION) 게이트 설정. 미설정 시 게이트 비활성 (기존 동작 불변).
 	ExhibitionGate middleware.ExhibitionGateConfig
 
-	StoveHandler  *handler.StoveHandler
-	SteamHandler  *handler.SteamHandler
-	UserHandler   *handler.UserHandler
-	RecordHandler *handler.RecordHandler
-	MusicHandler  *handler.MusicHandler
-	StageHandler  *handler.StageHandler
+	StoveHandler    *handler.StoveHandler
+	SteamHandler    *handler.SteamHandler
+	UserHandler     *handler.UserHandler
+	RecordHandler   *handler.RecordHandler
+	EventLogHandler *handler.EventLogHandler
+	MusicHandler    *handler.MusicHandler
+	StageHandler    *handler.StageHandler
 }
 
 // SetupRoutes 모든 라우터를 마운트
@@ -55,6 +56,8 @@ func SetupRoutes(app *fiber.App, config *RouterConfig) {
 	exhibitionGate := middleware.ExhibitionGate(config.ExhibitionGate)
 
 	NewRecordRouter(v1, config.RecordHandler, config.SessionStore, exhibitionGate, banMW, hmacMW)
+	// Event 로그 라우트: record 와 동일 auth→ban→hmac 체인, 단 exhibitionGate 미적용 (전시 빌드는 로그 미송신).
+	NewEventLogRouter(v1, config.EventLogHandler, config.SessionStore, banMW, hmacMW)
 	MusicRouter(v1, config.MusicHandler)
 	StageRouter(v1, config.StageHandler)
 

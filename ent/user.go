@@ -78,13 +78,15 @@ type UserEdges struct {
 	PurchasedProducts []*Product `json:"purchased_products,omitempty"`
 	// Records holds the value of the records edge.
 	Records []*Record `json:"records,omitempty"`
+	// EventLogs holds the value of the event_logs edge.
+	EventLogs []*EventLog `json:"event_logs,omitempty"`
 	// UserAchievements holds the value of the user_achievements edge.
 	UserAchievements []*UserAchievement `json:"user_achievements,omitempty"`
 	// UserPurchases holds the value of the user_purchases edge.
 	UserPurchases []*UserPurchase `json:"user_purchases,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // PurchasedProductsOrErr returns the PurchasedProducts value or an error if the edge
@@ -105,10 +107,19 @@ func (e UserEdges) RecordsOrErr() ([]*Record, error) {
 	return nil, &NotLoadedError{edge: "records"}
 }
 
+// EventLogsOrErr returns the EventLogs value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) EventLogsOrErr() ([]*EventLog, error) {
+	if e.loadedTypes[2] {
+		return e.EventLogs, nil
+	}
+	return nil, &NotLoadedError{edge: "event_logs"}
+}
+
 // UserAchievementsOrErr returns the UserAchievements value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) UserAchievementsOrErr() ([]*UserAchievement, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.UserAchievements, nil
 	}
 	return nil, &NotLoadedError{edge: "user_achievements"}
@@ -117,7 +128,7 @@ func (e UserEdges) UserAchievementsOrErr() ([]*UserAchievement, error) {
 // UserPurchasesOrErr returns the UserPurchases value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) UserPurchasesOrErr() ([]*UserPurchase, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		return e.UserPurchases, nil
 	}
 	return nil, &NotLoadedError{edge: "user_purchases"}
@@ -329,6 +340,11 @@ func (u *User) QueryPurchasedProducts() *ProductQuery {
 // QueryRecords queries the "records" edge of the User entity.
 func (u *User) QueryRecords() *RecordQuery {
 	return NewUserClient(u.config).QueryRecords(u)
+}
+
+// QueryEventLogs queries the "event_logs" edge of the User entity.
+func (u *User) QueryEventLogs() *EventLogQuery {
+	return NewUserClient(u.config).QueryEventLogs(u)
 }
 
 // QueryUserAchievements queries the "user_achievements" edge of the User entity.

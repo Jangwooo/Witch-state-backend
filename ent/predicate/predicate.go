@@ -12,6 +12,9 @@ type Achievement func(*sql.Selector)
 // Character is the predicate function for character builders.
 type Character func(*sql.Selector)
 
+// EventLog is the predicate function for eventlog builders.
+type EventLog func(*sql.Selector)
+
 // Item is the predicate function for item builders.
 type Item func(*sql.Selector)
 

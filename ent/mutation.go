@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/witchs-lounge_backend/ent/achievement"
 	"github.com/witchs-lounge_backend/ent/character"
+	"github.com/witchs-lounge_backend/ent/eventlog"
 	"github.com/witchs-lounge_backend/ent/item"
 	"github.com/witchs-lounge_backend/ent/music"
 	"github.com/witchs-lounge_backend/ent/predicate"
@@ -38,6 +39,7 @@ const (
 	// Node types.
 	TypeAchievement     = "Achievement"
 	TypeCharacter       = "Character"
+	TypeEventLog        = "EventLog"
 	TypeItem            = "Item"
 	TypeMusic           = "Music"
 	TypeProduct         = "Product"
@@ -1817,6 +1819,792 @@ func (m *CharacterMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Character edge %s", name)
+}
+
+// EventLogMutation represents an operation that mutates the EventLog nodes in the graph.
+type EventLogMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *uuid.UUID
+	created_at    *time.Time
+	updated_at    *time.Time
+	event_key     *string
+	state_before  *string
+	state_after   *string
+	changed_at    *time.Time
+	client_log_id *string
+	clearedFields map[string]struct{}
+	user          *uuid.UUID
+	cleareduser   bool
+	done          bool
+	oldValue      func(context.Context) (*EventLog, error)
+	predicates    []predicate.EventLog
+}
+
+var _ ent.Mutation = (*EventLogMutation)(nil)
+
+// eventlogOption allows management of the mutation configuration using functional options.
+type eventlogOption func(*EventLogMutation)
+
+// newEventLogMutation creates new mutation for the EventLog entity.
+func newEventLogMutation(c config, op Op, opts ...eventlogOption) *EventLogMutation {
+	m := &EventLogMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeEventLog,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withEventLogID sets the ID field of the mutation.
+func withEventLogID(id uuid.UUID) eventlogOption {
+	return func(m *EventLogMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *EventLog
+		)
+		m.oldValue = func(ctx context.Context) (*EventLog, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EventLog.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withEventLog sets the old EventLog of the mutation.
+func withEventLog(node *EventLog) eventlogOption {
+	return func(m *EventLogMutation) {
+		m.oldValue = func(context.Context) (*EventLog, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m EventLogMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m EventLogMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EventLog entities.
+func (m *EventLogMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *EventLogMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *EventLogMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().EventLog.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *EventLogMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *EventLogMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the EventLog entity.
+// If the EventLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EventLogMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *EventLogMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *EventLogMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *EventLogMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the EventLog entity.
+// If the EventLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EventLogMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *EventLogMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *EventLogMutation) SetUserID(u uuid.UUID) {
+	m.user = &u
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *EventLogMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the EventLog entity.
+// If the EventLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EventLogMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *EventLogMutation) ResetUserID() {
+	m.user = nil
+}
+
+// SetEventKey sets the "event_key" field.
+func (m *EventLogMutation) SetEventKey(s string) {
+	m.event_key = &s
+}
+
+// EventKey returns the value of the "event_key" field in the mutation.
+func (m *EventLogMutation) EventKey() (r string, exists bool) {
+	v := m.event_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEventKey returns the old "event_key" field's value of the EventLog entity.
+// If the EventLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EventLogMutation) OldEventKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEventKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEventKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEventKey: %w", err)
+	}
+	return oldValue.EventKey, nil
+}
+
+// ResetEventKey resets all changes to the "event_key" field.
+func (m *EventLogMutation) ResetEventKey() {
+	m.event_key = nil
+}
+
+// SetStateBefore sets the "state_before" field.
+func (m *EventLogMutation) SetStateBefore(s string) {
+	m.state_before = &s
+}
+
+// StateBefore returns the value of the "state_before" field in the mutation.
+func (m *EventLogMutation) StateBefore() (r string, exists bool) {
+	v := m.state_before
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStateBefore returns the old "state_before" field's value of the EventLog entity.
+// If the EventLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EventLogMutation) OldStateBefore(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStateBefore is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStateBefore requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStateBefore: %w", err)
+	}
+	return oldValue.StateBefore, nil
+}
+
+// ResetStateBefore resets all changes to the "state_before" field.
+func (m *EventLogMutation) ResetStateBefore() {
+	m.state_before = nil
+}
+
+// SetStateAfter sets the "state_after" field.
+func (m *EventLogMutation) SetStateAfter(s string) {
+	m.state_after = &s
+}
+
+// StateAfter returns the value of the "state_after" field in the mutation.
+func (m *EventLogMutation) StateAfter() (r string, exists bool) {
+	v := m.state_after
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStateAfter returns the old "state_after" field's value of the EventLog entity.
+// If the EventLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EventLogMutation) OldStateAfter(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStateAfter is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStateAfter requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStateAfter: %w", err)
+	}
+	return oldValue.StateAfter, nil
+}
+
+// ResetStateAfter resets all changes to the "state_after" field.
+func (m *EventLogMutation) ResetStateAfter() {
+	m.state_after = nil
+}
+
+// SetChangedAt sets the "changed_at" field.
+func (m *EventLogMutation) SetChangedAt(t time.Time) {
+	m.changed_at = &t
+}
+
+// ChangedAt returns the value of the "changed_at" field in the mutation.
+func (m *EventLogMutation) ChangedAt() (r time.Time, exists bool) {
+	v := m.changed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChangedAt returns the old "changed_at" field's value of the EventLog entity.
+// If the EventLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EventLogMutation) OldChangedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChangedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChangedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChangedAt: %w", err)
+	}
+	return oldValue.ChangedAt, nil
+}
+
+// ResetChangedAt resets all changes to the "changed_at" field.
+func (m *EventLogMutation) ResetChangedAt() {
+	m.changed_at = nil
+}
+
+// SetClientLogID sets the "client_log_id" field.
+func (m *EventLogMutation) SetClientLogID(s string) {
+	m.client_log_id = &s
+}
+
+// ClientLogID returns the value of the "client_log_id" field in the mutation.
+func (m *EventLogMutation) ClientLogID() (r string, exists bool) {
+	v := m.client_log_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClientLogID returns the old "client_log_id" field's value of the EventLog entity.
+// If the EventLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EventLogMutation) OldClientLogID(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClientLogID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClientLogID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClientLogID: %w", err)
+	}
+	return oldValue.ClientLogID, nil
+}
+
+// ClearClientLogID clears the value of the "client_log_id" field.
+func (m *EventLogMutation) ClearClientLogID() {
+	m.client_log_id = nil
+	m.clearedFields[eventlog.FieldClientLogID] = struct{}{}
+}
+
+// ClientLogIDCleared returns if the "client_log_id" field was cleared in this mutation.
+func (m *EventLogMutation) ClientLogIDCleared() bool {
+	_, ok := m.clearedFields[eventlog.FieldClientLogID]
+	return ok
+}
+
+// ResetClientLogID resets all changes to the "client_log_id" field.
+func (m *EventLogMutation) ResetClientLogID() {
+	m.client_log_id = nil
+	delete(m.clearedFields, eventlog.FieldClientLogID)
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *EventLogMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[eventlog.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *EventLogMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *EventLogMutation) UserIDs() (ids []uuid.UUID) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *EventLogMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Where appends a list predicates to the EventLogMutation builder.
+func (m *EventLogMutation) Where(ps ...predicate.EventLog) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the EventLogMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *EventLogMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.EventLog, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *EventLogMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *EventLogMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (EventLog).
+func (m *EventLogMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *EventLogMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.created_at != nil {
+		fields = append(fields, eventlog.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, eventlog.FieldUpdatedAt)
+	}
+	if m.user != nil {
+		fields = append(fields, eventlog.FieldUserID)
+	}
+	if m.event_key != nil {
+		fields = append(fields, eventlog.FieldEventKey)
+	}
+	if m.state_before != nil {
+		fields = append(fields, eventlog.FieldStateBefore)
+	}
+	if m.state_after != nil {
+		fields = append(fields, eventlog.FieldStateAfter)
+	}
+	if m.changed_at != nil {
+		fields = append(fields, eventlog.FieldChangedAt)
+	}
+	if m.client_log_id != nil {
+		fields = append(fields, eventlog.FieldClientLogID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *EventLogMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case eventlog.FieldCreatedAt:
+		return m.CreatedAt()
+	case eventlog.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case eventlog.FieldUserID:
+		return m.UserID()
+	case eventlog.FieldEventKey:
+		return m.EventKey()
+	case eventlog.FieldStateBefore:
+		return m.StateBefore()
+	case eventlog.FieldStateAfter:
+		return m.StateAfter()
+	case eventlog.FieldChangedAt:
+		return m.ChangedAt()
+	case eventlog.FieldClientLogID:
+		return m.ClientLogID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *EventLogMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case eventlog.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case eventlog.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case eventlog.FieldUserID:
+		return m.OldUserID(ctx)
+	case eventlog.FieldEventKey:
+		return m.OldEventKey(ctx)
+	case eventlog.FieldStateBefore:
+		return m.OldStateBefore(ctx)
+	case eventlog.FieldStateAfter:
+		return m.OldStateAfter(ctx)
+	case eventlog.FieldChangedAt:
+		return m.OldChangedAt(ctx)
+	case eventlog.FieldClientLogID:
+		return m.OldClientLogID(ctx)
+	}
+	return nil, fmt.Errorf("unknown EventLog field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EventLogMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case eventlog.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case eventlog.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case eventlog.FieldUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case eventlog.FieldEventKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEventKey(v)
+		return nil
+	case eventlog.FieldStateBefore:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStateBefore(v)
+		return nil
+	case eventlog.FieldStateAfter:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStateAfter(v)
+		return nil
+	case eventlog.FieldChangedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChangedAt(v)
+		return nil
+	case eventlog.FieldClientLogID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClientLogID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EventLog field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *EventLogMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *EventLogMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EventLogMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown EventLog numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *EventLogMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(eventlog.FieldClientLogID) {
+		fields = append(fields, eventlog.FieldClientLogID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *EventLogMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *EventLogMutation) ClearField(name string) error {
+	switch name {
+	case eventlog.FieldClientLogID:
+		m.ClearClientLogID()
+		return nil
+	}
+	return fmt.Errorf("unknown EventLog nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *EventLogMutation) ResetField(name string) error {
+	switch name {
+	case eventlog.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case eventlog.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case eventlog.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case eventlog.FieldEventKey:
+		m.ResetEventKey()
+		return nil
+	case eventlog.FieldStateBefore:
+		m.ResetStateBefore()
+		return nil
+	case eventlog.FieldStateAfter:
+		m.ResetStateAfter()
+		return nil
+	case eventlog.FieldChangedAt:
+		m.ResetChangedAt()
+		return nil
+	case eventlog.FieldClientLogID:
+		m.ResetClientLogID()
+		return nil
+	}
+	return fmt.Errorf("unknown EventLog field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *EventLogMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, eventlog.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *EventLogMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case eventlog.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *EventLogMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *EventLogMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *EventLogMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, eventlog.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *EventLogMutation) EdgeCleared(name string) bool {
+	switch name {
+	case eventlog.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *EventLogMutation) ClearEdge(name string) error {
+	switch name {
+	case eventlog.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown EventLog unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *EventLogMutation) ResetEdge(name string) error {
+	switch name {
+	case eventlog.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown EventLog edge %s", name)
 }
 
 // ItemMutation represents an operation that mutates the Item nodes in the graph.
@@ -8425,6 +9213,9 @@ type UserMutation struct {
 	records                   map[uuid.UUID]struct{}
 	removedrecords            map[uuid.UUID]struct{}
 	clearedrecords            bool
+	event_logs                map[uuid.UUID]struct{}
+	removedevent_logs         map[uuid.UUID]struct{}
+	clearedevent_logs         bool
 	user_achievements         map[uuid.UUID]struct{}
 	removeduser_achievements  map[uuid.UUID]struct{}
 	cleareduser_achievements  bool
@@ -9647,6 +10438,60 @@ func (m *UserMutation) ResetRecords() {
 	m.removedrecords = nil
 }
 
+// AddEventLogIDs adds the "event_logs" edge to the EventLog entity by ids.
+func (m *UserMutation) AddEventLogIDs(ids ...uuid.UUID) {
+	if m.event_logs == nil {
+		m.event_logs = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.event_logs[ids[i]] = struct{}{}
+	}
+}
+
+// ClearEventLogs clears the "event_logs" edge to the EventLog entity.
+func (m *UserMutation) ClearEventLogs() {
+	m.clearedevent_logs = true
+}
+
+// EventLogsCleared reports if the "event_logs" edge to the EventLog entity was cleared.
+func (m *UserMutation) EventLogsCleared() bool {
+	return m.clearedevent_logs
+}
+
+// RemoveEventLogIDs removes the "event_logs" edge to the EventLog entity by IDs.
+func (m *UserMutation) RemoveEventLogIDs(ids ...uuid.UUID) {
+	if m.removedevent_logs == nil {
+		m.removedevent_logs = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.event_logs, ids[i])
+		m.removedevent_logs[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEventLogs returns the removed IDs of the "event_logs" edge to the EventLog entity.
+func (m *UserMutation) RemovedEventLogsIDs() (ids []uuid.UUID) {
+	for id := range m.removedevent_logs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EventLogsIDs returns the "event_logs" edge IDs in the mutation.
+func (m *UserMutation) EventLogsIDs() (ids []uuid.UUID) {
+	for id := range m.event_logs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEventLogs resets all changes to the "event_logs" edge.
+func (m *UserMutation) ResetEventLogs() {
+	m.event_logs = nil
+	m.clearedevent_logs = false
+	m.removedevent_logs = nil
+}
+
 // AddUserAchievementIDs adds the "user_achievements" edge to the UserAchievement entity by ids.
 func (m *UserMutation) AddUserAchievementIDs(ids ...uuid.UUID) {
 	if m.user_achievements == nil {
@@ -10358,12 +11203,15 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.purchased_products != nil {
 		edges = append(edges, user.EdgePurchasedProducts)
 	}
 	if m.records != nil {
 		edges = append(edges, user.EdgeRecords)
+	}
+	if m.event_logs != nil {
+		edges = append(edges, user.EdgeEventLogs)
 	}
 	if m.user_achievements != nil {
 		edges = append(edges, user.EdgeUserAchievements)
@@ -10390,6 +11238,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeEventLogs:
+		ids := make([]ent.Value, 0, len(m.event_logs))
+		for id := range m.event_logs {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeUserAchievements:
 		ids := make([]ent.Value, 0, len(m.user_achievements))
 		for id := range m.user_achievements {
@@ -10408,12 +11262,15 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removedpurchased_products != nil {
 		edges = append(edges, user.EdgePurchasedProducts)
 	}
 	if m.removedrecords != nil {
 		edges = append(edges, user.EdgeRecords)
+	}
+	if m.removedevent_logs != nil {
+		edges = append(edges, user.EdgeEventLogs)
 	}
 	if m.removeduser_achievements != nil {
 		edges = append(edges, user.EdgeUserAchievements)
@@ -10440,6 +11297,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeEventLogs:
+		ids := make([]ent.Value, 0, len(m.removedevent_logs))
+		for id := range m.removedevent_logs {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeUserAchievements:
 		ids := make([]ent.Value, 0, len(m.removeduser_achievements))
 		for id := range m.removeduser_achievements {
@@ -10458,12 +11321,15 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedpurchased_products {
 		edges = append(edges, user.EdgePurchasedProducts)
 	}
 	if m.clearedrecords {
 		edges = append(edges, user.EdgeRecords)
+	}
+	if m.clearedevent_logs {
+		edges = append(edges, user.EdgeEventLogs)
 	}
 	if m.cleareduser_achievements {
 		edges = append(edges, user.EdgeUserAchievements)
@@ -10482,6 +11348,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedpurchased_products
 	case user.EdgeRecords:
 		return m.clearedrecords
+	case user.EdgeEventLogs:
+		return m.clearedevent_logs
 	case user.EdgeUserAchievements:
 		return m.cleareduser_achievements
 	case user.EdgeUserPurchases:
@@ -10507,6 +11375,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeRecords:
 		m.ResetRecords()
+		return nil
+	case user.EdgeEventLogs:
+		m.ResetEventLogs()
 		return nil
 	case user.EdgeUserAchievements:
 		m.ResetUserAchievements()

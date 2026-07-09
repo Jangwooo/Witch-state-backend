@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/witchs-lounge_backend/ent/eventlog"
 	"github.com/witchs-lounge_backend/ent/predicate"
 	"github.com/witchs-lounge_backend/ent/product"
 	"github.com/witchs-lounge_backend/ent/record"
@@ -401,6 +402,21 @@ func (uu *UserUpdate) AddRecords(r ...*Record) *UserUpdate {
 	return uu.AddRecordIDs(ids...)
 }
 
+// AddEventLogIDs adds the "event_logs" edge to the EventLog entity by IDs.
+func (uu *UserUpdate) AddEventLogIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddEventLogIDs(ids...)
+	return uu
+}
+
+// AddEventLogs adds the "event_logs" edges to the EventLog entity.
+func (uu *UserUpdate) AddEventLogs(e ...*EventLog) *UserUpdate {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return uu.AddEventLogIDs(ids...)
+}
+
 // AddUserAchievementIDs adds the "user_achievements" edge to the UserAchievement entity by IDs.
 func (uu *UserUpdate) AddUserAchievementIDs(ids ...uuid.UUID) *UserUpdate {
 	uu.mutation.AddUserAchievementIDs(ids...)
@@ -476,6 +492,27 @@ func (uu *UserUpdate) RemoveRecords(r ...*Record) *UserUpdate {
 		ids[i] = r[i].ID
 	}
 	return uu.RemoveRecordIDs(ids...)
+}
+
+// ClearEventLogs clears all "event_logs" edges to the EventLog entity.
+func (uu *UserUpdate) ClearEventLogs() *UserUpdate {
+	uu.mutation.ClearEventLogs()
+	return uu
+}
+
+// RemoveEventLogIDs removes the "event_logs" edge to EventLog entities by IDs.
+func (uu *UserUpdate) RemoveEventLogIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveEventLogIDs(ids...)
+	return uu
+}
+
+// RemoveEventLogs removes "event_logs" edges to EventLog entities.
+func (uu *UserUpdate) RemoveEventLogs(e ...*EventLog) *UserUpdate {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return uu.RemoveEventLogIDs(ids...)
 }
 
 // ClearUserAchievements clears all "user_achievements" edges to the UserAchievement entity.
@@ -781,6 +818,51 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(record.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.EventLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EventLogsTable,
+			Columns: []string{user.EventLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(eventlog.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedEventLogsIDs(); len(nodes) > 0 && !uu.mutation.EventLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EventLogsTable,
+			Columns: []string{user.EventLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(eventlog.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.EventLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EventLogsTable,
+			Columns: []string{user.EventLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(eventlog.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1266,6 +1348,21 @@ func (uuo *UserUpdateOne) AddRecords(r ...*Record) *UserUpdateOne {
 	return uuo.AddRecordIDs(ids...)
 }
 
+// AddEventLogIDs adds the "event_logs" edge to the EventLog entity by IDs.
+func (uuo *UserUpdateOne) AddEventLogIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddEventLogIDs(ids...)
+	return uuo
+}
+
+// AddEventLogs adds the "event_logs" edges to the EventLog entity.
+func (uuo *UserUpdateOne) AddEventLogs(e ...*EventLog) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return uuo.AddEventLogIDs(ids...)
+}
+
 // AddUserAchievementIDs adds the "user_achievements" edge to the UserAchievement entity by IDs.
 func (uuo *UserUpdateOne) AddUserAchievementIDs(ids ...uuid.UUID) *UserUpdateOne {
 	uuo.mutation.AddUserAchievementIDs(ids...)
@@ -1341,6 +1438,27 @@ func (uuo *UserUpdateOne) RemoveRecords(r ...*Record) *UserUpdateOne {
 		ids[i] = r[i].ID
 	}
 	return uuo.RemoveRecordIDs(ids...)
+}
+
+// ClearEventLogs clears all "event_logs" edges to the EventLog entity.
+func (uuo *UserUpdateOne) ClearEventLogs() *UserUpdateOne {
+	uuo.mutation.ClearEventLogs()
+	return uuo
+}
+
+// RemoveEventLogIDs removes the "event_logs" edge to EventLog entities by IDs.
+func (uuo *UserUpdateOne) RemoveEventLogIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveEventLogIDs(ids...)
+	return uuo
+}
+
+// RemoveEventLogs removes "event_logs" edges to EventLog entities.
+func (uuo *UserUpdateOne) RemoveEventLogs(e ...*EventLog) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return uuo.RemoveEventLogIDs(ids...)
 }
 
 // ClearUserAchievements clears all "user_achievements" edges to the UserAchievement entity.
@@ -1676,6 +1794,51 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(record.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.EventLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EventLogsTable,
+			Columns: []string{user.EventLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(eventlog.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedEventLogsIDs(); len(nodes) > 0 && !uuo.mutation.EventLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EventLogsTable,
+			Columns: []string{user.EventLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(eventlog.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.EventLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EventLogsTable,
+			Columns: []string{user.EventLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(eventlog.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

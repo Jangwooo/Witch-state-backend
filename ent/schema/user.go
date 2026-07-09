@@ -77,6 +77,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("purchased_products", Product.Type).
 			Through("user_purchases", UserPurchase.Type),
 		edge.To("records", Record.Type),
+		edge.To("event_logs", EventLog.Type),
 		edge.To("user_achievements", UserAchievement.Type),
 	}
 }

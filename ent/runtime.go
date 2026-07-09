@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/witchs-lounge_backend/ent/achievement"
 	"github.com/witchs-lounge_backend/ent/character"
+	"github.com/witchs-lounge_backend/ent/eventlog"
 	"github.com/witchs-lounge_backend/ent/item"
 	"github.com/witchs-lounge_backend/ent/music"
 	"github.com/witchs-lounge_backend/ent/product"
@@ -77,6 +78,29 @@ func init() {
 	characterDescID := characterMixinFields0[0].Descriptor()
 	// character.DefaultID holds the default value on creation for the id field.
 	character.DefaultID = characterDescID.Default.(func() uuid.UUID)
+	eventlogMixin := schema.EventLog{}.Mixin()
+	eventlogMixinFields0 := eventlogMixin[0].Fields()
+	_ = eventlogMixinFields0
+	eventlogFields := schema.EventLog{}.Fields()
+	_ = eventlogFields
+	// eventlogDescCreatedAt is the schema descriptor for created_at field.
+	eventlogDescCreatedAt := eventlogMixinFields0[1].Descriptor()
+	// eventlog.DefaultCreatedAt holds the default value on creation for the created_at field.
+	eventlog.DefaultCreatedAt = eventlogDescCreatedAt.Default.(func() time.Time)
+	// eventlogDescUpdatedAt is the schema descriptor for updated_at field.
+	eventlogDescUpdatedAt := eventlogMixinFields0[2].Descriptor()
+	// eventlog.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	eventlog.DefaultUpdatedAt = eventlogDescUpdatedAt.Default.(func() time.Time)
+	// eventlog.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	eventlog.UpdateDefaultUpdatedAt = eventlogDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// eventlogDescClientLogID is the schema descriptor for client_log_id field.
+	eventlogDescClientLogID := eventlogFields[5].Descriptor()
+	// eventlog.ClientLogIDValidator is a validator for the "client_log_id" field. It is called by the builders before save.
+	eventlog.ClientLogIDValidator = eventlogDescClientLogID.Validators[0].(func(string) error)
+	// eventlogDescID is the schema descriptor for id field.
+	eventlogDescID := eventlogMixinFields0[0].Descriptor()
+	// eventlog.DefaultID holds the default value on creation for the id field.
+	eventlog.DefaultID = eventlogDescID.Default.(func() uuid.UUID)
 	itemMixin := schema.Item{}.Mixin()
 	itemMixinFields0 := itemMixin[0].Fields()
 	_ = itemMixinFields0

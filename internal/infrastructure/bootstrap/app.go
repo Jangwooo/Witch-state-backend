@@ -19,10 +19,11 @@ type AppDependencies struct {
 	// Handlers
 	StoveHandler  *handler.StoveHandler
 	SteamHandler  *handler.SteamHandler
-	UserHandler   *handler.UserHandler
-	RecordHandler *handler.RecordHandler
-	MusicHandler  *handler.MusicHandler
-	StageHandler  *handler.StageHandler
+	UserHandler     *handler.UserHandler
+	RecordHandler   *handler.RecordHandler
+	EventLogHandler *handler.EventLogHandler
+	MusicHandler    *handler.MusicHandler
+	StageHandler    *handler.StageHandler
 
 	// Session
 	SessionStore session.SessionStore
@@ -43,6 +44,7 @@ func SetupAppDependencies(dbClient *ent.Client, sessionStore session.SessionStor
 	// Initialize repositories
 	userRepo := repository.NewUserRepository(dbClient)
 	recordRepo := repository.NewRecordRepository(dbClient)
+	eventLogRepo := repository.NewEventLogRepository(dbClient)
 	musicRepo := repository.NewMusicRepository(dbClient)
 	stageRepo := repository.NewStageRepository(dbClient)
 	progressionRepo := repository.NewProgressionRepository(dbClient)
@@ -62,6 +64,7 @@ func SetupAppDependencies(dbClient *ent.Client, sessionStore session.SessionStor
 	steamUseCase := usecase.NewSteamUseCase(userRepo, sessionStore, hmacCfg)
 	userUseCase := usecase.NewUserUseCase(userRepo)
 	recordUseCase := usecase.NewRecordUseCase(recordRepo, userRepo, musicRepo, stageRepo, progressionRepo, sanityValidator, sanityMode, errorLogger)
+	eventLogUseCase := usecase.NewEventLogUseCase(eventLogRepo, errorLogger)
 	musicUseCase := usecase.NewMusicUseCase(musicRepo)
 	stageUseCase := usecase.NewStageUseCase(stageRepo, musicRepo)
 
@@ -70,16 +73,18 @@ func SetupAppDependencies(dbClient *ent.Client, sessionStore session.SessionStor
 	steamHandler := handler.NewSteamHandler(steamUseCase)
 	userHandler := handler.NewUserHandler(userUseCase)
 	recordHandler := handler.NewRecordHandler(recordUseCase)
+	eventLogHandler := handler.NewEventLogHandler(eventLogUseCase)
 	musicHandler := handler.NewMusicHandler(musicUseCase)
 	stageHandler := handler.NewStageHandler(stageUseCase)
 
 	return &AppDependencies{
 		StoveHandler:  stoveHandler,
 		SteamHandler:  steamHandler,
-		UserHandler:   userHandler,
-		RecordHandler: recordHandler,
-		MusicHandler:  musicHandler,
-		StageHandler:  stageHandler,
+		UserHandler:     userHandler,
+		RecordHandler:   recordHandler,
+		EventLogHandler: eventLogHandler,
+		MusicHandler:    musicHandler,
+		StageHandler:    stageHandler,
 
 		SessionStore:   sessionStore,
 		HMACConfig:     hmacCfg,

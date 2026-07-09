@@ -16,6 +16,8 @@ type Tx struct {
 	Achievement *AchievementClient
 	// Character is the client for interacting with the Character builders.
 	Character *CharacterClient
+	// EventLog is the client for interacting with the EventLog builders.
+	EventLog *EventLogClient
 	// Item is the client for interacting with the Item builders.
 	Item *ItemClient
 	// Music is the client for interacting with the Music builders.
@@ -169,6 +171,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Achievement = NewAchievementClient(tx.config)
 	tx.Character = NewCharacterClient(tx.config)
+	tx.EventLog = NewEventLogClient(tx.config)
 	tx.Item = NewItemClient(tx.config)
 	tx.Music = NewMusicClient(tx.config)
 	tx.Product = NewProductClient(tx.config)

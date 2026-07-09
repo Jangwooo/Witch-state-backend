@@ -18,6 +18,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/witchs-lounge_backend/ent/achievement"
 	"github.com/witchs-lounge_backend/ent/character"
+	"github.com/witchs-lounge_backend/ent/eventlog"
 	"github.com/witchs-lounge_backend/ent/item"
 	"github.com/witchs-lounge_backend/ent/music"
 	"github.com/witchs-lounge_backend/ent/product"
@@ -39,6 +40,8 @@ type Client struct {
 	Achievement *AchievementClient
 	// Character is the client for interacting with the Character builders.
 	Character *CharacterClient
+	// EventLog is the client for interacting with the EventLog builders.
+	EventLog *EventLogClient
 	// Item is the client for interacting with the Item builders.
 	Item *ItemClient
 	// Music is the client for interacting with the Music builders.
@@ -72,6 +75,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Achievement = NewAchievementClient(c.config)
 	c.Character = NewCharacterClient(c.config)
+	c.EventLog = NewEventLogClient(c.config)
 	c.Item = NewItemClient(c.config)
 	c.Music = NewMusicClient(c.config)
 	c.Product = NewProductClient(c.config)
@@ -176,6 +180,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:          cfg,
 		Achievement:     NewAchievementClient(cfg),
 		Character:       NewCharacterClient(cfg),
+		EventLog:        NewEventLogClient(cfg),
 		Item:            NewItemClient(cfg),
 		Music:           NewMusicClient(cfg),
 		Product:         NewProductClient(cfg),
@@ -207,6 +212,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:          cfg,
 		Achievement:     NewAchievementClient(cfg),
 		Character:       NewCharacterClient(cfg),
+		EventLog:        NewEventLogClient(cfg),
 		Item:            NewItemClient(cfg),
 		Music:           NewMusicClient(cfg),
 		Product:         NewProductClient(cfg),
@@ -246,8 +252,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Achievement, c.Character, c.Item, c.Music, c.Product, c.Record, c.Stage,
-		c.TLevel, c.TRank, c.User, c.UserAchievement, c.UserPurchase,
+		c.Achievement, c.Character, c.EventLog, c.Item, c.Music, c.Product, c.Record,
+		c.Stage, c.TLevel, c.TRank, c.User, c.UserAchievement, c.UserPurchase,
 	} {
 		n.Use(hooks...)
 	}
@@ -257,8 +263,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Achievement, c.Character, c.Item, c.Music, c.Product, c.Record, c.Stage,
-		c.TLevel, c.TRank, c.User, c.UserAchievement, c.UserPurchase,
+		c.Achievement, c.Character, c.EventLog, c.Item, c.Music, c.Product, c.Record,
+		c.Stage, c.TLevel, c.TRank, c.User, c.UserAchievement, c.UserPurchase,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -271,6 +277,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Achievement.mutate(ctx, m)
 	case *CharacterMutation:
 		return c.Character.mutate(ctx, m)
+	case *EventLogMutation:
+		return c.EventLog.mutate(ctx, m)
 	case *ItemMutation:
 		return c.Item.mutate(ctx, m)
 	case *MusicMutation:
@@ -607,6 +615,155 @@ func (c *CharacterClient) mutate(ctx context.Context, m *CharacterMutation) (Val
 		return (&CharacterDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Character mutation op: %q", m.Op())
+	}
+}
+
+// EventLogClient is a client for the EventLog schema.
+type EventLogClient struct {
+	config
+}
+
+// NewEventLogClient returns a client for the EventLog from the given config.
+func NewEventLogClient(c config) *EventLogClient {
+	return &EventLogClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `eventlog.Hooks(f(g(h())))`.
+func (c *EventLogClient) Use(hooks ...Hook) {
+	c.hooks.EventLog = append(c.hooks.EventLog, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `eventlog.Intercept(f(g(h())))`.
+func (c *EventLogClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EventLog = append(c.inters.EventLog, interceptors...)
+}
+
+// Create returns a builder for creating a EventLog entity.
+func (c *EventLogClient) Create() *EventLogCreate {
+	mutation := newEventLogMutation(c.config, OpCreate)
+	return &EventLogCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EventLog entities.
+func (c *EventLogClient) CreateBulk(builders ...*EventLogCreate) *EventLogCreateBulk {
+	return &EventLogCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EventLogClient) MapCreateBulk(slice any, setFunc func(*EventLogCreate, int)) *EventLogCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EventLogCreateBulk{err: fmt.Errorf("calling to EventLogClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EventLogCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EventLogCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EventLog.
+func (c *EventLogClient) Update() *EventLogUpdate {
+	mutation := newEventLogMutation(c.config, OpUpdate)
+	return &EventLogUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EventLogClient) UpdateOne(el *EventLog) *EventLogUpdateOne {
+	mutation := newEventLogMutation(c.config, OpUpdateOne, withEventLog(el))
+	return &EventLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EventLogClient) UpdateOneID(id uuid.UUID) *EventLogUpdateOne {
+	mutation := newEventLogMutation(c.config, OpUpdateOne, withEventLogID(id))
+	return &EventLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EventLog.
+func (c *EventLogClient) Delete() *EventLogDelete {
+	mutation := newEventLogMutation(c.config, OpDelete)
+	return &EventLogDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EventLogClient) DeleteOne(el *EventLog) *EventLogDeleteOne {
+	return c.DeleteOneID(el.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EventLogClient) DeleteOneID(id uuid.UUID) *EventLogDeleteOne {
+	builder := c.Delete().Where(eventlog.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EventLogDeleteOne{builder}
+}
+
+// Query returns a query builder for EventLog.
+func (c *EventLogClient) Query() *EventLogQuery {
+	return &EventLogQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEventLog},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a EventLog entity by its id.
+func (c *EventLogClient) Get(ctx context.Context, id uuid.UUID) (*EventLog, error) {
+	return c.Query().Where(eventlog.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EventLogClient) GetX(ctx context.Context, id uuid.UUID) *EventLog {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a EventLog.
+func (c *EventLogClient) QueryUser(el *EventLog) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := el.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(eventlog.Table, eventlog.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, eventlog.UserTable, eventlog.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(el.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EventLogClient) Hooks() []Hook {
+	return c.hooks.EventLog
+}
+
+// Interceptors returns the client interceptors.
+func (c *EventLogClient) Interceptors() []Interceptor {
+	return c.inters.EventLog
+}
+
+func (c *EventLogClient) mutate(ctx context.Context, m *EventLogMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EventLogCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EventLogUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EventLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EventLogDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown EventLog mutation op: %q", m.Op())
 	}
 }
 
@@ -1873,6 +2030,22 @@ func (c *UserClient) QueryRecords(u *User) *RecordQuery {
 	return query
 }
 
+// QueryEventLogs queries the event_logs edge of a User.
+func (c *UserClient) QueryEventLogs(u *User) *EventLogQuery {
+	query := (&EventLogClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(eventlog.Table, eventlog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.EventLogsTable, user.EventLogsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryUserAchievements queries the user_achievements edge of a User.
 func (c *UserClient) QueryUserAchievements(u *User) *UserAchievementQuery {
 	query := (&UserAchievementClient{config: c.config}).Query()
@@ -2263,11 +2436,11 @@ func (c *UserPurchaseClient) mutate(ctx context.Context, m *UserPurchaseMutation
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Achievement, Character, Item, Music, Product, Record, Stage, TLevel, TRank,
-		User, UserAchievement, UserPurchase []ent.Hook
+		Achievement, Character, EventLog, Item, Music, Product, Record, Stage, TLevel,
+		TRank, User, UserAchievement, UserPurchase []ent.Hook
 	}
 	inters struct {
-		Achievement, Character, Item, Music, Product, Record, Stage, TLevel, TRank,
-		User, UserAchievement, UserPurchase []ent.Interceptor
+		Achievement, Character, EventLog, Item, Music, Product, Record, Stage, TLevel,
+		TRank, User, UserAchievement, UserPurchase []ent.Interceptor
 	}
 )

@@ -66,6 +66,8 @@ const (
 	EdgePurchasedProducts = "purchased_products"
 	// EdgeRecords holds the string denoting the records edge name in mutations.
 	EdgeRecords = "records"
+	// EdgeEventLogs holds the string denoting the event_logs edge name in mutations.
+	EdgeEventLogs = "event_logs"
 	// EdgeUserAchievements holds the string denoting the user_achievements edge name in mutations.
 	EdgeUserAchievements = "user_achievements"
 	// EdgeUserPurchases holds the string denoting the user_purchases edge name in mutations.
@@ -84,6 +86,13 @@ const (
 	RecordsInverseTable = "records"
 	// RecordsColumn is the table column denoting the records relation/edge.
 	RecordsColumn = "user_id"
+	// EventLogsTable is the table that holds the event_logs relation/edge.
+	EventLogsTable = "event_logs"
+	// EventLogsInverseTable is the table name for the EventLog entity.
+	// It exists in this package in order to avoid circular dependency with the "eventlog" package.
+	EventLogsInverseTable = "event_logs"
+	// EventLogsColumn is the table column denoting the event_logs relation/edge.
+	EventLogsColumn = "user_id"
 	// UserAchievementsTable is the table that holds the user_achievements relation/edge.
 	UserAchievementsTable = "user_achievements"
 	// UserAchievementsInverseTable is the table name for the UserAchievement entity.
@@ -331,6 +340,20 @@ func ByRecords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByEventLogsCount orders the results by event_logs count.
+func ByEventLogsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newEventLogsStep(), opts...)
+	}
+}
+
+// ByEventLogs orders the results by event_logs terms.
+func ByEventLogs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEventLogsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByUserAchievementsCount orders the results by user_achievements count.
 func ByUserAchievementsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -370,6 +393,13 @@ func newRecordsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RecordsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, RecordsTable, RecordsColumn),
+	)
+}
+func newEventLogsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EventLogsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, EventLogsTable, EventLogsColumn),
 	)
 }
 func newUserAchievementsStep() *sqlgraph.Step {

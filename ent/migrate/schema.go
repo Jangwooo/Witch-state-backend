@@ -62,6 +62,44 @@ var (
 		Columns:    CharactersColumns,
 		PrimaryKey: []*schema.Column{CharactersColumns[0]},
 	}
+	// EventLogsColumns holds the columns for the "event_logs" table.
+	EventLogsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "event_key", Type: field.TypeString, Size: 2147483647},
+		{Name: "state_before", Type: field.TypeString, Size: 2147483647},
+		{Name: "state_after", Type: field.TypeString, Size: 2147483647},
+		{Name: "changed_at", Type: field.TypeTime},
+		{Name: "client_log_id", Type: field.TypeString, Unique: true, Nullable: true, Size: 36},
+		{Name: "user_id", Type: field.TypeUUID},
+	}
+	// EventLogsTable holds the schema information for the "event_logs" table.
+	EventLogsTable = &schema.Table{
+		Name:       "event_logs",
+		Columns:    EventLogsColumns,
+		PrimaryKey: []*schema.Column{EventLogsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "event_logs_users_event_logs",
+				Columns:    []*schema.Column{EventLogsColumns[8]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "eventlog_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{EventLogsColumns[8]},
+			},
+			{
+				Name:    "eventlog_user_id_event_key",
+				Unique:  false,
+				Columns: []*schema.Column{EventLogsColumns[8], EventLogsColumns[3]},
+			},
+		},
+	}
 	// ItemsColumns holds the columns for the "items" table.
 	ItemsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -388,6 +426,7 @@ var (
 	Tables = []*schema.Table{
 		AchievementsTable,
 		CharactersTable,
+		EventLogsTable,
 		ItemsTable,
 		MusicsTable,
 		ProductsTable,
@@ -402,6 +441,7 @@ var (
 )
 
 func init() {
+	EventLogsTable.ForeignKeys[0].RefTable = UsersTable
 	ProductsTable.ForeignKeys[0].RefTable = ItemsTable
 	ProductsTable.ForeignKeys[1].RefTable = CharactersTable
 	RecordsTable.ForeignKeys[0].RefTable = CharactersTable

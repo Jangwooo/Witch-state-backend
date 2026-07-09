@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/witchs-lounge_backend/ent/eventlog"
 	"github.com/witchs-lounge_backend/ent/product"
 	"github.com/witchs-lounge_backend/ent/record"
 	"github.com/witchs-lounge_backend/ent/user"
@@ -333,6 +334,21 @@ func (uc *UserCreate) AddRecords(r ...*Record) *UserCreate {
 		ids[i] = r[i].ID
 	}
 	return uc.AddRecordIDs(ids...)
+}
+
+// AddEventLogIDs adds the "event_logs" edge to the EventLog entity by IDs.
+func (uc *UserCreate) AddEventLogIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddEventLogIDs(ids...)
+	return uc
+}
+
+// AddEventLogs adds the "event_logs" edges to the EventLog entity.
+func (uc *UserCreate) AddEventLogs(e ...*EventLog) *UserCreate {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return uc.AddEventLogIDs(ids...)
 }
 
 // AddUserAchievementIDs adds the "user_achievements" edge to the UserAchievement entity by IDs.
@@ -672,6 +688,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(record.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.EventLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EventLogsTable,
+			Columns: []string{user.EventLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(eventlog.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
