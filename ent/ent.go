@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/witchs-lounge_backend/ent/achievement"
 	"github.com/witchs-lounge_backend/ent/character"
+	"github.com/witchs-lounge_backend/ent/consentlog"
 	"github.com/witchs-lounge_backend/ent/eventlog"
 	"github.com/witchs-lounge_backend/ent/item"
 	"github.com/witchs-lounge_backend/ent/music"
@@ -87,6 +88,7 @@ func checkColumn(table, column string) error {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			achievement.Table:     achievement.ValidColumn,
 			character.Table:       character.ValidColumn,
+			consentlog.Table:      consentlog.ValidColumn,
 			eventlog.Table:        eventlog.ValidColumn,
 			item.Table:            item.ValidColumn,
 			music.Table:           music.ValidColumn,

@@ -18,6 +18,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/witchs-lounge_backend/ent/achievement"
 	"github.com/witchs-lounge_backend/ent/character"
+	"github.com/witchs-lounge_backend/ent/consentlog"
 	"github.com/witchs-lounge_backend/ent/eventlog"
 	"github.com/witchs-lounge_backend/ent/item"
 	"github.com/witchs-lounge_backend/ent/music"
@@ -40,6 +41,8 @@ type Client struct {
 	Achievement *AchievementClient
 	// Character is the client for interacting with the Character builders.
 	Character *CharacterClient
+	// ConsentLog is the client for interacting with the ConsentLog builders.
+	ConsentLog *ConsentLogClient
 	// EventLog is the client for interacting with the EventLog builders.
 	EventLog *EventLogClient
 	// Item is the client for interacting with the Item builders.
@@ -75,6 +78,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Achievement = NewAchievementClient(c.config)
 	c.Character = NewCharacterClient(c.config)
+	c.ConsentLog = NewConsentLogClient(c.config)
 	c.EventLog = NewEventLogClient(c.config)
 	c.Item = NewItemClient(c.config)
 	c.Music = NewMusicClient(c.config)
@@ -180,6 +184,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:          cfg,
 		Achievement:     NewAchievementClient(cfg),
 		Character:       NewCharacterClient(cfg),
+		ConsentLog:      NewConsentLogClient(cfg),
 		EventLog:        NewEventLogClient(cfg),
 		Item:            NewItemClient(cfg),
 		Music:           NewMusicClient(cfg),
@@ -212,6 +217,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:          cfg,
 		Achievement:     NewAchievementClient(cfg),
 		Character:       NewCharacterClient(cfg),
+		ConsentLog:      NewConsentLogClient(cfg),
 		EventLog:        NewEventLogClient(cfg),
 		Item:            NewItemClient(cfg),
 		Music:           NewMusicClient(cfg),
@@ -252,8 +258,9 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Achievement, c.Character, c.EventLog, c.Item, c.Music, c.Product, c.Record,
-		c.Stage, c.TLevel, c.TRank, c.User, c.UserAchievement, c.UserPurchase,
+		c.Achievement, c.Character, c.ConsentLog, c.EventLog, c.Item, c.Music,
+		c.Product, c.Record, c.Stage, c.TLevel, c.TRank, c.User, c.UserAchievement,
+		c.UserPurchase,
 	} {
 		n.Use(hooks...)
 	}
@@ -263,8 +270,9 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Achievement, c.Character, c.EventLog, c.Item, c.Music, c.Product, c.Record,
-		c.Stage, c.TLevel, c.TRank, c.User, c.UserAchievement, c.UserPurchase,
+		c.Achievement, c.Character, c.ConsentLog, c.EventLog, c.Item, c.Music,
+		c.Product, c.Record, c.Stage, c.TLevel, c.TRank, c.User, c.UserAchievement,
+		c.UserPurchase,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -277,6 +285,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Achievement.mutate(ctx, m)
 	case *CharacterMutation:
 		return c.Character.mutate(ctx, m)
+	case *ConsentLogMutation:
+		return c.ConsentLog.mutate(ctx, m)
 	case *EventLogMutation:
 		return c.EventLog.mutate(ctx, m)
 	case *ItemMutation:
@@ -615,6 +625,139 @@ func (c *CharacterClient) mutate(ctx context.Context, m *CharacterMutation) (Val
 		return (&CharacterDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Character mutation op: %q", m.Op())
+	}
+}
+
+// ConsentLogClient is a client for the ConsentLog schema.
+type ConsentLogClient struct {
+	config
+}
+
+// NewConsentLogClient returns a client for the ConsentLog from the given config.
+func NewConsentLogClient(c config) *ConsentLogClient {
+	return &ConsentLogClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `consentlog.Hooks(f(g(h())))`.
+func (c *ConsentLogClient) Use(hooks ...Hook) {
+	c.hooks.ConsentLog = append(c.hooks.ConsentLog, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `consentlog.Intercept(f(g(h())))`.
+func (c *ConsentLogClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ConsentLog = append(c.inters.ConsentLog, interceptors...)
+}
+
+// Create returns a builder for creating a ConsentLog entity.
+func (c *ConsentLogClient) Create() *ConsentLogCreate {
+	mutation := newConsentLogMutation(c.config, OpCreate)
+	return &ConsentLogCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ConsentLog entities.
+func (c *ConsentLogClient) CreateBulk(builders ...*ConsentLogCreate) *ConsentLogCreateBulk {
+	return &ConsentLogCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ConsentLogClient) MapCreateBulk(slice any, setFunc func(*ConsentLogCreate, int)) *ConsentLogCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ConsentLogCreateBulk{err: fmt.Errorf("calling to ConsentLogClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ConsentLogCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ConsentLogCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ConsentLog.
+func (c *ConsentLogClient) Update() *ConsentLogUpdate {
+	mutation := newConsentLogMutation(c.config, OpUpdate)
+	return &ConsentLogUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ConsentLogClient) UpdateOne(cl *ConsentLog) *ConsentLogUpdateOne {
+	mutation := newConsentLogMutation(c.config, OpUpdateOne, withConsentLog(cl))
+	return &ConsentLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ConsentLogClient) UpdateOneID(id uuid.UUID) *ConsentLogUpdateOne {
+	mutation := newConsentLogMutation(c.config, OpUpdateOne, withConsentLogID(id))
+	return &ConsentLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ConsentLog.
+func (c *ConsentLogClient) Delete() *ConsentLogDelete {
+	mutation := newConsentLogMutation(c.config, OpDelete)
+	return &ConsentLogDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ConsentLogClient) DeleteOne(cl *ConsentLog) *ConsentLogDeleteOne {
+	return c.DeleteOneID(cl.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ConsentLogClient) DeleteOneID(id uuid.UUID) *ConsentLogDeleteOne {
+	builder := c.Delete().Where(consentlog.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ConsentLogDeleteOne{builder}
+}
+
+// Query returns a query builder for ConsentLog.
+func (c *ConsentLogClient) Query() *ConsentLogQuery {
+	return &ConsentLogQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeConsentLog},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ConsentLog entity by its id.
+func (c *ConsentLogClient) Get(ctx context.Context, id uuid.UUID) (*ConsentLog, error) {
+	return c.Query().Where(consentlog.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ConsentLogClient) GetX(ctx context.Context, id uuid.UUID) *ConsentLog {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ConsentLogClient) Hooks() []Hook {
+	return c.hooks.ConsentLog
+}
+
+// Interceptors returns the client interceptors.
+func (c *ConsentLogClient) Interceptors() []Interceptor {
+	return c.inters.ConsentLog
+}
+
+func (c *ConsentLogClient) mutate(ctx context.Context, m *ConsentLogMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ConsentLogCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ConsentLogUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ConsentLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ConsentLogDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ConsentLog mutation op: %q", m.Op())
 	}
 }
 
@@ -2436,11 +2579,11 @@ func (c *UserPurchaseClient) mutate(ctx context.Context, m *UserPurchaseMutation
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Achievement, Character, EventLog, Item, Music, Product, Record, Stage, TLevel,
-		TRank, User, UserAchievement, UserPurchase []ent.Hook
+		Achievement, Character, ConsentLog, EventLog, Item, Music, Product, Record,
+		Stage, TLevel, TRank, User, UserAchievement, UserPurchase []ent.Hook
 	}
 	inters struct {
-		Achievement, Character, EventLog, Item, Music, Product, Record, Stage, TLevel,
-		TRank, User, UserAchievement, UserPurchase []ent.Interceptor
+		Achievement, Character, ConsentLog, EventLog, Item, Music, Product, Record,
+		Stage, TLevel, TRank, User, UserAchievement, UserPurchase []ent.Interceptor
 	}
 )

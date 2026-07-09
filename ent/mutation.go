@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/witchs-lounge_backend/ent/achievement"
 	"github.com/witchs-lounge_backend/ent/character"
+	"github.com/witchs-lounge_backend/ent/consentlog"
 	"github.com/witchs-lounge_backend/ent/eventlog"
 	"github.com/witchs-lounge_backend/ent/item"
 	"github.com/witchs-lounge_backend/ent/music"
@@ -39,6 +40,7 @@ const (
 	// Node types.
 	TypeAchievement     = "Achievement"
 	TypeCharacter       = "Character"
+	TypeConsentLog      = "ConsentLog"
 	TypeEventLog        = "EventLog"
 	TypeItem            = "Item"
 	TypeMusic           = "Music"
@@ -1819,6 +1821,1284 @@ func (m *CharacterMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Character edge %s", name)
+}
+
+// ConsentLogMutation represents an operation that mutates the ConsentLog nodes in the graph.
+type ConsentLogMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *uuid.UUID
+	created_at        *time.Time
+	updated_at        *time.Time
+	client_consent_id *uuid.UUID
+	client_id         *uuid.UUID
+	user_id           *uuid.UUID
+	consent_type      *consentlog.ConsentType
+	policy_version    *string
+	granted           *bool
+	nickname          *string
+	consented_at      *time.Time
+	client_version    *string
+	platform          *string
+	locale            *string
+	build_mode        *string
+	received_at       *time.Time
+	expires_at        *time.Time
+	clearedFields     map[string]struct{}
+	done              bool
+	oldValue          func(context.Context) (*ConsentLog, error)
+	predicates        []predicate.ConsentLog
+}
+
+var _ ent.Mutation = (*ConsentLogMutation)(nil)
+
+// consentlogOption allows management of the mutation configuration using functional options.
+type consentlogOption func(*ConsentLogMutation)
+
+// newConsentLogMutation creates new mutation for the ConsentLog entity.
+func newConsentLogMutation(c config, op Op, opts ...consentlogOption) *ConsentLogMutation {
+	m := &ConsentLogMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeConsentLog,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withConsentLogID sets the ID field of the mutation.
+func withConsentLogID(id uuid.UUID) consentlogOption {
+	return func(m *ConsentLogMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ConsentLog
+		)
+		m.oldValue = func(ctx context.Context) (*ConsentLog, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ConsentLog.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withConsentLog sets the old ConsentLog of the mutation.
+func withConsentLog(node *ConsentLog) consentlogOption {
+	return func(m *ConsentLogMutation) {
+		m.oldValue = func(context.Context) (*ConsentLog, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ConsentLogMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ConsentLogMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of ConsentLog entities.
+func (m *ConsentLogMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ConsentLogMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ConsentLogMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ConsentLog.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ConsentLogMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ConsentLogMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ConsentLog entity.
+// If the ConsentLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConsentLogMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ConsentLogMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ConsentLogMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ConsentLogMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ConsentLog entity.
+// If the ConsentLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConsentLogMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ConsentLogMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetClientConsentID sets the "client_consent_id" field.
+func (m *ConsentLogMutation) SetClientConsentID(u uuid.UUID) {
+	m.client_consent_id = &u
+}
+
+// ClientConsentID returns the value of the "client_consent_id" field in the mutation.
+func (m *ConsentLogMutation) ClientConsentID() (r uuid.UUID, exists bool) {
+	v := m.client_consent_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClientConsentID returns the old "client_consent_id" field's value of the ConsentLog entity.
+// If the ConsentLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConsentLogMutation) OldClientConsentID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClientConsentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClientConsentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClientConsentID: %w", err)
+	}
+	return oldValue.ClientConsentID, nil
+}
+
+// ResetClientConsentID resets all changes to the "client_consent_id" field.
+func (m *ConsentLogMutation) ResetClientConsentID() {
+	m.client_consent_id = nil
+}
+
+// SetClientID sets the "client_id" field.
+func (m *ConsentLogMutation) SetClientID(u uuid.UUID) {
+	m.client_id = &u
+}
+
+// ClientID returns the value of the "client_id" field in the mutation.
+func (m *ConsentLogMutation) ClientID() (r uuid.UUID, exists bool) {
+	v := m.client_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClientID returns the old "client_id" field's value of the ConsentLog entity.
+// If the ConsentLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConsentLogMutation) OldClientID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClientID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClientID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClientID: %w", err)
+	}
+	return oldValue.ClientID, nil
+}
+
+// ResetClientID resets all changes to the "client_id" field.
+func (m *ConsentLogMutation) ResetClientID() {
+	m.client_id = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *ConsentLogMutation) SetUserID(u uuid.UUID) {
+	m.user_id = &u
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *ConsentLogMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the ConsentLog entity.
+// If the ConsentLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConsentLogMutation) OldUserID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ClearUserID clears the value of the "user_id" field.
+func (m *ConsentLogMutation) ClearUserID() {
+	m.user_id = nil
+	m.clearedFields[consentlog.FieldUserID] = struct{}{}
+}
+
+// UserIDCleared returns if the "user_id" field was cleared in this mutation.
+func (m *ConsentLogMutation) UserIDCleared() bool {
+	_, ok := m.clearedFields[consentlog.FieldUserID]
+	return ok
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *ConsentLogMutation) ResetUserID() {
+	m.user_id = nil
+	delete(m.clearedFields, consentlog.FieldUserID)
+}
+
+// SetConsentType sets the "consent_type" field.
+func (m *ConsentLogMutation) SetConsentType(ct consentlog.ConsentType) {
+	m.consent_type = &ct
+}
+
+// ConsentType returns the value of the "consent_type" field in the mutation.
+func (m *ConsentLogMutation) ConsentType() (r consentlog.ConsentType, exists bool) {
+	v := m.consent_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConsentType returns the old "consent_type" field's value of the ConsentLog entity.
+// If the ConsentLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConsentLogMutation) OldConsentType(ctx context.Context) (v consentlog.ConsentType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConsentType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConsentType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConsentType: %w", err)
+	}
+	return oldValue.ConsentType, nil
+}
+
+// ResetConsentType resets all changes to the "consent_type" field.
+func (m *ConsentLogMutation) ResetConsentType() {
+	m.consent_type = nil
+}
+
+// SetPolicyVersion sets the "policy_version" field.
+func (m *ConsentLogMutation) SetPolicyVersion(s string) {
+	m.policy_version = &s
+}
+
+// PolicyVersion returns the value of the "policy_version" field in the mutation.
+func (m *ConsentLogMutation) PolicyVersion() (r string, exists bool) {
+	v := m.policy_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPolicyVersion returns the old "policy_version" field's value of the ConsentLog entity.
+// If the ConsentLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConsentLogMutation) OldPolicyVersion(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPolicyVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPolicyVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPolicyVersion: %w", err)
+	}
+	return oldValue.PolicyVersion, nil
+}
+
+// ResetPolicyVersion resets all changes to the "policy_version" field.
+func (m *ConsentLogMutation) ResetPolicyVersion() {
+	m.policy_version = nil
+}
+
+// SetGranted sets the "granted" field.
+func (m *ConsentLogMutation) SetGranted(b bool) {
+	m.granted = &b
+}
+
+// Granted returns the value of the "granted" field in the mutation.
+func (m *ConsentLogMutation) Granted() (r bool, exists bool) {
+	v := m.granted
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGranted returns the old "granted" field's value of the ConsentLog entity.
+// If the ConsentLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConsentLogMutation) OldGranted(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGranted is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGranted requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGranted: %w", err)
+	}
+	return oldValue.Granted, nil
+}
+
+// ResetGranted resets all changes to the "granted" field.
+func (m *ConsentLogMutation) ResetGranted() {
+	m.granted = nil
+}
+
+// SetNickname sets the "nickname" field.
+func (m *ConsentLogMutation) SetNickname(s string) {
+	m.nickname = &s
+}
+
+// Nickname returns the value of the "nickname" field in the mutation.
+func (m *ConsentLogMutation) Nickname() (r string, exists bool) {
+	v := m.nickname
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNickname returns the old "nickname" field's value of the ConsentLog entity.
+// If the ConsentLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConsentLogMutation) OldNickname(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNickname is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNickname requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNickname: %w", err)
+	}
+	return oldValue.Nickname, nil
+}
+
+// ClearNickname clears the value of the "nickname" field.
+func (m *ConsentLogMutation) ClearNickname() {
+	m.nickname = nil
+	m.clearedFields[consentlog.FieldNickname] = struct{}{}
+}
+
+// NicknameCleared returns if the "nickname" field was cleared in this mutation.
+func (m *ConsentLogMutation) NicknameCleared() bool {
+	_, ok := m.clearedFields[consentlog.FieldNickname]
+	return ok
+}
+
+// ResetNickname resets all changes to the "nickname" field.
+func (m *ConsentLogMutation) ResetNickname() {
+	m.nickname = nil
+	delete(m.clearedFields, consentlog.FieldNickname)
+}
+
+// SetConsentedAt sets the "consented_at" field.
+func (m *ConsentLogMutation) SetConsentedAt(t time.Time) {
+	m.consented_at = &t
+}
+
+// ConsentedAt returns the value of the "consented_at" field in the mutation.
+func (m *ConsentLogMutation) ConsentedAt() (r time.Time, exists bool) {
+	v := m.consented_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConsentedAt returns the old "consented_at" field's value of the ConsentLog entity.
+// If the ConsentLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConsentLogMutation) OldConsentedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConsentedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConsentedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConsentedAt: %w", err)
+	}
+	return oldValue.ConsentedAt, nil
+}
+
+// ResetConsentedAt resets all changes to the "consented_at" field.
+func (m *ConsentLogMutation) ResetConsentedAt() {
+	m.consented_at = nil
+}
+
+// SetClientVersion sets the "client_version" field.
+func (m *ConsentLogMutation) SetClientVersion(s string) {
+	m.client_version = &s
+}
+
+// ClientVersion returns the value of the "client_version" field in the mutation.
+func (m *ConsentLogMutation) ClientVersion() (r string, exists bool) {
+	v := m.client_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClientVersion returns the old "client_version" field's value of the ConsentLog entity.
+// If the ConsentLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConsentLogMutation) OldClientVersion(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClientVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClientVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClientVersion: %w", err)
+	}
+	return oldValue.ClientVersion, nil
+}
+
+// ClearClientVersion clears the value of the "client_version" field.
+func (m *ConsentLogMutation) ClearClientVersion() {
+	m.client_version = nil
+	m.clearedFields[consentlog.FieldClientVersion] = struct{}{}
+}
+
+// ClientVersionCleared returns if the "client_version" field was cleared in this mutation.
+func (m *ConsentLogMutation) ClientVersionCleared() bool {
+	_, ok := m.clearedFields[consentlog.FieldClientVersion]
+	return ok
+}
+
+// ResetClientVersion resets all changes to the "client_version" field.
+func (m *ConsentLogMutation) ResetClientVersion() {
+	m.client_version = nil
+	delete(m.clearedFields, consentlog.FieldClientVersion)
+}
+
+// SetPlatform sets the "platform" field.
+func (m *ConsentLogMutation) SetPlatform(s string) {
+	m.platform = &s
+}
+
+// Platform returns the value of the "platform" field in the mutation.
+func (m *ConsentLogMutation) Platform() (r string, exists bool) {
+	v := m.platform
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPlatform returns the old "platform" field's value of the ConsentLog entity.
+// If the ConsentLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConsentLogMutation) OldPlatform(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPlatform is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPlatform requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPlatform: %w", err)
+	}
+	return oldValue.Platform, nil
+}
+
+// ClearPlatform clears the value of the "platform" field.
+func (m *ConsentLogMutation) ClearPlatform() {
+	m.platform = nil
+	m.clearedFields[consentlog.FieldPlatform] = struct{}{}
+}
+
+// PlatformCleared returns if the "platform" field was cleared in this mutation.
+func (m *ConsentLogMutation) PlatformCleared() bool {
+	_, ok := m.clearedFields[consentlog.FieldPlatform]
+	return ok
+}
+
+// ResetPlatform resets all changes to the "platform" field.
+func (m *ConsentLogMutation) ResetPlatform() {
+	m.platform = nil
+	delete(m.clearedFields, consentlog.FieldPlatform)
+}
+
+// SetLocale sets the "locale" field.
+func (m *ConsentLogMutation) SetLocale(s string) {
+	m.locale = &s
+}
+
+// Locale returns the value of the "locale" field in the mutation.
+func (m *ConsentLogMutation) Locale() (r string, exists bool) {
+	v := m.locale
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocale returns the old "locale" field's value of the ConsentLog entity.
+// If the ConsentLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConsentLogMutation) OldLocale(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocale is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocale requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocale: %w", err)
+	}
+	return oldValue.Locale, nil
+}
+
+// ClearLocale clears the value of the "locale" field.
+func (m *ConsentLogMutation) ClearLocale() {
+	m.locale = nil
+	m.clearedFields[consentlog.FieldLocale] = struct{}{}
+}
+
+// LocaleCleared returns if the "locale" field was cleared in this mutation.
+func (m *ConsentLogMutation) LocaleCleared() bool {
+	_, ok := m.clearedFields[consentlog.FieldLocale]
+	return ok
+}
+
+// ResetLocale resets all changes to the "locale" field.
+func (m *ConsentLogMutation) ResetLocale() {
+	m.locale = nil
+	delete(m.clearedFields, consentlog.FieldLocale)
+}
+
+// SetBuildMode sets the "build_mode" field.
+func (m *ConsentLogMutation) SetBuildMode(s string) {
+	m.build_mode = &s
+}
+
+// BuildMode returns the value of the "build_mode" field in the mutation.
+func (m *ConsentLogMutation) BuildMode() (r string, exists bool) {
+	v := m.build_mode
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBuildMode returns the old "build_mode" field's value of the ConsentLog entity.
+// If the ConsentLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConsentLogMutation) OldBuildMode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBuildMode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBuildMode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBuildMode: %w", err)
+	}
+	return oldValue.BuildMode, nil
+}
+
+// ClearBuildMode clears the value of the "build_mode" field.
+func (m *ConsentLogMutation) ClearBuildMode() {
+	m.build_mode = nil
+	m.clearedFields[consentlog.FieldBuildMode] = struct{}{}
+}
+
+// BuildModeCleared returns if the "build_mode" field was cleared in this mutation.
+func (m *ConsentLogMutation) BuildModeCleared() bool {
+	_, ok := m.clearedFields[consentlog.FieldBuildMode]
+	return ok
+}
+
+// ResetBuildMode resets all changes to the "build_mode" field.
+func (m *ConsentLogMutation) ResetBuildMode() {
+	m.build_mode = nil
+	delete(m.clearedFields, consentlog.FieldBuildMode)
+}
+
+// SetReceivedAt sets the "received_at" field.
+func (m *ConsentLogMutation) SetReceivedAt(t time.Time) {
+	m.received_at = &t
+}
+
+// ReceivedAt returns the value of the "received_at" field in the mutation.
+func (m *ConsentLogMutation) ReceivedAt() (r time.Time, exists bool) {
+	v := m.received_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReceivedAt returns the old "received_at" field's value of the ConsentLog entity.
+// If the ConsentLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConsentLogMutation) OldReceivedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReceivedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReceivedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReceivedAt: %w", err)
+	}
+	return oldValue.ReceivedAt, nil
+}
+
+// ResetReceivedAt resets all changes to the "received_at" field.
+func (m *ConsentLogMutation) ResetReceivedAt() {
+	m.received_at = nil
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (m *ConsentLogMutation) SetExpiresAt(t time.Time) {
+	m.expires_at = &t
+}
+
+// ExpiresAt returns the value of the "expires_at" field in the mutation.
+func (m *ConsentLogMutation) ExpiresAt() (r time.Time, exists bool) {
+	v := m.expires_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiresAt returns the old "expires_at" field's value of the ConsentLog entity.
+// If the ConsentLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConsentLogMutation) OldExpiresAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiresAt: %w", err)
+	}
+	return oldValue.ExpiresAt, nil
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (m *ConsentLogMutation) ClearExpiresAt() {
+	m.expires_at = nil
+	m.clearedFields[consentlog.FieldExpiresAt] = struct{}{}
+}
+
+// ExpiresAtCleared returns if the "expires_at" field was cleared in this mutation.
+func (m *ConsentLogMutation) ExpiresAtCleared() bool {
+	_, ok := m.clearedFields[consentlog.FieldExpiresAt]
+	return ok
+}
+
+// ResetExpiresAt resets all changes to the "expires_at" field.
+func (m *ConsentLogMutation) ResetExpiresAt() {
+	m.expires_at = nil
+	delete(m.clearedFields, consentlog.FieldExpiresAt)
+}
+
+// Where appends a list predicates to the ConsentLogMutation builder.
+func (m *ConsentLogMutation) Where(ps ...predicate.ConsentLog) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ConsentLogMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ConsentLogMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ConsentLog, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ConsentLogMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ConsentLogMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ConsentLog).
+func (m *ConsentLogMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ConsentLogMutation) Fields() []string {
+	fields := make([]string, 0, 16)
+	if m.created_at != nil {
+		fields = append(fields, consentlog.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, consentlog.FieldUpdatedAt)
+	}
+	if m.client_consent_id != nil {
+		fields = append(fields, consentlog.FieldClientConsentID)
+	}
+	if m.client_id != nil {
+		fields = append(fields, consentlog.FieldClientID)
+	}
+	if m.user_id != nil {
+		fields = append(fields, consentlog.FieldUserID)
+	}
+	if m.consent_type != nil {
+		fields = append(fields, consentlog.FieldConsentType)
+	}
+	if m.policy_version != nil {
+		fields = append(fields, consentlog.FieldPolicyVersion)
+	}
+	if m.granted != nil {
+		fields = append(fields, consentlog.FieldGranted)
+	}
+	if m.nickname != nil {
+		fields = append(fields, consentlog.FieldNickname)
+	}
+	if m.consented_at != nil {
+		fields = append(fields, consentlog.FieldConsentedAt)
+	}
+	if m.client_version != nil {
+		fields = append(fields, consentlog.FieldClientVersion)
+	}
+	if m.platform != nil {
+		fields = append(fields, consentlog.FieldPlatform)
+	}
+	if m.locale != nil {
+		fields = append(fields, consentlog.FieldLocale)
+	}
+	if m.build_mode != nil {
+		fields = append(fields, consentlog.FieldBuildMode)
+	}
+	if m.received_at != nil {
+		fields = append(fields, consentlog.FieldReceivedAt)
+	}
+	if m.expires_at != nil {
+		fields = append(fields, consentlog.FieldExpiresAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ConsentLogMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case consentlog.FieldCreatedAt:
+		return m.CreatedAt()
+	case consentlog.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case consentlog.FieldClientConsentID:
+		return m.ClientConsentID()
+	case consentlog.FieldClientID:
+		return m.ClientID()
+	case consentlog.FieldUserID:
+		return m.UserID()
+	case consentlog.FieldConsentType:
+		return m.ConsentType()
+	case consentlog.FieldPolicyVersion:
+		return m.PolicyVersion()
+	case consentlog.FieldGranted:
+		return m.Granted()
+	case consentlog.FieldNickname:
+		return m.Nickname()
+	case consentlog.FieldConsentedAt:
+		return m.ConsentedAt()
+	case consentlog.FieldClientVersion:
+		return m.ClientVersion()
+	case consentlog.FieldPlatform:
+		return m.Platform()
+	case consentlog.FieldLocale:
+		return m.Locale()
+	case consentlog.FieldBuildMode:
+		return m.BuildMode()
+	case consentlog.FieldReceivedAt:
+		return m.ReceivedAt()
+	case consentlog.FieldExpiresAt:
+		return m.ExpiresAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ConsentLogMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case consentlog.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case consentlog.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case consentlog.FieldClientConsentID:
+		return m.OldClientConsentID(ctx)
+	case consentlog.FieldClientID:
+		return m.OldClientID(ctx)
+	case consentlog.FieldUserID:
+		return m.OldUserID(ctx)
+	case consentlog.FieldConsentType:
+		return m.OldConsentType(ctx)
+	case consentlog.FieldPolicyVersion:
+		return m.OldPolicyVersion(ctx)
+	case consentlog.FieldGranted:
+		return m.OldGranted(ctx)
+	case consentlog.FieldNickname:
+		return m.OldNickname(ctx)
+	case consentlog.FieldConsentedAt:
+		return m.OldConsentedAt(ctx)
+	case consentlog.FieldClientVersion:
+		return m.OldClientVersion(ctx)
+	case consentlog.FieldPlatform:
+		return m.OldPlatform(ctx)
+	case consentlog.FieldLocale:
+		return m.OldLocale(ctx)
+	case consentlog.FieldBuildMode:
+		return m.OldBuildMode(ctx)
+	case consentlog.FieldReceivedAt:
+		return m.OldReceivedAt(ctx)
+	case consentlog.FieldExpiresAt:
+		return m.OldExpiresAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown ConsentLog field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ConsentLogMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case consentlog.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case consentlog.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case consentlog.FieldClientConsentID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClientConsentID(v)
+		return nil
+	case consentlog.FieldClientID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClientID(v)
+		return nil
+	case consentlog.FieldUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case consentlog.FieldConsentType:
+		v, ok := value.(consentlog.ConsentType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConsentType(v)
+		return nil
+	case consentlog.FieldPolicyVersion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPolicyVersion(v)
+		return nil
+	case consentlog.FieldGranted:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGranted(v)
+		return nil
+	case consentlog.FieldNickname:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNickname(v)
+		return nil
+	case consentlog.FieldConsentedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConsentedAt(v)
+		return nil
+	case consentlog.FieldClientVersion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClientVersion(v)
+		return nil
+	case consentlog.FieldPlatform:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPlatform(v)
+		return nil
+	case consentlog.FieldLocale:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocale(v)
+		return nil
+	case consentlog.FieldBuildMode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBuildMode(v)
+		return nil
+	case consentlog.FieldReceivedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReceivedAt(v)
+		return nil
+	case consentlog.FieldExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiresAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ConsentLog field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ConsentLogMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ConsentLogMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ConsentLogMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ConsentLog numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ConsentLogMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(consentlog.FieldUserID) {
+		fields = append(fields, consentlog.FieldUserID)
+	}
+	if m.FieldCleared(consentlog.FieldNickname) {
+		fields = append(fields, consentlog.FieldNickname)
+	}
+	if m.FieldCleared(consentlog.FieldClientVersion) {
+		fields = append(fields, consentlog.FieldClientVersion)
+	}
+	if m.FieldCleared(consentlog.FieldPlatform) {
+		fields = append(fields, consentlog.FieldPlatform)
+	}
+	if m.FieldCleared(consentlog.FieldLocale) {
+		fields = append(fields, consentlog.FieldLocale)
+	}
+	if m.FieldCleared(consentlog.FieldBuildMode) {
+		fields = append(fields, consentlog.FieldBuildMode)
+	}
+	if m.FieldCleared(consentlog.FieldExpiresAt) {
+		fields = append(fields, consentlog.FieldExpiresAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ConsentLogMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ConsentLogMutation) ClearField(name string) error {
+	switch name {
+	case consentlog.FieldUserID:
+		m.ClearUserID()
+		return nil
+	case consentlog.FieldNickname:
+		m.ClearNickname()
+		return nil
+	case consentlog.FieldClientVersion:
+		m.ClearClientVersion()
+		return nil
+	case consentlog.FieldPlatform:
+		m.ClearPlatform()
+		return nil
+	case consentlog.FieldLocale:
+		m.ClearLocale()
+		return nil
+	case consentlog.FieldBuildMode:
+		m.ClearBuildMode()
+		return nil
+	case consentlog.FieldExpiresAt:
+		m.ClearExpiresAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ConsentLog nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ConsentLogMutation) ResetField(name string) error {
+	switch name {
+	case consentlog.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case consentlog.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case consentlog.FieldClientConsentID:
+		m.ResetClientConsentID()
+		return nil
+	case consentlog.FieldClientID:
+		m.ResetClientID()
+		return nil
+	case consentlog.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case consentlog.FieldConsentType:
+		m.ResetConsentType()
+		return nil
+	case consentlog.FieldPolicyVersion:
+		m.ResetPolicyVersion()
+		return nil
+	case consentlog.FieldGranted:
+		m.ResetGranted()
+		return nil
+	case consentlog.FieldNickname:
+		m.ResetNickname()
+		return nil
+	case consentlog.FieldConsentedAt:
+		m.ResetConsentedAt()
+		return nil
+	case consentlog.FieldClientVersion:
+		m.ResetClientVersion()
+		return nil
+	case consentlog.FieldPlatform:
+		m.ResetPlatform()
+		return nil
+	case consentlog.FieldLocale:
+		m.ResetLocale()
+		return nil
+	case consentlog.FieldBuildMode:
+		m.ResetBuildMode()
+		return nil
+	case consentlog.FieldReceivedAt:
+		m.ResetReceivedAt()
+		return nil
+	case consentlog.FieldExpiresAt:
+		m.ResetExpiresAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ConsentLog field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ConsentLogMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ConsentLogMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ConsentLogMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ConsentLogMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ConsentLogMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ConsentLogMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ConsentLogMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown ConsentLog unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ConsentLogMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown ConsentLog edge %s", name)
 }
 
 // EventLogMutation represents an operation that mutates the EventLog nodes in the graph.

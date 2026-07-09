@@ -122,11 +122,12 @@ func main() {
 		ExhibitionGate: deps.ExhibitionGate,
 		StoveHandler:  deps.StoveHandler,
 		SteamHandler:  deps.SteamHandler,
-		UserHandler:     deps.UserHandler,
-		RecordHandler:   deps.RecordHandler,
-		EventLogHandler: deps.EventLogHandler,
-		MusicHandler:    deps.MusicHandler,
-		StageHandler:    deps.StageHandler,
+		UserHandler:       deps.UserHandler,
+		RecordHandler:     deps.RecordHandler,
+		EventLogHandler:   deps.EventLogHandler,
+		ConsentLogHandler: deps.ConsentLogHandler,
+		MusicHandler:      deps.MusicHandler,
+		StageHandler:      deps.StageHandler,
 	})
 
 	// 9. 서버 시작

@@ -33,6 +33,18 @@ func (f CharacterFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CharacterMutation", m)
 }
 
+// The ConsentLogFunc type is an adapter to allow the use of ordinary
+// function as ConsentLog mutator.
+type ConsentLogFunc func(context.Context, *ent.ConsentLogMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ConsentLogFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ConsentLogMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ConsentLogMutation", m)
+}
+
 // The EventLogFunc type is an adapter to allow the use of ordinary
 // function as EventLog mutator.
 type EventLogFunc func(context.Context, *ent.EventLogMutation) (ent.Value, error)

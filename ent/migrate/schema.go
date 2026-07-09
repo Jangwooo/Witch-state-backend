@@ -62,6 +62,54 @@ var (
 		Columns:    CharactersColumns,
 		PrimaryKey: []*schema.Column{CharactersColumns[0]},
 	}
+	// ConsentLogsColumns holds the columns for the "consent_logs" table.
+	ConsentLogsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "client_consent_id", Type: field.TypeUUID, Unique: true},
+		{Name: "client_id", Type: field.TypeUUID},
+		{Name: "user_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "consent_type", Type: field.TypeEnum, Enums: []string{"eula", "privacy"}},
+		{Name: "policy_version", Type: field.TypeString, Size: 64},
+		{Name: "granted", Type: field.TypeBool},
+		{Name: "nickname", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "consented_at", Type: field.TypeTime},
+		{Name: "client_version", Type: field.TypeString, Nullable: true, Size: 32},
+		{Name: "platform", Type: field.TypeString, Nullable: true, Size: 32},
+		{Name: "locale", Type: field.TypeString, Nullable: true, Size: 16},
+		{Name: "build_mode", Type: field.TypeString, Nullable: true, Size: 32},
+		{Name: "received_at", Type: field.TypeTime},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
+	}
+	// ConsentLogsTable holds the schema information for the "consent_logs" table.
+	ConsentLogsTable = &schema.Table{
+		Name:       "consent_logs",
+		Columns:    ConsentLogsColumns,
+		PrimaryKey: []*schema.Column{ConsentLogsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "consentlog_client_id",
+				Unique:  false,
+				Columns: []*schema.Column{ConsentLogsColumns[4]},
+			},
+			{
+				Name:    "consentlog_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{ConsentLogsColumns[5]},
+			},
+			{
+				Name:    "consentlog_ctype_pversion",
+				Unique:  false,
+				Columns: []*schema.Column{ConsentLogsColumns[6], ConsentLogsColumns[7]},
+			},
+			{
+				Name:    "consentlog_expires_at",
+				Unique:  false,
+				Columns: []*schema.Column{ConsentLogsColumns[16]},
+			},
+		},
+	}
 	// EventLogsColumns holds the columns for the "event_logs" table.
 	EventLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -426,6 +474,7 @@ var (
 	Tables = []*schema.Table{
 		AchievementsTable,
 		CharactersTable,
+		ConsentLogsTable,
 		EventLogsTable,
 		ItemsTable,
 		MusicsTable,

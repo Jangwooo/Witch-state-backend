@@ -78,6 +78,7 @@ func (User) Edges() []ent.Edge {
 			Through("user_purchases", UserPurchase.Type),
 		edge.To("records", Record.Type),
 		edge.To("event_logs", EventLog.Type),
+		// consent_logs 는 user_id 에 FK 를 걸지 않으므로 역엣지 없음 (consent-log §0-3).
 		edge.To("user_achievements", UserAchievement.Type),
 	}
 }

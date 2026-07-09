@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/witchs-lounge_backend/ent/achievement"
 	"github.com/witchs-lounge_backend/ent/character"
+	"github.com/witchs-lounge_backend/ent/consentlog"
 	"github.com/witchs-lounge_backend/ent/eventlog"
 	"github.com/witchs-lounge_backend/ent/item"
 	"github.com/witchs-lounge_backend/ent/music"
@@ -78,6 +79,67 @@ func init() {
 	characterDescID := characterMixinFields0[0].Descriptor()
 	// character.DefaultID holds the default value on creation for the id field.
 	character.DefaultID = characterDescID.Default.(func() uuid.UUID)
+	consentlogMixin := schema.ConsentLog{}.Mixin()
+	consentlogMixinFields0 := consentlogMixin[0].Fields()
+	_ = consentlogMixinFields0
+	consentlogFields := schema.ConsentLog{}.Fields()
+	_ = consentlogFields
+	// consentlogDescCreatedAt is the schema descriptor for created_at field.
+	consentlogDescCreatedAt := consentlogMixinFields0[1].Descriptor()
+	// consentlog.DefaultCreatedAt holds the default value on creation for the created_at field.
+	consentlog.DefaultCreatedAt = consentlogDescCreatedAt.Default.(func() time.Time)
+	// consentlogDescUpdatedAt is the schema descriptor for updated_at field.
+	consentlogDescUpdatedAt := consentlogMixinFields0[2].Descriptor()
+	// consentlog.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	consentlog.DefaultUpdatedAt = consentlogDescUpdatedAt.Default.(func() time.Time)
+	// consentlog.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	consentlog.UpdateDefaultUpdatedAt = consentlogDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// consentlogDescPolicyVersion is the schema descriptor for policy_version field.
+	consentlogDescPolicyVersion := consentlogFields[4].Descriptor()
+	// consentlog.PolicyVersionValidator is a validator for the "policy_version" field. It is called by the builders before save.
+	consentlog.PolicyVersionValidator = func() func(string) error {
+		validators := consentlogDescPolicyVersion.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(policy_version string) error {
+			for _, fn := range fns {
+				if err := fn(policy_version); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// consentlogDescNickname is the schema descriptor for nickname field.
+	consentlogDescNickname := consentlogFields[6].Descriptor()
+	// consentlog.NicknameValidator is a validator for the "nickname" field. It is called by the builders before save.
+	consentlog.NicknameValidator = consentlogDescNickname.Validators[0].(func(string) error)
+	// consentlogDescClientVersion is the schema descriptor for client_version field.
+	consentlogDescClientVersion := consentlogFields[8].Descriptor()
+	// consentlog.ClientVersionValidator is a validator for the "client_version" field. It is called by the builders before save.
+	consentlog.ClientVersionValidator = consentlogDescClientVersion.Validators[0].(func(string) error)
+	// consentlogDescPlatform is the schema descriptor for platform field.
+	consentlogDescPlatform := consentlogFields[9].Descriptor()
+	// consentlog.PlatformValidator is a validator for the "platform" field. It is called by the builders before save.
+	consentlog.PlatformValidator = consentlogDescPlatform.Validators[0].(func(string) error)
+	// consentlogDescLocale is the schema descriptor for locale field.
+	consentlogDescLocale := consentlogFields[10].Descriptor()
+	// consentlog.LocaleValidator is a validator for the "locale" field. It is called by the builders before save.
+	consentlog.LocaleValidator = consentlogDescLocale.Validators[0].(func(string) error)
+	// consentlogDescBuildMode is the schema descriptor for build_mode field.
+	consentlogDescBuildMode := consentlogFields[11].Descriptor()
+	// consentlog.BuildModeValidator is a validator for the "build_mode" field. It is called by the builders before save.
+	consentlog.BuildModeValidator = consentlogDescBuildMode.Validators[0].(func(string) error)
+	// consentlogDescReceivedAt is the schema descriptor for received_at field.
+	consentlogDescReceivedAt := consentlogFields[12].Descriptor()
+	// consentlog.DefaultReceivedAt holds the default value on creation for the received_at field.
+	consentlog.DefaultReceivedAt = consentlogDescReceivedAt.Default.(func() time.Time)
+	// consentlogDescID is the schema descriptor for id field.
+	consentlogDescID := consentlogMixinFields0[0].Descriptor()
+	// consentlog.DefaultID holds the default value on creation for the id field.
+	consentlog.DefaultID = consentlogDescID.Default.(func() uuid.UUID)
 	eventlogMixin := schema.EventLog{}.Mixin()
 	eventlogMixinFields0 := eventlogMixin[0].Fields()
 	_ = eventlogMixinFields0

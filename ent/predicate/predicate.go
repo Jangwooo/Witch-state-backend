@@ -12,6 +12,9 @@ type Achievement func(*sql.Selector)
 // Character is the predicate function for character builders.
 type Character func(*sql.Selector)
 
+// ConsentLog is the predicate function for consentlog builders.
+type ConsentLog func(*sql.Selector)
+
 // EventLog is the predicate function for eventlog builders.
 type EventLog func(*sql.Selector)
 
