@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -87,7 +88,7 @@ func (u *steamUseCase) SignInWithSteam(ctx context.Context, steamID string, tick
 	if steamID == "" || ticket == "" {
 		return nil, newAuthError("steam_id and ticket are required")
 	}
-	if u.apiKey == "" || u.appID == "" {
+	if u.apiKey == "" || len(u.appIDs) == 0 {
 		return nil, fmt.Errorf("steam auth config missing")
 	}
 
@@ -96,7 +97,9 @@ func (u *steamUseCase) SignInWithSteam(ctx context.Context, steamID string, tick
 		return nil, newAuthError("invalid steam ticket")
 	}
 
-	params, err := u.authenticateTicket(ctx, normalizedTicket)
+	// 티켓은 발급된 App ID에 종속되므로, 허용 목록의 각 App ID로 검증을 시도해
+	// 최초로 성공한 App ID를 "인증된 App ID"로 확정한다(첫 성공 즉시 중단).
+	params, authedAppID, err := u.authenticateTicket(ctx, normalizedTicket)
 	if err != nil {
 		return nil, err
 	}
@@ -110,11 +113,14 @@ func (u *steamUseCase) SignInWithSteam(ctx context.Context, steamID string, tick
 	}
 
 	if u.requireOwnership {
-		ownsApp, err := u.checkAppOwnership(ctx, params.SteamID)
+		// 티켓이 통과한 App ID로만 소유권을 확인하면 충분하다(그 App으로 티켓이
+		// 검증됐다는 건 해당 유저가 그 App 세션을 가졌다는 의미).
+		ownsApp, err := u.checkSingleAppOwnership(ctx, params.SteamID, authedAppID)
 		if err != nil {
 			return nil, err
 		}
 		if !ownsApp {
+			log.Printf("[steam signin] ownership check failed: steamid=%s appid=%s", params.SteamID, authedAppID)
 			return nil, newAuthError("steam app ownership required")
 		}
 	}
@@ -256,7 +262,36 @@ type steamAuthResponse struct {
 	} `json:"response"`
 }
 
-func (u *steamUseCase) authenticateTicket(ctx context.Context, ticket string) (*steamAuthParams, error) {
+// authenticateTicket 허용된 App ID 목록으로 티켓 검증을 순차 시도한다.
+// 최초로 검증에 성공한 App ID를 함께 반환하며, 첫 성공에서 즉시 중단한다.
+// 전부 실패하면 마지막 실패 사유(예: "Ticket for other app")를 401로 전달한다.
+func (u *steamUseCase) authenticateTicket(ctx context.Context, ticket string) (*steamAuthParams, string, error) {
+	appIDs := u.appIDs
+	if len(appIDs) == 0 {
+		appIDs = []string{u.appID}
+	}
+
+	var lastErr error
+	for _, appID := range appIDs {
+		params, err := u.authenticateTicketForApp(ctx, ticket, appID)
+		if err != nil {
+			// "Ticket for other app" 등 검증 실패는 다음 App ID로 계속 시도.
+			lastErr = err
+			continue
+		}
+		log.Printf("[steam signin] ticket auth ok: steamid=%s appid=%s", params.SteamID, appID)
+		return params, appID, nil
+	}
+
+	log.Printf("[steam signin] ticket auth failed for all appids=%v: %v", appIDs, lastErr)
+	if lastErr == nil {
+		lastErr = newAuthError("steam authentication failed")
+	}
+	return nil, "", lastErr
+}
+
+// authenticateTicketForApp 단일 App ID로 티켓을 검증한다.
+func (u *steamUseCase) authenticateTicketForApp(ctx context.Context, ticket string, appID string) (*steamAuthParams, error) {
 	endpoint, err := url.Parse(u.apiBase + "/ISteamUserAuth/AuthenticateUserTicket/v1/")
 	if err != nil {
 		return nil, err
@@ -264,7 +299,7 @@ func (u *steamUseCase) authenticateTicket(ctx context.Context, ticket string) (*
 
 	query := endpoint.Query()
 	query.Set("key", u.apiKey)
-	query.Set("appid", u.appID)
+	query.Set("appid", appID)
 	query.Set("ticket", ticket)
 	if u.identity != "" {
 		query.Set("identity", u.identity)
@@ -354,35 +389,6 @@ type steamOwnership struct {
 type steamOwnershipResponse struct {
 	AppOwnership steamOwnership `json:"appownership"`
 	Response     steamOwnership `json:"response"`
-}
-
-// checkAppOwnership 허용된 App ID 목록 중 하나라도 소유하면 true를 반환한다.
-// 첫 성공에서 즉시 통과(short-circuit)하여 Steam Web API 왕복을 최소화한다.
-// 목록이 비어 있으면 기존 단일 appID로 폴백한다.
-func (u *steamUseCase) checkAppOwnership(ctx context.Context, steamID string) (bool, error) {
-	appIDs := u.appIDs
-	if len(appIDs) == 0 {
-		appIDs = []string{u.appID}
-	}
-
-	var lastErr error
-	for _, appID := range appIDs {
-		owns, err := u.checkSingleAppOwnership(ctx, steamID, appID)
-		if err != nil {
-			// 한 App ID 조회가 실패해도 다음 App ID를 계속 시도한다.
-			lastErr = err
-			continue
-		}
-		if owns {
-			return true, nil
-		}
-	}
-
-	// 모두 미소유이고 조회 중 에러가 있었다면 그 에러를 전달(설정/네트워크 문제 구분용).
-	if lastErr != nil {
-		return false, lastErr
-	}
-	return false, nil
 }
 
 // checkSingleAppOwnership 단일 App ID에 대한 소유권을 조회한다.
