@@ -32,12 +32,26 @@ type steamUseCase struct {
 	apiBase          string
 	apiKey           string
 	appID            string
+	appIDs           []string
 	identity         string
 	requireOwnership bool
 }
 
 // NewSteamUseCase Steam UseCase 생성자
 func NewSteamUseCase(userRepo repository.UserRepository, sessionStore session.SessionStore, hmacCfg *hmacauth.Config) SteamUseCase {
+	// 소유권 검사에 쓸 App ID 목록을 확정한다.
+	// STEAM_APP_IDS(콤마 구분) 우선. 비어 있으면 기존 STEAM_APP_ID 단일값으로 폴백(하위호환).
+	appIDs := parseAppIDs(viper.GetString("STEAM_APP_IDS"))
+	appID := viper.GetString("STEAM_APP_ID")
+	if len(appIDs) == 0 && appID != "" {
+		appIDs = []string{appID}
+	}
+	// 티켓 검증(AuthenticateUserTicket)은 단일 appid만 받으므로 primary를 정한다.
+	// STEAM_APP_ID가 있으면 그것을, 없으면 목록의 첫 값을 primary로 사용.
+	if appID == "" && len(appIDs) > 0 {
+		appID = appIDs[0]
+	}
+
 	return &steamUseCase{
 		userRepo:     userRepo,
 		sessionStore: sessionStore,
@@ -47,10 +61,25 @@ func NewSteamUseCase(userRepo repository.UserRepository, sessionStore session.Se
 		},
 		apiBase:          strings.TrimRight(getEnv("STEAM_WEB_API_BASE", "https://api.steampowered.com"), "/"),
 		apiKey:           viper.GetString("STEAM_WEB_API_KEY"),
-		appID:            viper.GetString("STEAM_APP_ID"),
+		appID:            appID,
+		appIDs:           appIDs,
 		identity:         viper.GetString("STEAM_TICKET_IDENTITY"),
 		requireOwnership: strings.EqualFold(getEnv("STEAM_REQUIRE_OWNERSHIP", "true"), "true"),
 	}
+}
+
+// parseAppIDs 콤마 구분 문자열을 App ID 슬라이스로 파싱한다. 공백/빈 항목은 제거.
+func parseAppIDs(raw string) []string {
+	if strings.TrimSpace(raw) == "" {
+		return nil
+	}
+	var ids []string
+	for _, part := range strings.Split(raw, ",") {
+		if id := strings.TrimSpace(part); id != "" {
+			ids = append(ids, id)
+		}
+	}
+	return ids
 }
 
 // SignInWithSteam 유저 검증 및 세션 생성
@@ -327,7 +356,37 @@ type steamOwnershipResponse struct {
 	Response     steamOwnership `json:"response"`
 }
 
+// checkAppOwnership 허용된 App ID 목록 중 하나라도 소유하면 true를 반환한다.
+// 첫 성공에서 즉시 통과(short-circuit)하여 Steam Web API 왕복을 최소화한다.
+// 목록이 비어 있으면 기존 단일 appID로 폴백한다.
 func (u *steamUseCase) checkAppOwnership(ctx context.Context, steamID string) (bool, error) {
+	appIDs := u.appIDs
+	if len(appIDs) == 0 {
+		appIDs = []string{u.appID}
+	}
+
+	var lastErr error
+	for _, appID := range appIDs {
+		owns, err := u.checkSingleAppOwnership(ctx, steamID, appID)
+		if err != nil {
+			// 한 App ID 조회가 실패해도 다음 App ID를 계속 시도한다.
+			lastErr = err
+			continue
+		}
+		if owns {
+			return true, nil
+		}
+	}
+
+	// 모두 미소유이고 조회 중 에러가 있었다면 그 에러를 전달(설정/네트워크 문제 구분용).
+	if lastErr != nil {
+		return false, lastErr
+	}
+	return false, nil
+}
+
+// checkSingleAppOwnership 단일 App ID에 대한 소유권을 조회한다.
+func (u *steamUseCase) checkSingleAppOwnership(ctx context.Context, steamID string, appID string) (bool, error) {
 	endpoint, err := url.Parse(u.apiBase + "/ISteamUser/CheckAppOwnership/v4/")
 	if err != nil {
 		return false, err
@@ -336,7 +395,7 @@ func (u *steamUseCase) checkAppOwnership(ctx context.Context, steamID string) (b
 	query := endpoint.Query()
 	query.Set("key", u.apiKey)
 	query.Set("steamid", steamID)
-	query.Set("appid", u.appID)
+	query.Set("appid", appID)
 	endpoint.RawQuery = query.Encode()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint.String(), nil)

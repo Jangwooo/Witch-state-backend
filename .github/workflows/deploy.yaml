@@ -79,6 +79,7 @@ jobs:
             REDIS_DB='${{ secrets.REDIS_DB }}'
             STEAM_WEB_API_KEY='${{ secrets.STEAM_WEB_API_KEY }}'
             STEAM_APP_ID='${{ secrets.STEAM_APP_ID }}'
+            STEAM_APP_IDS='${{ secrets.STEAM_APP_IDS }}'
             STOVE_CLIENT_ID='${{ secrets.STOVE_CLIENT_ID }}'
             STOVE_CLIENT_SECRET='${{ secrets.STOVE_CLIENT_SECRET }}'
             STOVE_SERVICE_ID='${{ secrets.STOVE_SERVICE_ID }}'
