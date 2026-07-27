@@ -83,6 +83,13 @@ jobs:
             STOVE_CLIENT_ID='${{ secrets.STOVE_CLIENT_ID }}'
             STOVE_CLIENT_SECRET='${{ secrets.STOVE_CLIENT_SECRET }}'
             STOVE_SERVICE_ID='${{ secrets.STOVE_SERVICE_ID }}'
+            STEAM_TICKET_IDENTITY='${{ secrets.STEAM_TICKET_IDENTITY }}'
+            EXHIBITION_KEY='${{ secrets.EXHIBITION_KEY }}'
+            EXHIBITION_USER_ID='${{ secrets.EXHIBITION_USER_ID }}'
+            HMAC_MODE='${{ secrets.HMAC_MODE }}'
+            HMAC_ENFORCE_PLATFORM_IDS='${{ secrets.HMAC_ENFORCE_PLATFORM_IDS }}'
+            HMAC_ENFORCE_PCT='${{ secrets.HMAC_ENFORCE_PCT }}'
+            SANITY_MODE='${{ secrets.SANITY_MODE }}'
             EOF
 
       # ----------------------------------------------------
