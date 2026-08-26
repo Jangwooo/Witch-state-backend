@@ -22,7 +22,7 @@ type CreateRecordRequest struct {
 	MissCount     int                    `json:"miss_count"`
 	MaxCombo      int                    `json:"max_combo"`
 	Accuracy      float64                `json:"accuracy"`
-	Rank          string                 `json:"rank"`
+	Rank          string                 `json:"rank" validate:"omitempty,oneof=F D D_P C C_P B B_P A A_P S SS SSS"`
 	IsFullCombo   bool                   `json:"is_full_combo"`
 	IsPerfectPlay bool                   `json:"is_perfect_play"`
 	GameStatus    string                 `json:"game_status" validate:"omitempty,oneof=completed gave_up retry failed"`

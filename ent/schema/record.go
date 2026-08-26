@@ -44,8 +44,8 @@ func (Record) Fields() []ent.Field {
 			Comment("최대 콤보"),
 		field.Float("accuracy").Default(0).
 			Comment("정확도 (%)"),
-		field.Enum("rank").Values("F", "D", "C", "B", "A", "S", "SS", "SSS").Optional().
-			Comment("랭크"),
+		field.Enum("rank").Values("F", "D", "D_P", "C", "C_P", "B", "B_P", "A", "A_P", "S", "SS", "SSS").Optional().
+			Comment("랭크. _P 접미사는 Plus 등급(예: A_P = A+). S 이상은 Plus 없음."),
 		field.Bool("is_full_combo").Default(false).
 			Comment("풀콤보 여부"),
 		field.Bool("is_perfect_play").Default(false).

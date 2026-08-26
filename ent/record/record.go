@@ -168,9 +168,13 @@ type Rank string
 const (
 	RankF   Rank = "F"
 	RankD   Rank = "D"
+	RankD_P Rank = "D_P"
 	RankC   Rank = "C"
+	RankC_P Rank = "C_P"
 	RankB   Rank = "B"
+	RankB_P Rank = "B_P"
 	RankA   Rank = "A"
+	RankA_P Rank = "A_P"
 	RankS   Rank = "S"
 	RankSS  Rank = "SS"
 	RankSSS Rank = "SSS"
@@ -183,7 +187,7 @@ func (r Rank) String() string {
 // RankValidator is a validator for the "rank" field enum values. It is called by the builders before save.
 func RankValidator(r Rank) error {
 	switch r {
-	case RankF, RankD, RankC, RankB, RankA, RankS, RankSS, RankSSS:
+	case RankF, RankD, RankD_P, RankC, RankC_P, RankB, RankB_P, RankA, RankA_P, RankS, RankSS, RankSSS:
 		return nil
 	default:
 		return fmt.Errorf("record: invalid enum value for rank field: %q", r)

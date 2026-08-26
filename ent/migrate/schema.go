@@ -233,7 +233,7 @@ var (
 		{Name: "miss_count", Type: field.TypeInt, Default: 0},
 		{Name: "max_combo", Type: field.TypeInt, Default: 0},
 		{Name: "accuracy", Type: field.TypeFloat64, Default: 0},
-		{Name: "rank", Type: field.TypeEnum, Nullable: true, Enums: []string{"F", "D", "C", "B", "A", "S", "SS", "SSS"}},
+		{Name: "rank", Type: field.TypeEnum, Nullable: true, Enums: []string{"F", "D", "D_P", "C", "C_P", "B", "B_P", "A", "A_P", "S", "SS", "SSS"}},
 		{Name: "is_full_combo", Type: field.TypeBool, Default: false},
 		{Name: "is_perfect_play", Type: field.TypeBool, Default: false},
 		{Name: "game_status", Type: field.TypeEnum, Enums: []string{"completed", "gave_up", "retry", "failed"}, Default: "completed"},

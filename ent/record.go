@@ -47,7 +47,7 @@ type Record struct {
 	MaxCombo int `json:"max_combo,omitempty"`
 	// 정확도 (%)
 	Accuracy float64 `json:"accuracy,omitempty"`
-	// 랭크
+	// 랭크. _P 접미사는 Plus 등급(예: A_P = A+). S 이상은 Plus 없음.
 	Rank record.Rank `json:"rank,omitempty"`
 	// 풀콤보 여부
 	IsFullCombo bool `json:"is_full_combo,omitempty"`
