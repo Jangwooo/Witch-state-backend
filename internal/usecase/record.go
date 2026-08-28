@@ -162,7 +162,7 @@ func (u *recordUseCase) applyExpGain(ctx context.Context, userID uuid.UUID, req 
 		return nil, err
 	}
 
-	coeff, err := u.progressionRepo.GetRankCoefficient(ctx, req.Rank)
+	coeff, err := u.progressionRepo.GetRankCoefficient(ctx, entity.NormalizeRankForCoefficient(req.Rank))
 	if err != nil {
 		return nil, err
 	}

@@ -186,8 +186,10 @@ func (u *recordUseCase) logDuplicatePayloadMismatch(existing *entity.Record, inc
 	if existing.Accuracy != incoming.Accuracy {
 		diff["accuracy"] = [2]float64{existing.Accuracy, incoming.Accuracy}
 	}
-	if string(existing.Rank) != incoming.Rank {
-		diff["rank"] = [2]string{string(existing.Rank), incoming.Rank}
+	// 저장 표기('_P')끼리 비교한다. incoming 은 정규화 전 원문이라 '+' 표기일 수 있어
+	// 그대로 비교하면 동일 기록이 mismatch 로 잡힌다.
+	if incomingRank := entity.NormalizeRankForStorage(incoming.Rank); string(existing.Rank) != incomingRank {
+		diff["rank"] = [2]string{string(existing.Rank), incomingRank}
 	}
 	if len(diff) == 0 {
 		return // 동일 페이로드 — 로그 불필요

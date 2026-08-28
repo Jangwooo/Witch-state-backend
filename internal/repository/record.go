@@ -38,7 +38,7 @@ func (r *recordRepository) create(ctx context.Context, userID uuid.UUID, clientR
 		SetMissCount(req.MissCount).
 		SetMaxCombo(req.MaxCombo).
 		SetAccuracy(req.Accuracy).
-		SetRank(record.Rank(req.Rank)).
+		SetRank(record.Rank(entity.NormalizeRankForStorage(req.Rank))).
 		SetIsFullCombo(req.IsFullCombo).
 		SetIsPerfectPlay(req.IsPerfectPlay)
 
